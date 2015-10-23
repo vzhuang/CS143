@@ -16,9 +16,4 @@ Router::Router() {
 	build_table(my_table);
 }
 
-int main () {
-	Router router1;
-	return 0;
-}
-
 
