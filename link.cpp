@@ -5,7 +5,6 @@
 using namespace std;
 
 Link::Link() {
-	// Initialize queue in here?
 }
 
 void Link::set_values(int cap, int flow, int delay, int buf) {
@@ -23,6 +22,19 @@ void Link::add_to_buffer(Naive_Packet packet) {
 	// Else, the buffer is full. The packet is dropped.
 }
 
+Naive_Packet Link::transmit_packet() {
+	// The packet at the front of the buffer is transmitted.
+	Naive_Packet transmitted_packet = buffer.front();
+	// Dequeue transmitted packet from the buffer.
+	buffer.pop();
+	printf("Dequeued from buffer.\n");
+	return transmitted_packet;
+}
+
+/*
+* Calculate link cost based on static component (transmission delay) and
+* dynamic component (flow rate).
+*/
 int Link::calculate_cost(int delay, int flowrate, bool direction) {
 	int cost = delay + flowrate;
 	return cost;

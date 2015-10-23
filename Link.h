@@ -31,4 +31,6 @@ public:
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
 	int calculate_cost(int delay, int flowrate, bool direction);
+
+	Naive_Packet transmit_packet();
 };
