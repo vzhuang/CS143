@@ -2,6 +2,7 @@
 //#include <unordered_map>
 #include <vector>
 #include <string>
+#include <router.h>
 
 using namespace std;
 
@@ -15,16 +16,6 @@ void Router::build_table (vector<int> source, vector<int> dest) {
 Router::Router() {
 	build_table(my_table.source, my_table.dest);
 }
-// Packet Class
-class Naive_Packet {
-	int my_data;
-	string source;
-	string destination;
-
-public:
-	void build_table();
-};
-
 
 int main () {
 	Router router1;

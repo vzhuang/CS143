@@ -5,11 +5,6 @@
 
 using namespace std;
 
-struct routing_table {
-	vector<int> source;
-	vector<int> dest;
-};
-
 // Router Class
 class Router {
 	//vector<Link> my_links;
@@ -18,4 +13,9 @@ class Router {
 public:
 	void build_table(vector<int> source, vector<int> dest);
 	Router();
+};
+
+struct routing_table {
+	vector<int> source;
+	vector<int> dest;
 };
