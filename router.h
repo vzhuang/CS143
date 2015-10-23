@@ -1,3 +1,5 @@
+#ifndef ROUTER_H
+#define ROUTER_H
 #include <iostream>
 //#include <unordered_map>
 #include <vector>
@@ -18,3 +20,5 @@ public:
 	void build_table(routing_table table);
 	Router();
 };
+
+#endif

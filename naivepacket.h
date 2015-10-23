@@ -1,3 +1,6 @@
+#ifndef NAIVEPACKET_H
+#define NAIVEPACKET_H
+
 #include <string>
 using namespace std;
 
@@ -12,3 +15,5 @@ public:
 	Naive_Packet(int my_data, int my_index, string my_source, string my_dest);
 
 };
+
+#endif
