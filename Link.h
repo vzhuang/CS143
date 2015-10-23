@@ -1,3 +1,11 @@
+/*
+ * FILE: linked_list.h
+ *
+ */
+
+#ifndef LINK_H
+#define LINK_H
+
 #include <iostream>
 #include <queue>
 #include "naivepacket.h"
@@ -34,3 +42,5 @@ public:
 
 	Naive_Packet transmit_packet();
 };
+
+#endif  /* LINK_H */

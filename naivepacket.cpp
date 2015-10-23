@@ -7,6 +7,6 @@ Naive_Packet::Naive_Packet(int my_data, int my_index, string my_source, string m
 	data = my_data;
 	index = my_index;
 	source = my_source;
-	destination = my_destination;
+	dest = my_dest;
 }
 	

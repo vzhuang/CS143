@@ -3,12 +3,12 @@ using namespace std;
 
 // Packet Class
 class Naive_Packet {
-	int my_data;
+	int data;
 	int index;
 	string source;
-	string destination;
+	string dest;
 
 public:
-	Naive_Packet();
+	Naive_Packet(int my_data, int my_index, string my_source, string my_dest);
 
 };
