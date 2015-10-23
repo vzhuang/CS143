@@ -14,7 +14,7 @@ void Link::set_values(int cap, int flow, int delay, int buf) {
 	buffersize = buf;
 }
 
-void Link::add_to_buffer(Naive_Packet packet) {
+void Link::add_to_buffer(Naive_Packet::Naive_Packet packet) {
 	// If the buffer is not full, enqueue the incoming packet.
 	if (buffer.size() < buffersize) {
 		buffer.push(packet);
@@ -22,9 +22,9 @@ void Link::add_to_buffer(Naive_Packet packet) {
 	// Else, the buffer is full. The packet is dropped.
 }
 
-Naive_Packet Link::transmit_packet() {
+Naive_Packet::Naive_Packet Link::transmit_packet() {
 	// The packet at the front of the buffer is transmitted.
-	Naive_Packet transmitted_packet = buffer.front();
+	Naive_Packet:Naive_Packet transmitted_packet = buffer.front();
 	// Dequeue transmitted packet from the buffer.
 	buffer.pop();
 	printf("Dequeued from buffer.\n");
