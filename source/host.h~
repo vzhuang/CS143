@@ -17,8 +17,6 @@ public:
 	Host(Link * my_link, string my_ip);
 	// Specify the link attached to this host
 	void set_link(Link * my_link);
-	//Return the ip of this host
-	string get_ip();
 };
 
 #endif  /* HOST_H */

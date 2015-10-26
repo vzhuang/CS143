@@ -9,7 +9,7 @@ FLAGS = -g -std=c++11
 # folder--which your program will depend on--is located one directory above the
 # directory that contains this Makefile.
 INCLUDE =
-SOURCES = main.cpp naivepacket.cpp link.cpp router.cpp host.cpp
+SOURCES = main.cpp naivepacket.cpp link.cpp router.cpp 
 
 EXENAME = proj
 

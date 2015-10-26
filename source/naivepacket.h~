@@ -18,8 +18,6 @@ public:
 	string get_source();
 	//Return IP address of dest
 	string get_dest();
-	//Return index of packet in flow
-	int get_index();
 };
 
 #endif

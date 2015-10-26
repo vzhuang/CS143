@@ -84,7 +84,7 @@ Naive_Packet Link::transmit_packet() {
 			//Create event to handle the transmission of a packet to a router
 		}
 	}
-	return packet;
+	return transmitted_packet;
 }
 
 /*

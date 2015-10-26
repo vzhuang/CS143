@@ -32,7 +32,7 @@ class Link {
 
 public:
 	// Constructor
-	Link(int my_cap, int my_flow, void * my_ep1, void * my_ep2, int my_delay, int my_buf);
+	Link(int my_cap, int my_flow, void * my_ep1, void * my_ep2, int my_active_side, int my_delay, int my_buf);
 
 	// Set the flowrate
 	void set_flowrate(int my_flowrate);
