@@ -18,7 +18,7 @@ string Naive_Packet::get_source() {
 
 // Return dest
 string Naive_Packet::get_dest() {
-	return source;
+	return dest;
 }
 
 // Return index	

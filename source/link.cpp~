@@ -3,6 +3,7 @@
 #include "host.h"
 #include <queue>
 #include <stdio.h>
+#include <cstdlib>
 
 using namespace std;
 

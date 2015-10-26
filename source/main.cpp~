@@ -6,11 +6,12 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+
+
+
 // Convert from an ip address (string) to a Host * object
 Host * ip_to_host(string ip, vector<Host *> all_hosts)
 {
-	printf("Host1 ip: %s\n", all_hosts[0]->get_ip().c_str());
-/*
 	for(unsigned int i = 0; i < all_hosts.size(); i++)
 	{
 		if( ip.compare( (all_hosts[i])->get_ip() ) == 0 )
@@ -24,14 +25,14 @@ Host * ip_to_host(string ip, vector<Host *> all_hosts)
 	}
 	// Something went wrong
 	printf("ip address: %s does not coorespond to a host. Exiting\n", ip.c_str());
-*/
+
 	exit(-1);
 }
 
 int main()
 {
 	// Our parser will dynamically take care of everything through line 25
-	int NUM_PACKETS = 100;
+	int NUM_PACKETS = 10;
 	int NUM_HOSTS = 2;
 	int NUM_LINKS = 1;
 
@@ -39,13 +40,13 @@ int main()
 	vector<Host *> all_hosts;
 	all_hosts.push_back(new Host(NULL, "0.0.0.0"));
 	all_hosts.push_back(new Host(NULL, "0.0.0.1"));
-	printf("Host1 ip: %s\n", (all_hosts)[0]->get_ip().c_str());
+
 	printf("Creating a link\n");
 	vector<Link *> all_links;
 	all_links.push_back(new Link(100, 0, NULL, NULL, 10, 100));
 	
 	printf("Connecting the two hosts with the link\n");
-	all_links[0]->connect((void *) &all_hosts[0], (void *) &all_hosts[1]);
+	all_links[0]->connect((void *) all_hosts[0], (void *) all_hosts[1]);
 	///////////////////// end parser code //////////////////////////////////////////
 
 
@@ -70,7 +71,10 @@ int main()
 	{
 		initial_link->transmit_packet();
 	}
+	///////////////////////// end naive flow implementation /////////////////////
 
+
+	// Clean up
 	printf("Cleaning up packets\n");
 	for(int i = 0; i < NUM_PACKETS; i++)
 	{
@@ -93,5 +97,7 @@ int main()
 	return 0;
 	
 }
+
+
 
 

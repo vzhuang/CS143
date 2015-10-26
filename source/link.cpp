@@ -56,7 +56,7 @@ Naive_Packet Link::transmit_packet() {
 	// Dequeue transmitted packet from the buffer.
 	buffer.pop();
 	directions.pop();
-	printf("Dequeued from buffer.\n");
+	printf("Packet Dequeued from buffer.\n");
 	// See which way to transmit
         // WARNING: ASSUMES A HOST IS CONNECTED. NAIVE IMPLEMENTATION. Make robust with dynamic casting. 
 	string dest = transmission_packet.get_dest();
@@ -67,7 +67,7 @@ Naive_Packet Link::transmit_packet() {
 		// Check if destination is the endpoint
 		if(dest.compare(endpoint2) == 0)
 		{
-			printf("Packet #%d recieved at host: %s", transmission_packet.get_index(), endpoint2.c_str());
+			printf("Packet #%d recieved at host: %s\n", transmission_packet.get_index(), endpoint2.c_str());
 		}
 		else
 		{
