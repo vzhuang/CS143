@@ -2,6 +2,7 @@
 #include "link.h"
 #include "host.h"
 #include <queue>
+#include <stdio.h>
 
 using namespace std;
 
@@ -49,7 +50,7 @@ void Link::add_to_buffer(Naive_Packet packet) {
 
 Naive_Packet Link::transmit_packet() {
 	// The packet at the front of the buffer is transmitted.
-	Naive_Packet packet = buffer.front();
+	Naive_Packet transmission_packet = buffer.front();
 	int direction = directions.front();
 	// Dequeue transmitted packet from the buffer.
 	buffer.pop();
@@ -57,7 +58,7 @@ Naive_Packet Link::transmit_packet() {
 	printf("Dequeued from buffer.\n");
 	// See which way to transmit
         // WARNING: ASSUMES A HOST IS CONNECTED. NAIVE IMPLEMENTATION. Make robust with dynamic casting. 
-	string dest = packet.get_dest();
+	string dest = transmission_packet.get_dest();
 	string endpoint1 = ((Host *)ep1)->get_ip();
 	string endpoint2 = ((Host *)ep2)->get_ip();
 	if(direction == 1) // Packet is going from ep1 to ep2
@@ -65,7 +66,7 @@ Naive_Packet Link::transmit_packet() {
 		// Check if destination is the endpoint
 		if(dest.compare(endpoint2) == 0)
 		{
-			printf("Packet #%d recieved at host: %s", packet.get_index(), endpoint2.c_str());
+			printf("Packet #%d recieved at host: %s", transmission_packet.get_index(), endpoint2.c_str());
 		}
 		else
 		{
@@ -77,14 +78,14 @@ Naive_Packet Link::transmit_packet() {
 		// Check if destination is the endpoint
 		if(dest.compare(endpoint1) == 0)
 		{
-			printf("Packet #%d recieved at host: %s", packet.get_index(), endpoint1.c_str());
+			printf("Packet #%d recieved at host: %s", transmission_packet.get_index(), endpoint1.c_str());
 		}
 		else
 		{
 			//Create event to handle the transmission of a packet to a router
 		}
 	}
-	return transmitted_packet;
+	return transmission_packet;
 }
 
 /*
@@ -94,4 +95,14 @@ Naive_Packet Link::transmit_packet() {
 int Link::calculate_cost(int delay, int flowrate) {
 	int cost = delay + flowrate;
 	return cost;
+}
+
+
+// Connect a link to the two specified devices
+// WARNING THIS IS A NAIVE IMPLMENTATION. VIRTUAL FUNCTIONS WILL BE REQUIRED WHEN ROUTERS ARE USED.
+void Link::connect(void * device1, void * device2) {
+	ep1 = device1;
+	ep2 = device2;
+	((Host *)ep1)->set_link(this);
+	((Host *)ep2)->set_link(this);
 }

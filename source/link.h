@@ -9,6 +9,8 @@
 #include <iostream>
 #include <queue>
 #include "naivepacket.h"
+#include <stdio.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -44,7 +46,11 @@ public:
 	// flow direction.
 	int calculate_cost(int delay, int flowrate);
 
+	//Move a packet to the other side of the link
 	Naive_Packet transmit_packet();
+	
+	//Connect a router/host to each side of the link. WANRING NAIVE IMPLEMENTATION
+	void connect(void * device1, void * device2);
 };
 
 #endif  /* LINK_H */

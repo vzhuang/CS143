@@ -15,3 +15,7 @@ void Host::set_link(Link * my_link) {
 string Host::get_ip() {
 	return ip;
 }
+
+Link * Host::get_link() {
+	return link;
+}
