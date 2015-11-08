@@ -69,9 +69,10 @@ Naive_Packet Link::transmit_packet() {
 		{
 			printf("Packet #%d recieved at host: %s\n", transmission_packet.get_index(), endpoint2.c_str());
 		}
+		// Check if the destination is a router
 		else
 		{
-			//Create event to handle the transmission of a packet to a router
+			// Use routing table to determine proper link to load next
 		}
 	}
 	else // Packet is going from ep2 to ep1
@@ -81,9 +82,10 @@ Naive_Packet Link::transmit_packet() {
 		{
 			printf("Packet #%d recieved at host: %s", transmission_packet.get_index(), endpoint1.c_str());
 		}
+		// Check if the destination is a router
 		else
 		{
-			//Create event to handle the transmission of a packet to a router
+			// Use routing table to determine proper link to load next
 		}
 	}
 	return transmission_packet;
