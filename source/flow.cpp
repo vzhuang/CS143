@@ -2,10 +2,10 @@
 
 using namespace std;
 
-Flow::Flow(int source_, int destination_, float data_size_){
+Flow::Flow(Node * source_, Node * destination_, int data_size_){
 	source = source_;
-	destination = detination_;
-	float size = data_size_;
+	destination = destination_;
+	size = data_size_;
 }
 
 void Flow::send_stream(){
@@ -13,7 +13,7 @@ void Flow::send_stream(){
 }
 
 void Flow::send_data(){
-	int n_packets = 
+	//int n_packets;
 }
 
 void Flow::generate_packet(){

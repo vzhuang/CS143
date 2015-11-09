@@ -1,5 +1,3 @@
-#include <string>
-#include <vector>
 #include "node.h"
 
 using namespace std;
@@ -9,21 +7,21 @@ Node::Node() {
 }
 
 /*
-* Add a link to the vector of links adjacent to the node
+* Add a link to the vector of links adjacent to the Node
 */
 void Node::set_link(Link * myLink) {
 	links.push_back(myLink);
 }
 
 /*
-* Get the IP address of the node.
+* Get the IP address of the Node.
 */
 Node * Node::get_ip() {
 	return ip;
 }
 
 /*
-* Get the links adjacent to the node.
+* Get the links adjacent to the Node.
 */
 vector<Link *> Node::get_links() {
 	return links;
@@ -32,7 +30,7 @@ vector<Link *> Node::get_links() {
 /*
 * Send a packet along the specified link.
 */
-void Node::send_packet(Naive_Packet packet, Link link) {
+void Node::send_packet(Packet packet, Link link) {
 	link.add_to_buffer(packet);
 
 }
@@ -41,7 +39,7 @@ void Node::send_packet(Naive_Packet packet, Link link) {
 * This function logs the received packets and sends an acknowledgement
 * packet.
 */
-void Node::receive_packet(Naive_Packet packet) {
+void Node::receive_packet(Packet packet) {
 	// TODO
 }
 
@@ -74,9 +72,6 @@ void Router::compute_routing_table() {
 }
 
 void Router::build_table (routing_table table) {
-	table.source.push_back(0);
-	table.source.push_back(1);
-	table.dest.push_back(1);
-	table.dest.push_back(0);
+
 }
 

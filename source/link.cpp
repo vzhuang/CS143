@@ -1,13 +1,8 @@
-#include <iostream>
 #include "link.h"
-#include "host.h"
-#include <queue>
-#include <stdio.h>
-#include <cstdlib>
 
 using namespace std;
 
-Link::Link(int my_cap, int my_flow, void * my_ep1, void * my_ep2, int my_delay, int my_buf) {
+Link::Link(int my_cap, int my_flow, Node * my_ep1, Node * my_ep2, int my_delay, int my_buf) {
 	capacity = my_cap;
 	flowrate = my_flow;
 	ep1 = my_ep1;
@@ -24,23 +19,23 @@ void Link::set_flowrate(int my_flowrate) {
 }
 
 //Add a packet to the buffer and record its direction
-void Link::add_to_buffer(Naive_Packet packet) {
+void Link::add_to_buffer(Packet packet) {
 	// If the buffer is not full, enqueue the incoming packet. Else, drop it.
-	if (buffer.size() < buffersize) {
+	if (bytes_stored + packet.packetSize() <= buffersize) {
 		buffer.push(packet);
-		bytes_stored += packet.size();
+		bytes_stored += packet.packetSize();
 	} 
         // WARNING: ASSUMES A HOST IS CONNECTED. NAIVE IMPLEMENTATION. Make robust with dynamic casting. 
-	string source = packet.get_source();
-	string endpoint1 = ((Host *)ep1)->get_ip();
-	string endpoint2 = ((Host *)ep2)->get_ip();
+	Node * source = packet.getSource();
+	Node * endpoint1 = (ep1)->get_ip();
+	Node * endpoint2 = (ep2)->get_ip();
 	// Going from ep1 to ep2.
-	if(source.compare(endpoint1) == 0)
+	if(source == endpoint1)
 	{
 		directions.push(1);
 	}
 	// Going from ep2 to ep1.
-	else if(source.compare(endpoint2) == 0)
+	else if(source == endpoint2)
 	{
 		directions.push(-1);
 	}
@@ -52,7 +47,7 @@ void Link::add_to_buffer(Naive_Packet packet) {
 	}
 }
 
-Naive_Packet Link::transmit_packet() {
+Packet Link::transmit_packet() {
 	// Sanity check
 	if(buffer.empty())
 	{
@@ -60,45 +55,51 @@ Naive_Packet Link::transmit_packet() {
 			exit(-1);
 	}
 	// The packet at the front of the buffer is transmitted.
-	Naive_Packet transmission_packet = buffer.front();
+	Packet transmission_packet = buffer.front();
 	int direction = directions.front();
 	// Dequeue transmitted packet from the buffer.
 	buffer.pop();
 	directions.pop();
+	bytes_stored -= transmission_packet.packetSize();
 	printf("Packet Dequeued from buffer.\n");
 	// See which way to transmit
         // WARNING: ASSUMES A HOST IS CONNECTED. NAIVE IMPLEMENTATION. Make robust with dynamic casting. 
-	string dest = transmission_packet.get_dest();
-	string endpoint1 = ((Host *)ep1)->get_ip();
-	string endpoint2 = ((Host *)ep2)->get_ip();
+	Node * dest = transmission_packet.getDest();
+	Node * endpoint1 = ep1->get_ip();
+	Node * endpoint2 = ep2->get_ip();
 	if(direction == 1) // Packet is going from ep1 to ep2
 	{
 		// Check if destination is the endpoint
-		if(dest.compare(endpoint2) == 0)
+		if(dest == endpoint2)
 		{
-			printf("Packet #%d recieved at host: %s\n", transmission_packet.get_index(), endpoint2.c_str());
+			printf("Packet #%lu recieved at host: %lu\n", (long unsigned int)transmission_packet.getDest(), (long unsigned int)endpoint2);
 			/* Indicate in endpoint2's vector that it has recieved a packet */
 		}
 		// Check if the destination is a router
 		else
 		{
 			// Use routing table to determine proper link to load next
-			// Node * dest = routing_table(endpoint2)
-			// link * link_to_dest = get_link()
-			// Create_event(link_to_dest);
+			// Node * dest = endpoint2.get_routing_table.lookup(endpoint1)
+			// link * next_link = dest.get_link()
+			// next_link.add_to_buffer(transmission_packet);
+			// Create_event(next_link, get_transmit_time(next_link));
 		}
 	}
 	else // Packet is going from ep2 to ep1
 	{
 		// Check if destination is the endpoint
-		if(dest.compare(endpoint1) == 0)
+		if(dest == endpoint1)
 		{
-			printf("Packet #%d recieved at host: %s", transmission_packet.get_index(), endpoint1.c_str());
+			printf("Packet #%lu recieved at host: %lu", (long unsigned int)transmission_packet.getDest(), (long unsigned int)endpoint1);
 		}
 		// Check if the destination is a router
 		else
 		{
 			// Use routing table to determine proper link to load next
+			// Node * dest = endpoint2.get_routing_table.lookup(endpoint1)
+			// link * next_link = dest.get_link()
+			// next_link.add_to_buffer(transmission_packet);
+			// Create_event(next_link, get_transmit_time(next_link));
 		}
 	}
 	return transmission_packet;
@@ -116,9 +117,9 @@ int Link::calculate_cost(int delay, int flowrate) {
 
 // Connect a link to the two specified devices
 // WARNING THIS IS A NAIVE IMPLMENTATION. VIRTUAL FUNCTIONS WILL BE REQUIRED WHEN ROUTERS ARE USED.
-void Link::connect(void * device1, void * device2) {
+void Link::connect(Node * device1, Node * device2) {
 	ep1 = device1;
 	ep2 = device2;
-	((Host *)ep1)->set_link(this);
-	((Host *)ep2)->set_link(this);
+	(ep1)->set_link(this);
+	(ep2)->set_link(this);
 }
