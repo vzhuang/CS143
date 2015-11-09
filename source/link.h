@@ -15,6 +15,10 @@
 using namespace std;
 
 class Link {
+	// Set to 0 for the duration of a packet transmission. 
+	// Freed to 1 during a "free" event that cooresponds to
+	// The duration of a packet transmission
+	bool is_free;	
 	// Maximum rate in Mbps that the link may transmit
 	int capacity;
 	// Total flow rate through the link
@@ -25,8 +29,10 @@ class Link {
 	void * ep2;
 	// Time in ms required to transmit packet
 	int delay;
-	// Number of packets that the link can store in queue
+	// Number of Bytes that the link can store in queue
 	int buffersize;
+	// Bytes curretnly stored in the queue
+	int bytes_stored;
 	// Queue of packets to be transmitted
 	std::queue <Naive_Packet> buffer;
 	// Directions to send thiose packets

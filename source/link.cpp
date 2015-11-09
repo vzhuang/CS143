@@ -14,6 +14,8 @@ Link::Link(int my_cap, int my_flow, void * my_ep1, void * my_ep2, int my_delay, 
 	ep2 = my_ep2;
 	delay = my_delay;
 	buffersize = my_buf;
+	is_free = 1;
+	bytes_stored = 0;
 }
 
 // Change the flowrate of the link
@@ -26,6 +28,7 @@ void Link::add_to_buffer(Naive_Packet packet) {
 	// If the buffer is not full, enqueue the incoming packet. Else, drop it.
 	if (buffer.size() < buffersize) {
 		buffer.push(packet);
+		bytes_stored += packet.size();
 	} 
         // WARNING: ASSUMES A HOST IS CONNECTED. NAIVE IMPLEMENTATION. Make robust with dynamic casting. 
 	string source = packet.get_source();
@@ -50,6 +53,12 @@ void Link::add_to_buffer(Naive_Packet packet) {
 }
 
 Naive_Packet Link::transmit_packet() {
+	// Sanity check
+	if(buffer.empty())
+	{
+			printf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
+			exit(-1);
+	}
 	// The packet at the front of the buffer is transmitted.
 	Naive_Packet transmission_packet = buffer.front();
 	int direction = directions.front();
@@ -68,11 +77,15 @@ Naive_Packet Link::transmit_packet() {
 		if(dest.compare(endpoint2) == 0)
 		{
 			printf("Packet #%d recieved at host: %s\n", transmission_packet.get_index(), endpoint2.c_str());
+			/* Indicate in endpoint2's vector that it has recieved a packet */
 		}
 		// Check if the destination is a router
 		else
 		{
 			// Use routing table to determine proper link to load next
+			// Node * dest = routing_table(endpoint2)
+			// link * link_to_dest = get_link()
+			// Create_event(link_to_dest);
 		}
 	}
 	else // Packet is going from ep2 to ep1
