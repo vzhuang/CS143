@@ -2,8 +2,50 @@
 #include "packet.h"
 #include "flow.h"
 #include "link.h"
-int main()
-{
+#include "parser.h"
+
+double global_time;
+double end_time;
+priority_queue<double> event_queue;
+
+int main(int argc, char *argv[]) {
+	if(argc != 3)
+	{
+		printf("./proj [network.txt] [double simulation_time (s)]\n");
+		exit(-1);
+	}
+	char * network_file = argv[1];
+	end_time = stod(argv[2]);
+	Network network;
+	build_network(&network, network_file);
+	
+	
+	// Clean up. TODO: Put in a class destructor
+	int num_hosts = network.all_hosts.size();
+	int num_routers = network.all_routers.size();
+	int num_links = network.all_links.size();
+	int num_flows = network.all_flows.size();
+	
+	for(int i = 0; i < num_hosts; i++)
+	{
+			delete network.all_hosts[i];
+	}
+	for(int i = 0; i < num_routers; i++)
+	{
+			delete network.all_routers[i];
+	}
+	for(int i = 0; i < num_links; i++)
+	{
+			delete network.all_links[i];
+	}
+	for(int i = 0; i < num_flows; i++)
+	{
+			delete network.all_flows[i];
+	}
+	printf("Exiting\n");
+	return 0;
+	
+}
 	/*
 	// Our parser will dynamically take care of everything through line 25
 	int NUM_PACKETS = 10;
@@ -67,10 +109,7 @@ int main()
 		delete all_links[i];
 	}
 */
-	printf("Exiting\n");
-	return 0;
-	
-}
+
 
 
 

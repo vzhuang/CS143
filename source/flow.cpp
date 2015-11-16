@@ -2,10 +2,11 @@
 
 using namespace std;
 
-Flow::Flow(Node * source_, Node * destination_, int data_size_){
+Flow::Flow(Node * source_, Node * destination_, double data_size_, double start_){
 	source = source_;
 	destination = destination_;
 	size = data_size_;
+	start = start_;
 }
 
 void Flow::send_stream(){

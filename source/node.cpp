@@ -3,7 +3,7 @@
 using namespace std;
 
 Node::Node() {
-
+	ip = this;
 }
 
 /*
@@ -46,8 +46,10 @@ void Node::receive_packet(Packet packet) {
 /*
 * Constructor for the host subclass
 */
-Host::Host(Link * myLink) {
-	links.push_back(myLink);
+Host::Host()
+           : Node()
+{
+
 }
 
 /*
@@ -60,7 +62,9 @@ Link * Host::get_associated_link() {
 /*
 * Constructor for the router subclass
 */
-Router::Router() {
+Router::Router() 
+           : Node()
+{
 
 }
 

@@ -2,9 +2,9 @@
 
 using namespace std;
 
-Link::Link(int my_cap, int my_flow, Node * my_ep1, Node * my_ep2, int my_delay, int my_buf) {
+Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf) {
 	capacity = my_cap;
-	flowrate = my_flow;
+	flowrate = 0;
 	ep1 = my_ep1;
 	ep2 = my_ep2;
 	delay = my_delay;
@@ -14,7 +14,7 @@ Link::Link(int my_cap, int my_flow, Node * my_ep1, Node * my_ep2, int my_delay, 
 }
 
 // Change the flowrate of the link
-void Link::set_flowrate(int my_flowrate) {
+void Link::set_flowrate(double my_flowrate) {
 	flowrate = my_flowrate;
 }
 
@@ -109,8 +109,8 @@ Packet Link::transmit_packet() {
  * Calculate link cost based on static component (transmission delay) and
  * dynamic component (flow rate).
  */
-int Link::calculate_cost(int delay, int flowrate) {
-	int cost = delay + flowrate;
+double Link::calculate_cost(double delay, double flowrate) {
+	double cost = delay + flowrate;
 	return cost;
 }
 

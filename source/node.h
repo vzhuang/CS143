@@ -42,7 +42,7 @@ class Host : public Node {
 	vector<int> receivedPackets;
 
 public:
-	Host(Link * myLink);
+	Host();
 	// Get the single link associated with a host
 	Link * get_associated_link();
 

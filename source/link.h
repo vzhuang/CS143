@@ -24,19 +24,19 @@ class Link {
 	// The duration of a packet transmission
 	bool is_free;	
 	// Maximum rate in Mbps that the link may transmit
-	int capacity;
+	double capacity;
 	// Total flow rate through the link
-	int flowrate;
+	double flowrate;
 	// Indicates one end point of the link
 	Node * ep1;
 	// Indicates second end point of the link
 	Node * ep2;
 	// Time in ms required to transmit packet
-	int delay;
+	double delay;
 	// Number of Bytes that the link can store in queue
-	int buffersize;
+	double buffersize;
 	// Bytes curretnly stored in the queue
-	int bytes_stored;
+	double bytes_stored;
 	// Queue of packets to be transmitted
 	std::queue <Packet> buffer;
 	// Directions to send thiose packets
@@ -44,17 +44,17 @@ class Link {
 
 public:
 	// Constructor
-	Link(int my_cap, int my_flow, Node * my_ep1, Node * my_ep2, int my_delay, int my_buf);
+	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);
 
 	// Set the flowrate
-	void set_flowrate(int my_flowrate);
+	void set_flowrate(double my_flowrate);
 
 	// Add a packet to the link's buffer.
 	void add_to_buffer(Packet packet);
 
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
-	int calculate_cost(int delay, int flowrate);
+	double calculate_cost(double delay, double flowrate);
 
 	//Move a packet to the other side of the link
 	Packet transmit_packet();
