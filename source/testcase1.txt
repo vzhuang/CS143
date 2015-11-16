@@ -3,6 +3,6 @@ Hosts:
 Routers:
 0
 Links:
-H0 H1 10 10 10
+H0 H1 10 10 64
 Flows:
 H0 H1 100 0
