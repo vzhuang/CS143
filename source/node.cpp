@@ -9,7 +9,7 @@ Node::Node() {
 /*
 * Add a link to the vector of links adjacent to the Node
 */
-void Node::set_link(Link * myLink) {
+void Node::add_link(Link * myLink) {
 	links.push_back(myLink);
 }
 
@@ -20,6 +20,14 @@ Node * Node::get_ip() {
 	return ip;
 }
 
+/*
+* Get the first link on a node (Used to get a Host's single link)
+*/
+Link * Node::get_first_link()
+{
+	return links[0];
+}
+	
 /*
 * Get the links adjacent to the Node.
 */
@@ -50,13 +58,6 @@ Host::Host()
            : Node()
 {
 
-}
-
-/*
-* For a host, get the associated link (single)
-*/
-Link * Host::get_associated_link() {
-	return links.front();
 }
 
 /*

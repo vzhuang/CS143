@@ -15,22 +15,24 @@
 #define ROUT_ID 1
 #define ACK_ID 2
 
+struct routing_table;
 class Node;
 class Flow;
-struct routing_table;
+class Host;
+
 
 using namespace std;
 
 /////////////// General Packet Superclass /////////////////
 class Packet
 { 
-    Node * source;
-    Node * dest;
+    Host * source;
+    Host * dest;
     int size;
 public:
-    Packet(Node * the_source, Node * the_dest, int the_size);
-    Node * getDest();
-    Node * getSource();
+    Packet(Host * the_source, Host * the_dest, int the_size);
+    Host * getDest();
+    Host * getSource();
     int packetSize();
     virtual int getId();
 
@@ -39,8 +41,8 @@ public:
 class Data_packet : public Packet 
 {
 public:
-	Data_packet(Node * the_source, 
-		       Node * the_dest);
+	Data_packet(Host * the_source, 
+		       Host * the_dest);
 	int getId();
 };
 
@@ -48,8 +50,8 @@ public:
 class Rout_packet : public Packet 
 {
 public:
-	Rout_packet(Node * the_source, 
-		       Node * the_dest, 
+	Rout_packet(Host * the_source, 
+		       Host * the_dest, 
 		       routing_table * the_rtable);
 	routing_table * getTable();
 	int getId();
@@ -62,8 +64,8 @@ protected:
 class Ack_packet : public Packet 
 {
 public:
-	Ack_packet(Node * the_source, 
-		       Node * the_dest, 
+	Ack_packet(Host * the_source, 
+		       Host * the_dest, 
 		       Flow * the_flow,
 		       int my_index);
 

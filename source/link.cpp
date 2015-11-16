@@ -120,6 +120,6 @@ double Link::calculate_cost(double delay, double flowrate) {
 void Link::connect(Node * device1, Node * device2) {
 	ep1 = device1;
 	ep2 = device2;
-	(ep1)->set_link(this);
-	(ep2)->set_link(this);
+	(ep1)->add_link(this);
+	(ep2)->add_link(this);
 }

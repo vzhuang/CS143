@@ -95,8 +95,8 @@ void build_network(Network * network, char * network_file)
 		myfile >> token;
 		double buffer_size = stod(token);		
 		Link * link = new Link(capacity, ep1, ep2, delay, buffer_size);
-		ep1->set_link(link);
-		ep2->set_link(link);
+		link->connect(ep1,ep2);
+		
 		network->all_links.push_back(link);
 		
 		myfile >> token;
@@ -106,9 +106,9 @@ void build_network(Network * network, char * network_file)
 	myfile >> token;
 	while(!myfile.eof()) 
 	{
-		Node * source = parse_ip(token, network);
+		Host * source = (Host *) parse_ip(token, network);
 		myfile >> token;
-		Node * dest = parse_ip(token, network);
+		Host * dest = (Host *) parse_ip(token, network);
 		myfile >> token;
 		double data_amount = stod(token);
 		myfile >> token;
@@ -123,4 +123,5 @@ void build_network(Network * network, char * network_file)
 	// TODO: Populate routing tables...
 	
 	// TODO: Push flow begin events...
+	
 }

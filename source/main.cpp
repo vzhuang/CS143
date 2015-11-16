@@ -3,112 +3,51 @@
 #include "flow.h"
 #include "link.h"
 #include "parser.h"
+#include "event.h"
+#include "network.h"
 
 double global_time;
 double end_time;
-priority_queue<double> event_queue;
+/* Global variable that describes the type of congestion control.
+   Different IDs are defioned in flow.h  */
+int TCP_ID; 
+/* Defines a priotiy queue that uses Event *'s. CompareEvents is defined
+   in event.h and allows the priority to know which events get priority */
+priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
 
 int main(int argc, char *argv[]) {
-	if(argc != 3)
+	if(argc != 4)
 	{
-		printf("./proj [network.txt] [double simulation_time (s)]\n");
+		printf("./proj [network.txt] [double simulation_time (s)] [TCP_ID]\n");
 		exit(-1);
 	}
 	char * network_file = argv[1];
 	end_time = stod(argv[2]);
+	TCP_ID = stod(argv[3]);
 	Network network;
+	// Build network by parsing the input network file
 	build_network(&network, network_file);
 	
-	
-	// Clean up. TODO: Put in a class destructor
-	int num_hosts = network.all_hosts.size();
-	int num_routers = network.all_routers.size();
-	int num_links = network.all_links.size();
-	int num_flows = network.all_flows.size();
-	
-	for(int i = 0; i < num_hosts; i++)
-	{
-			delete network.all_hosts[i];
-	}
-	for(int i = 0; i < num_routers; i++)
-	{
-			delete network.all_routers[i];
-	}
-	for(int i = 0; i < num_links; i++)
-	{
-			delete network.all_links[i];
-	}
+	int num_flows = network.all_flows.size();	
 	for(int i = 0; i < num_flows; i++)
 	{
-			delete network.all_flows[i];
+		Flow * this_flow = network.all_flows[i];
+		double start = this_flow->get_start();
+		Flow_Start_Event * event = new Flow_Start_Event(start, TCP_ID, this_flow);
+		event_queue.push(event);
 	}
+	
+	while(!event_queue.empty() || global_time >= end_time)
+	{
+		Event * to_handle = event_queue.top();
+		event_queue.pop();
+		to_handle->handle_event();
+	}
+	
 	printf("Exiting\n");
 	return 0;
 	
 }
-	/*
-	// Our parser will dynamically take care of everything through line 25
-	int NUM_PACKETS = 10;
-	int NUM_HOSTS = 2;
-	int NUM_LINKS = 1;
-
-	printf("Creating 2 hosts\n");
-	vector<Node *> all_hosts;
-	all_hosts.push_back(new Host(NULL, &this));
-	all_hosts.push_back(new Host(NULL, &this));
-
-	printf("Creating a link\n");
-	vector<Link *> all_links;
-	all_links.push_back(new Link(100, 0, NULL, NULL, 10, 100));
-	
-	printf("Connecting the two hosts with the link\n");
-	all_links[0]->connect((void *) all_hosts[0], (void *) all_hosts[1]);
-	///////////////////// end parser code //////////////////////////////////////////
-
-
-
-	// Will need to be implemented in a Flow class that accepts 2 hosts
-	printf("Generating Packets\n");
-	vector <Packet *> packets;
-	for(int i = 0; i < NUM_PACKETS; i++)
-	{
-		Packet * new_packet = new Packet(1, i, "0.0.0.0", "0.0.0.1");
-		packets.push_back(new_packet);
-	}
-
-	string source_host = packets[0]->get_source();
-	Link * initial_link = ip_to_host(source_host, all_hosts)->get_link();
-	printf("Sending packets from host %s\n", source_host.c_str());
-	for(int i = 0; i < packets.size(); i++)
-	{
-		initial_link->add_to_buffer(*packets[i]);
-	}
-	for(int i = 0; i < packets.size(); i++)
-	{
-		initial_link->transmit_packet();
-	}
-	///////////////////////// end naive flow implementation /////////////////////
-
-
-	// Clean up
-	printf("Cleaning up packets\n");
-	for(int i = 0; i < NUM_PACKETS; i++)
-	{
-		delete packets[i];
-	}
-
-	printf("Cleaning up hosts\n");
-	for(int i = 0; i < NUM_HOSTS; i++)
-	{
-		delete all_hosts[i];
-	}
-
-	printf("Cleaning up links\n");
-	for(int i = 0; i < NUM_LINKS; i++)
-	{
-		delete all_links[i];
-	}
-*/
 
 
 

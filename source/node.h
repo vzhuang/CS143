@@ -18,16 +18,21 @@ struct routing_table {
 
 
 class Node {
-public:
+	
 	// Reference to Node address
 	Node * ip;
 	// List of links adjacent to Node
 	vector<Link *> links;
+	
+public:
 	// Constructor
 	Node();
 	// Get the address of the Node
 	Node * get_ip();
-	void set_link(Link * link);
+	// Add a link to a node
+	void add_link(Link * link);
+	// Get the first link a node has
+	Link * get_first_link();
 	// Get the vector of links adjacent to the Node
 	vector<Link *> get_links();
 	// Send the specified packet through the specified link
@@ -43,8 +48,6 @@ class Host : public Node {
 
 public:
 	Host();
-	// Get the single link associated with a host
-	Link * get_associated_link();
 
 };
 
