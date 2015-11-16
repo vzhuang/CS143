@@ -38,7 +38,7 @@ vector<Link *> Node::get_links() {
 /*
 * Send a packet along the specified link.
 */
-void Node::send_packet(Packet packet, Link link) {
+void Node::send_packet(Packet * packet, Link link) {
 	link.add_to_buffer(packet);
 
 }
@@ -47,7 +47,7 @@ void Node::send_packet(Packet packet, Link link) {
 * This function logs the received packets and sends an acknowledgement
 * packet.
 */
-void Node::receive_packet(Packet packet) {
+void Node::receive_packet(Packet * packet) {
 	// TODO
 }
 

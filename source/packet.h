@@ -28,22 +28,28 @@ class Packet
 { 
     Host * source;
     Host * dest;
-    int size;
+    double size;
+    Flow * flow;
 public:
-    Packet(Host * the_source, Host * the_dest, int the_size);
+    Packet(Host * the_source, Host * the_dest, double the_size, Flow * the_flow);
     Host * getDest();
     Host * getSource();
-    int packetSize();
+    Flow * getFlow();
+    double packetSize();
     virtual int getId();
+    virtual int get_index();
 
 };
 /////////////// Data Packet /////////////////
 class Data_packet : public Packet 
 {
+	int index;
+	Flow * flow;
 public:
 	Data_packet(Host * the_source, 
-		       Host * the_dest);
+		       Host * the_dest, int the_index, Flow * the_flow);
 	int getId();
+	int get_index();
 };
 
 /////////////// Routing Packet /////////////////
@@ -70,7 +76,7 @@ public:
 		       int my_index);
 
 	Flow * getFlow();
-	int getIndex();
+	int get_index();
 	int getId();
 		
 protected:

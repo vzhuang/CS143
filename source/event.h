@@ -8,10 +8,13 @@
 #include "packet.h"
 
 #define SEND_EVENT_ID 0
-#define RECIEVE_EVENT_ID 1
-#define ACK_RECIEVE_ID 2
-#define FLOW_START_ID 3
+#define FLOW_START_ID 1
+#define LINK_FREE_ID 2
+#define DATA_RECEIVE_ID 3
+#define ACK_RECEIVE_ID 4
 
+class Ack_packet;
+class Data_packet;
 using namespace std;
 
 /////////////// General Event Superclass /////////////////
@@ -50,13 +53,13 @@ public:
 	
 };
 
-/////////////// Link_Receive_Event /////////////////
-class Link_Receive_Event : public Event 
+/////////////// Link_Free_Event /////////////////
+class Link_Free_Event : public Event 
 {
-	Host * host;
+	Link * link;
 	
 public:
-	Link_Receive_Event(double start_, int event_ID_, Host * host_);
+	Link_Free_Event(double start_, int event_ID_, Link * link_);
 	void handle_event();
 	
 };
@@ -68,6 +71,17 @@ class Ack_Receive_Event : public Event
 	
 public:
 	Ack_Receive_Event(double start_, int event_ID_, Ack_packet * ack_);
+	void handle_event();
+	
+};
+
+/////////////// Data_Receive_Event /////////////////
+class Data_Receive_Event : public Event 
+{
+	Data_packet * data;
+	
+public:
+	Data_Receive_Event(double start_, int event_ID_, Data_packet * data_);
 	void handle_event();
 	
 };

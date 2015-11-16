@@ -89,11 +89,11 @@ void build_network(Network * network, char * network_file)
 		myfile >> token;
 		Node * ep2 = parse_ip(token, network);
 		myfile >> token;
-		double capacity = stod(token);
+		double capacity = 1000000 / 8 * stod(token); // Since its given in Mb/s and we want B/s
 		myfile >> token;
-		double delay = stod(token);
+		double delay = stod(token) / 1000; // Since its given in ms and we want s
 		myfile >> token;
-		double buffer_size = stod(token);		
+		double buffer_size = 1000.0 * stod(token);	 // Since it's given in KB	and we want B
 		Link * link = new Link(capacity, ep1, ep2, delay, buffer_size);
 		link->connect(ep1,ep2);
 		

@@ -2,11 +2,13 @@
 /////////////////// Generic Packet Superclass /////////////////////
 Packet::Packet(Host * the_source, 
 	           Host * the_dest, 
-	           int the_size)
+	           double the_size,
+	           Flow * the_flow)
 {
 	source = the_source;
 	dest = the_dest;
 	size = the_size;
+	flow = the_flow;
 }
 
 Host * Packet::getDest()
@@ -19,24 +21,34 @@ Host * Packet::getSource()
 	return source;
 }
 
-int Packet::packetSize()
+Flow * Packet::getFlow()
+{
+	return flow;
+}
+
+double Packet::packetSize()
 {
 	return size;
 }
 
 int Packet::getId()
 {
-	// VIERTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
+	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 	return -1;
 }
-	
-	
+
+int Packet::get_index()
+{
+	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
+	return -1;
+}	
 /////////////// Data Packet /////////////////
 Data_packet::Data_packet(Host * the_source, 
-	                   Host * the_dest)
-           : Packet(the_source, the_dest, DATA_SIZE)
+	                   Host * the_dest, int the_index, Flow * the_flow)
+           : Packet(the_source, the_dest, DATA_SIZE, the_flow)
 {
-	// Everything initialized in superclass constructor
+	flow = the_flow;
+	index = the_index;
 }
 
 int Data_packet::getId()
@@ -44,11 +56,15 @@ int Data_packet::getId()
 	return DATA_ID;
 }
 
+int Data_packet::get_index()
+{
+	return index;
+}
 /////////////////// Routing Packet /////////////////////
 Rout_packet::Rout_packet(Host * the_source, 
 	                   Host * the_dest, 
 	                   routing_table * the_rtable)
-           : Packet(the_source, the_dest, ROUTING_SIZE)
+           : Packet(the_source, the_dest, ROUTING_SIZE, NULL)
 {
 	rtable = the_rtable;
 }
@@ -67,18 +83,13 @@ Ack_packet::Ack_packet(Host * the_source,
 	                   Host * the_dest, 
 	                   Flow * the_flow,
 	                   int my_index)
-           : Packet(the_source, the_dest, ACK_SIZE)
+           : Packet(the_source, the_dest, ACK_SIZE, the_flow)
 {
 	my_flow = the_flow;
 	index = my_index;
 }
 
-Flow * Ack_packet::getFlow()
-{
-	return my_flow;
-}
-
-int Ack_packet::getIndex()
+int Ack_packet::get_index()
 {
 	return index;
 }

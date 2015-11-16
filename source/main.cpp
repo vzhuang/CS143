@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
 	
+	// Push a "Flow_Start_Event" for every flow in the netowrk
 	int num_flows = network.all_flows.size();	
 	for(int i = 0; i < num_flows; i++)
 	{
@@ -37,11 +38,13 @@ int main(int argc, char *argv[]) {
 		event_queue.push(event);
 	}
 	
+	// Keep dequeuing events and handling them
 	while(!event_queue.empty() || global_time >= end_time)
 	{
 		Event * to_handle = event_queue.top();
 		event_queue.pop();
 		to_handle->handle_event();
+		delete to_handle;
 	}
 	
 	printf("Exiting\n");

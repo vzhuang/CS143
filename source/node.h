@@ -36,9 +36,9 @@ public:
 	// Get the vector of links adjacent to the Node
 	vector<Link *> get_links();
 	// Send the specified packet through the specified link
-	void send_packet(Packet packet, Link link);
+	void send_packet(Packet * packet, Link link);
 	// Receive a packet
-	void receive_packet(Packet packet);
+	void receive_packet(Packet * packet);
 };
 
 // Hosts
