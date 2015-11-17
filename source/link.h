@@ -30,6 +30,10 @@ class Link {
 	double capacity;
 	// Total flow rate through the link
 	double flowrate;
+	// Number of packets sent since last update of flow rate
+	int packets_sent;
+	// Time of last update of flow rate
+	double update_time;
 	// Indicates one end point of the link
 	Node * ep1;
 	// Indicates second end point of the link
@@ -52,7 +56,7 @@ public:
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);
 
 	// Set the flowrate
-	void set_flowrate(double my_flowrate);
+	void set_flowrate();
 	
 	// Calculate the time (s) it would take to clear out everything in the queue
 	double get_queue_delay();

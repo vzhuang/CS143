@@ -5,6 +5,8 @@ using namespace std;
 Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf) {
 	capacity = my_cap;
 	flowrate = 0;
+	packets_sent = 0;
+	update_time = global_time;
 	ep1 = my_ep1;
 	ep2 = my_ep2;
 	delay = my_delay;
@@ -14,11 +16,19 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	packets_stored = 0;
 }
 
-// Change the flowrate of the link
-void Link::set_flowrate(double my_flowrate) {
-	flowrate = my_flowrate;
-}
+// Calculate the flowrate of the link
+void Link::set_flowrate() {
 
+	// Time elapsed since last update
+	double time_elapsed = global_time - update_time;
+
+	// Flow rate is number of packets sent over elapsed time
+	flowrate = packets_sent / time_elapsed;
+
+	// Reset the packets sent and most recent update time
+	packets_sent = 0;
+	update_time = global_time;
+}
 
 // Calculate the time (s) it would take to send an individual packet
 double Link::get_packet_delay(Packet * packet)
@@ -94,6 +104,8 @@ Packet * Link::transmit_packet() {
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = buffer.front();
 	int direction = directions.front();
+	// Increment number of packets sent
+	packets_sent += 1;
 	// Dequeue transmitted packet from the buffer.
 	buffer.pop();
 	directions.pop();
