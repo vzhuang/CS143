@@ -6,7 +6,7 @@ using namespace std;
 Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf) {
 	capacity = my_cap;
 	flowrate = 0;
-	mb_sent = 0;
+	bytes_sent = 0;
 	update_time = global_time;
 	ep1 = my_ep1;
 	ep2 = my_ep2;
@@ -32,11 +32,11 @@ void Link::set_flowrate() {
 	// Time elapsed since last update
 	double time_elapsed = global_time - update_time;
 
-	// Flow rate is MB sent over elapsed time
-	flowrate = mb_sent / time_elapsed;
+	// Flow rate is bytes sent over elapsed time (s)
+	flowrate = bytes_sent / time_elapsed;
 
-	// Reset the MB sent and most recent update time
-	mb_sent = 0;
+	// Reset the bytes sent and most recent update time
+	bytes_sent = 0;
 	update_time = global_time;
 }
 
@@ -133,7 +133,7 @@ Packet * Link::transmit_packet() {
 	Packet * transmission_packet = buffer.front();
 	int direction = directions.front();
 	// Increment number of packets sent
-	mb_sent += transmission_packet->packetSize();
+	bytes_sent += transmission_packet->packetSize();
 	// Dequeue transmitted packet from the buffer.
 	buffer.pop();
 	directions.pop();
@@ -151,11 +151,11 @@ Packet * Link::transmit_packet() {
 	is_free = 0;
 	/* Create an event to free the link at the same time that the packet
 	   successfully transmits. We achieve this using epsilon. */
-	Link_Free_Event * event = new Link_Free_Event(
+	Link_Free_Event * free_event = new Link_Free_Event(
 								time_to_send + global_time - numeric_limits<double>::epsilon(),
 								LINK_FREE_ID,
 								this);
-	event_queue.push(event);
+	event_queue.push(free_event);
 	
 	if(direction == 1) // Packet is going from ep1 to ep2
 	{	

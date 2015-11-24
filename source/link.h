@@ -29,10 +29,10 @@ using namespace std;
 class Link {
 	// Maximum rate in Mbps that the link may transmit
 	double capacity;
-	// Total flow rate through the link
+	// Total flow rate through the link (bytes/s)
 	double flowrate;
-	// Number of packets sent since last update of flow rate
-	int mb_sent;
+	// Number of bytes sent since last update of flow rate
+	int bytes_sent;
 	// Time of last update of flow rate
 	double update_time;
 	// Indicates one end point of the link
