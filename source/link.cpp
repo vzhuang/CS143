@@ -190,18 +190,17 @@ Packet * Link::transmit_packet() {
 		// If endpoint 2 is not final destination, forward the packet
 		else
 		{
-			cout << "endpoint2 before case: " << endpoint2 << "\n";
-			// Cast endpoint2 from node to router 
-			if (Router * endpoint2 = dynamic_cast<Router *>(endpoint2)) {
-				// Use the routing table for endpoint 2 to look up next hop
-				cout << "endpoint2 after cast: " << endpoint2 << "\n";
+				cout << "endpoint2 before cast: " << endpoint2 << "\n";
+				cout << "endpoint2 after cast: " << (Router *) endpoint2 << "\n";
 				cout << "dest: " << dest << "\n";
-				Node * next_node = endpoint2->get_routing_table().at(dest);
+				// Use the routing table for endpoint 2 to look up next hop
+				Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
+				cout << "next_node: " << next_node << "\n";
 				// Find the link associated with the next hop and transmit the packet
-				Link * next_link = endpoint2->get_link(next_node);
-				next_link.add_to_buffer(transmission_packet);
-				Create_event(next_link, get_transmit_time(next_link));
-			}
+				Link * next_link = ((Router *) endpoint2)->get_link(next_node);
+				cout << "next_link: " << next_link << "\n";
+				next_link->add_to_buffer(transmission_packet);
+				//Create_event(next_link, get_transmit_time(next_link));
 		}
 	}
 	else // Packet is going from ep2 to ep1

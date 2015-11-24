@@ -5,7 +5,7 @@
 Node * parse_ip(string token, Network * network)
 {
 	string node_type = token.substr(0,1);
-	int node_number = stoi(token.substr(1));
+	int node_number = stoi(token.substr(1)) - 1;
 		
 	if(node_type.compare("H") == 0)
 	{

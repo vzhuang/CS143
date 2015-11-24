@@ -35,16 +35,17 @@ int main(int argc, char *argv[]) {
 		source->init_routing_table(&network);
 		// USED FOR DEBUGGING
 		vector<Link *> links = source->get_links();
-		cout << "Links at source: " << source << "\n";
-		for (int i = 0; i < links.size(); i++) {
-			cout << links.at(i) << "\n";
+		cout << "Links at router " << i << ": \n";
+		for (int j = 0; j < links.size(); j++) {
+			cout << "	Link " << j << " ep1: ";  cout << links.at(j)->get_ep1() << "\n";
+			cout << "	Link " << j << " ep2: ";  cout << links.at(j)->get_ep2() << "\n";
 		}
 		source->print_distance_vector();
 		source->print_routing_table();
 
 	}
 	
-	// Push a "Flow_Start_Event" for every flow in the netowrk
+	// Push a "Flow_Start_Event" for every flow in the network
 	int num_flows = network.all_flows.size();	
 	for(int i = 0; i < num_flows; i++)
 	{

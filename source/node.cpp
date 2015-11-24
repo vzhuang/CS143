@@ -41,20 +41,24 @@ vector<Link *> Node::get_links() {
 	return links;
 }
 
+
 /*
 * Get the link connecting the current node to the desired endpoint
 */
 Link * Node::get_link(Node * endpoint) {
-	//
 	vector<Link *> links = this->get_links();
-	for (int i = 0; i < links.size(); i++) {
+	for (int i = 0; i < links.size(); i++) 
+	{
+		cout << "candidate ep1: " << links.at(i)->get_ep1() << "\n";
+		cout << "candidate ep2: " << links.at(i)->get_ep2() << "\n";
 		Link * link = links.at(i);
-		if (link->get_ep1() == endpoint || link->get_ep2() == endpoint) {
+		if (link->get_ep1() == endpoint || link->get_ep2() == endpoint)
+		{
 			return link;
 		}
 	}
-	return NULL;
-
+	printf("FATAL: Router could not find link to requested endpoint.\n");
+	exit(-1);
 }
 
 /*
