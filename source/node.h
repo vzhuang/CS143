@@ -6,16 +6,15 @@
 #include "flow.h"
 #include <string>
 #include <vector>
+#include <map>
+
 using namespace std;
 class Node;
 class Link;
+class Flow;
 class Packet;
-
-struct routing_table {
-	vector<Node *> source;
-	vector<Node *> dest;
-};
-
+class Rout_packet;
+class Network;
 
 class Node {
 	
@@ -23,6 +22,8 @@ class Node {
 	Node * ip;
 	// List of links adjacent to Node
 	vector<Link *> links;
+	// Distance vector
+	map<Node *, double> distance_vector;
 	
 public:
 	// Constructor
@@ -35,10 +36,19 @@ public:
 	Link * get_first_link();
 	// Get the vector of links adjacent to the Node
 	vector<Link *> get_links();
+	// Get the link joining the current node and a desired endpoint
+	Link * get_link(Node * endpoint);
 	// Send the specified packet through the specified link
 	void send_packet(Packet * packet, Link link);
 	// Receive a packet
 	void receive_packet(Packet * packet);
+	// Compute the distance to all adjacent nodes
+	void init_distance_vector(Network * network);
+	// Update the distance vector when a routing packet is received
+	void update_distance_vector(Rout_packet * rpacket);
+	void print_distance_vector();
+	// Get the distance vector of the node
+	map<Node *, double> get_distance_vector();
 };
 
 // Hosts
@@ -53,13 +63,18 @@ public:
 
 // Routers
 class Router: public Node {
-	//
-	routing_table myTable;
+	// Routing table
+	map<Node *, Node *> routing_table;
 
 public:
 	Router();
-	void build_table(routing_table table);
-	void compute_routing_table();
+	// Initialize the routing table
+	void init_routing_table(Network * network);
+	// Update the routing table when a routing packet is received
+	void update_routing_table(Rout_packet * rpacket);
+	// Get the routing table of the router
+	map<Node *, Node *> get_routing_table();
+	void print_routing_table();
 };
 
 #endif  /* NODE_H */

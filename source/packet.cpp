@@ -78,6 +78,14 @@ int Rout_packet::getId()
 {
 	return ROUT_ID;
 }
+
+Node * Rout_packet::get_router_source() {
+	return rsrc;
+}
+
+map<Node *, double> Rout_packet::get_packet_vector() {
+	return packet_vector;
+}
 /////////////////// Ack Packet /////////////////////
 Ack_packet::Ack_packet(Host * the_source, 
 	                   Host * the_dest, 

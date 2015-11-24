@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "event.h"
 #include "network.h"
+#include <vector>
 
 double global_time;
 double end_time;
@@ -27,6 +28,21 @@ int main(int argc, char *argv[]) {
 	Network network;
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
+	// Iterate over all routers and create routing tables
+	for (int i = 0; i < network.all_routers.size(); i++) {
+		Router * source = network.all_routers.at(i);
+		source->init_distance_vector(&network);
+		source->init_routing_table(&network);
+		// USED FOR DEBUGGING
+		vector<Link *> links = source->get_links();
+		cout << "Links at source: " << source << "\n";
+		for (int i = 0; i < links.size(); i++) {
+			cout << links.at(i) << "\n";
+		}
+		source->print_distance_vector();
+		source->print_routing_table();
+
+	}
 	
 	// Push a "Flow_Start_Event" for every flow in the netowrk
 	int num_flows = network.all_flows.size();	

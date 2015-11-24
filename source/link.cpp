@@ -5,7 +5,7 @@ using namespace std;
 Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf) {
 	capacity = my_cap;
 	flowrate = 0;
-	packets_sent = 0;
+	mb_sent = 0;
 	update_time = global_time;
 	ep1 = my_ep1;
 	ep2 = my_ep2;
@@ -15,6 +15,15 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	bytes_stored = 0;
 	packets_stored = 0;
 }
+// Get the capacity of the link
+double Link::get_capacity() {
+	return capacity;
+}
+
+// Get the flowrate of the link
+double Link::get_flowrate() {
+	return flowrate;
+}
 
 // Calculate the flowrate of the link
 void Link::set_flowrate() {
@@ -22,11 +31,11 @@ void Link::set_flowrate() {
 	// Time elapsed since last update
 	double time_elapsed = global_time - update_time;
 
-	// Flow rate is number of packets sent over elapsed time
-	flowrate = packets_sent / time_elapsed;
+	// Flow rate is MB sent over elapsed time
+	flowrate = mb_sent / time_elapsed;
 
-	// Reset the packets sent and most recent update time
-	packets_sent = 0;
+	// Reset the MB sent and most recent update time
+	mb_sent = 0;
 	update_time = global_time;
 }
 
@@ -50,6 +59,21 @@ double Link::get_queue_delay() {
 	total_delay += bytes_stored / capacity; 
 	//printf("queue delay: %f\n", total_delay);
 	return total_delay;
+}
+
+Node * Link::get_ep1() {
+	return ep1;
+}
+
+Node * Link::get_ep2() {
+	return ep2;
+}
+
+vector<Node *> Link::get_endpoints() {
+	vector <Node *> endpoints;
+	endpoints.push_back(ep1);
+	endpoints.push_back(ep2);
+	return endpoints;
 }
 
 /* Add a packet to the buffer and record its direction. Return 0 on success
@@ -105,7 +129,7 @@ Packet * Link::transmit_packet() {
 	Packet * transmission_packet = buffer.front();
 	int direction = directions.front();
 	// Increment number of packets sent
-	packets_sent += 1;
+	mb_sent += transmission_packet->packetSize();
 	// Dequeue transmitted packet from the buffer.
 	buffer.pop();
 	directions.pop();
@@ -163,14 +187,21 @@ Packet * Link::transmit_packet() {
 			}
 
 		}
-		// Destination must be a router since it isn't a host
+		// If endpoint 2 is not final destination, forward the packet
 		else
 		{
-			// Use routing table to determine proper link to load next
-			// Node * dest = endpoint2.get_routing_table.lookup(endpoint1)
-			// link * next_link = dest.get_link()
-			// next_link.add_to_buffer(transmission_packet);
-			// Create_event(next_link, get_transmit_time(next_link));
+			cout << "endpoint2 before case: " << endpoint2 << "\n";
+			// Cast endpoint2 from node to router 
+			if (Router * endpoint2 = dynamic_cast<Router *>(endpoint2)) {
+				// Use the routing table for endpoint 2 to look up next hop
+				cout << "endpoint2 after cast: " << endpoint2 << "\n";
+				cout << "dest: " << dest << "\n";
+				Node * next_node = endpoint2->get_routing_table().at(dest);
+				// Find the link associated with the next hop and transmit the packet
+				Link * next_link = endpoint2->get_link(next_node);
+				next_link.add_to_buffer(transmission_packet);
+				Create_event(next_link, get_transmit_time(next_link));
+			}
 		}
 	}
 	else // Packet is going from ep2 to ep1
@@ -223,9 +254,9 @@ Packet * Link::transmit_packet() {
  * Calculate link cost based on static component (transmission delay) and
  * dynamic component (flow rate).
  */
-double Link::calculate_cost(double delay, double flowrate) {
-	double cost = delay + flowrate;
-	return cost;
+double Link::calculate_cost() {
+	return delay;
+	//return bytes_stored / capacity;
 }
 
 
