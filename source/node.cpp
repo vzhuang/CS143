@@ -241,12 +241,20 @@ void Router::init_routing_table(Network * network) {
 		if (next[node] == src) {
 			routing_table[node] = node;
 		}
+		else if (next[next[node]] == src) {
+			routing_table[node] = next[node];
+		}
 		else {
-			// Trace back to a node that is connected to source
-			Node * next_hop = next[node];
-			routing_table[node] = next[next_hop];
+			routing_table[node] = next[next[node]];
 		}
 	}
+	// for (int i = 0; i < nodes.size(); i++) {
+	// 	Node * node = nodes.at(i);
+	// 	if (routing_table[node] != node) {
+	// 		routing_table[node] = routing_table[next[node]];
+	// 	}
+	// }
+
 }
 
 
