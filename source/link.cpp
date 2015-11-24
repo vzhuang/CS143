@@ -1,5 +1,6 @@
 #include "link.h"
-
+#include "parser.h"
+extern Network network;
 using namespace std;
 
 Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf) {
@@ -81,11 +82,13 @@ vector<Node *> Link::get_endpoints() {
 int Link::add_to_buffer(Packet * packet) {
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
-		printf("Packet dropped attempting to join the buffer on link: %lu\n", (long unsigned int)this);
+		printf("Packet dropped attempting to join the buffer on link: %s\n",
+		 link_to_english(&network, this).c_str() );
 		return -1;
 	}
 	
-	printf("Packet added to the buffer on link: %lu at time: %f\n", (long unsigned int)this, global_time);
+	printf("Packet added to the buffer on link: %s at time: %f\n", 
+		link_to_english(&network, this).c_str(), global_time);
 	buffer.push(packet);
 	bytes_stored += packet->packetSize();
 	packets_stored += 1;
@@ -122,7 +125,8 @@ Packet * Link::transmit_packet() {
 	// Check if the link is free
 	if(!is_free)
 	{
-		printf("Link %lu was not free but a push was attempted\n", (long unsigned int)this);
+		printf("Link %s was not free but a push was attempted\n", 
+			link_to_english(&network, this).c_str() );
 		return NULL;
 	}
 	// The packet at the front of the buffer is transmitted.
@@ -190,15 +194,14 @@ Packet * Link::transmit_packet() {
 		// If endpoint 2 is not final destination, forward the packet
 		else
 		{
-				cout << "endpoint2 before cast: " << endpoint2 << "\n";
-				cout << "endpoint2 after cast: " << (Router *) endpoint2 << "\n";
-				cout << "dest: " << dest << "\n";
+				cout << "dest: " << ip_to_english(&network, dest) << "\n";
 				// Use the routing table for endpoint 2 to look up next hop
 				Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
-				cout << "next_node: " << next_node << "\n";
+				cout << "current_node: " << ip_to_english(&network, endpoint1) << "\n";
+				cout << "next_node: " << ip_to_english(&network, next_node) << "\n";
 				// Find the link associated with the next hop and transmit the packet
 				Link * next_link = ((Router *) endpoint2)->get_link(next_node);
-				cout << "next_link: " << next_link << "\n";
+				cout << "next_link: " << link_to_english(&network, next_link) << "\n";
 				next_link->add_to_buffer(transmission_packet);
 				//Create_event(next_link, get_transmit_time(next_link));
 		}

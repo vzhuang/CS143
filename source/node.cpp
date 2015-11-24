@@ -1,7 +1,9 @@
 #include "node.h"
-#include "network.h"
 #include <map>
 #include <vector>
+#include "parser.h"
+#include "network.h"
+extern Network network;
 
 using namespace std;
 
@@ -49,15 +51,15 @@ Link * Node::get_link(Node * endpoint) {
 	vector<Link *> links = this->get_links();
 	for (int i = 0; i < links.size(); i++) 
 	{
-		cout << "candidate ep1: " << links.at(i)->get_ep1() << "\n";
-		cout << "candidate ep2: " << links.at(i)->get_ep2() << "\n";
 		Link * link = links.at(i);
 		if (link->get_ep1() == endpoint || link->get_ep2() == endpoint)
 		{
 			return link;
 		}
 	}
-	printf("FATAL: Router could not find link to requested endpoint.\n");
+	
+	printf("FATAL: Router could not find link to requested endpoint: %s\n",
+		ip_to_english(&network, endpoint).c_str() );
 	exit(-1);
 }
 
@@ -146,11 +148,11 @@ map<Node *, double> Node::get_distance_vector() {
 
 // USED FOR DEBUGGING
 void Node::print_distance_vector() {
-	//
-	cout << "Distance vector for source: " << this << "\n";
+	
+	cout << "Distance vector for source: " << ip_to_english(&network, this) << "\n";
 	for (map<Node *, double>::iterator it=distance_vector.begin(); it!=distance_vector.end(); ++it) {
 		//
-		cout << it->first << " " << it->second << "\n";
+		cout <<"	"<< ip_to_english(&network, it->first) << " " << it->second << "\n";
 	}
 }
 
@@ -263,10 +265,10 @@ map<Node *, Node *> Router::get_routing_table() {
 //USED FOR DEBUGGING
 void Router::print_routing_table() {
 	//
-	cout << "Routing table for source: " << this << "\n";
+	cout << "Routing table for source: " << ip_to_english(&network, this) << "\n";
 	for (map<Node *, Node *>::iterator it=routing_table.begin(); it!=routing_table.end(); ++it) {
 		//
-		cout << it->first << " " << it->second << "\n";
+		cout <<"	"<<  ip_to_english(&network, it->first) << " " << ip_to_english(&network, it->second) << "\n";
 	}
 }
 

@@ -9,6 +9,8 @@
 
 double global_time;
 double end_time;
+Network network;
+	
 /* Global variable that describes the type of congestion control.
    Different IDs are defioned in flow.h  */
 int TCP_ID; 
@@ -25,7 +27,6 @@ int main(int argc, char *argv[]) {
 	char * network_file = argv[1];
 	end_time = stod(argv[2]);
 	TCP_ID = stod(argv[3]);
-	Network network;
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
 	// Iterate over all routers and create routing tables
@@ -33,13 +34,14 @@ int main(int argc, char *argv[]) {
 		Router * source = network.all_routers.at(i);
 		source->init_distance_vector(&network);
 		source->init_routing_table(&network);
-		// USED FOR DEBUGGING
+		/* USED FOR DEBUGGING
 		vector<Link *> links = source->get_links();
 		cout << "Links at router " << i << ": \n";
 		for (int j = 0; j < links.size(); j++) {
-			cout << "	Link " << j << " ep1: ";  cout << links.at(j)->get_ep1() << "\n";
-			cout << "	Link " << j << " ep2: ";  cout << links.at(j)->get_ep2() << "\n";
+			cout << "	Link " << j << " ep1: ";  cout << ip_to_english(&network, links.at(j)->get_ep1()) << "\n";
+			cout << "	Link " << j << " ep2: ";  cout << ip_to_english(&network, links.at(j)->get_ep2()) << "\n";
 		}
+		* */
 		source->print_distance_vector();
 		source->print_routing_table();
 

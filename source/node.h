@@ -1,6 +1,7 @@
 
 #ifndef NODE_H
 #define NODE_H
+
 #include "link.h"
 #include "packet.h"
 #include "flow.h"

@@ -1,7 +1,8 @@
 #include "event.h"
+#include "parser.h"
 extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
-
+extern Network network;
 /////////////////// Generic Event Superclass /////////////////////
 Event::Event(double start_, int event_ID_)
 {
@@ -45,9 +46,9 @@ void Flow_Start_Event::handle_event()
 		double start = flow->get_start();
 		Host * source = flow->get_source();
 		Host * destination = flow->get_destination();
-		printf("This flow is going from %lu to %lu\n",
-			(long unsigned int)source,
-			(long unsigned int)destination );
+		printf("This flow is going from %s to %s\n",
+			ip_to_english(&network, source).c_str(),
+			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
 		Data_packet * packet = new Data_packet(source, destination, 0, flow);
 		// Always push packet to buffer before spawning send event
@@ -98,7 +99,8 @@ void Link_Free_Event::handle_event()
 {
 	global_time = this->get_start();
 	link->is_free = 1;
-	printf("Packet moved through Link %lu. It is available again. Time: %f\n",(long unsigned int)link, global_time);
+	printf("Packet moved through Link %s. It is available again. Time: %f\n",
+		link_to_english(&network, link).c_str(), global_time);
 }
 
 /////////////// Ack_Receive_Event (an ack was recieved by the source) /////////////////
@@ -111,9 +113,9 @@ Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * 
 void Ack_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Ack #%d recieved at host: %lu at time: %f\n", 
+	printf("Ack #%d recieved at host: %s at time: %f\n", 
 		ack->get_index(),
-		(long unsigned int)ack->getSource(),
+		ip_to_english(&network, ack->getSource()).c_str(),
 		global_time);
 	Link * link = ack->getSource()->get_first_link();
 
@@ -134,9 +136,9 @@ Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet
 void Data_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Packet #%d recieved at host: %lu at time: %f\n", 
+	printf("Packet #%d recieved at host: %s at time: %f\n", 
 			data->get_index(),
-			(long unsigned int)data->getSource(),
+			ip_to_english(&network, data->getSource()).c_str(),
 			global_time);
 	// Create ack packet to send back to source
 	Ack_packet * ack = new Ack_packet(data->getDest(),
