@@ -156,6 +156,15 @@ void Node::print_distance_vector() {
 	}
 }
 
+void Node::set_distance_vector(map<Node *, double> distances) {
+	//
+	for (map<Node *, double>::iterator it = distances.begin(); it != distances.end(); it++) {
+		Node * node = it->first;
+		double distance = it->second;
+		distance_vector[node] = distance;
+	}
+}
+
 /*
 * Constructor for the host subclass
 */
@@ -223,11 +232,20 @@ void Router::init_routing_table(Network * network) {
 			}
 		}
 	}
+	this->set_distance_vector(distances);
 
 	// Populate the routing table with the information
 	for (int i = 0; i < nodes.size(); i++) {
 		Node * node = nodes.at(i);
-		routing_table[node] = next[node];
+		// There's a direct link between the src and the node
+		if (next[node] == src) {
+			routing_table[node] = node;
+		}
+		else {
+			// Trace back to a node that is connected to source
+			Node * next_hop = next[node];
+			routing_table[node] = next[next_hop];
+		}
 	}
 }
 
