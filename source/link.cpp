@@ -187,7 +187,7 @@ Packet * Link::transmit_packet() {
 			}
 
 		}
-		// If endpoint 2 is not final destination, forward the packet
+		// If endpoint 2 is not final destination, forward the packet using router
 		else
 		{
 				//printf("\n@@@@@@@@@@@@@@@@@ %d Going from ep1 to ep2 @@@@@@@@@@@@@@@\n", transmission_packet->getId());
@@ -244,7 +244,7 @@ Packet * Link::transmit_packet() {
 				exit(-1);
 			}
 	}
-		// Destination must be a router since it isn't a host
+		// If endpoint 1 is not final destination, forward the packet using router
 		else
 		{
 			/*
