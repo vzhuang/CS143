@@ -234,6 +234,7 @@ void Router::init_routing_table(Network * network) {
 	}
 	this->set_distance_vector(distances);
 
+	// SHOULD MAKE THIS ITERATIVE
 	// Populate the routing table with the information
 	for (int i = 0; i < nodes.size(); i++) {
 		Node * node = nodes.at(i);
@@ -241,6 +242,7 @@ void Router::init_routing_table(Network * network) {
 		if (next[node] == src) {
 			routing_table[node] = node;
 		}
+		// Seek a node adjacent to source 
 		else if (next[next[node]] == src) {
 			routing_table[node] = next[node];
 		}
@@ -248,12 +250,6 @@ void Router::init_routing_table(Network * network) {
 			routing_table[node] = next[next[node]];
 		}
 	}
-	// for (int i = 0; i < nodes.size(); i++) {
-	// 	Node * node = nodes.at(i);
-	// 	if (routing_table[node] != node) {
-	// 		routing_table[node] = routing_table[next[node]];
-	// 	}
-	// }
 
 }
 
