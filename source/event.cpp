@@ -46,7 +46,7 @@ void Flow_Start_Event::handle_event()
 		double start = flow->get_start();
 		Host * source = flow->get_source();
 		Host * destination = flow->get_destination();
-		printf("This flow is going from %s to %s\n",
+		printf("This flow is going from %s to %s\n\n",
 			ip_to_english(&network, source).c_str(),
 			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
@@ -84,7 +84,8 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 void Link_Send_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Sending packet. Time: %f\n", global_time);
+	printf("Sending packet on link %s. Time: %f\n\n",
+		link_to_english(&network, link).c_str(), global_time);
 	link->transmit_packet();
 }
 
@@ -99,7 +100,7 @@ void Link_Free_Event::handle_event()
 {
 	global_time = this->get_start();
 	link->is_free = 1;
-	printf("Packet moved through Link %s. It is available again. Time: %f\n",
+	printf("Packet moved through Link %s. It is available again. Time: %f\n\n",
 		link_to_english(&network, link).c_str(), global_time);
 }
 
@@ -113,9 +114,9 @@ Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * 
 void Ack_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Ack #%d recieved at host: %s at time: %f\n", 
+	printf("Ack #%d recieved at host: %s at time: %f\n\n", 
 		ack->get_index(),
-		ip_to_english(&network, ack->getSource()).c_str(),
+		ip_to_english(&network, ack->getDest()).c_str(),
 		global_time);
 	Link * link = ack->getSource()->get_first_link();
 
@@ -136,9 +137,9 @@ Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet
 void Data_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Packet #%d recieved at host: %s at time: %f\n", 
+	printf("Packet #%d recieved at host: %s at time: %f\n\n", 
 			data->get_index(),
-			ip_to_english(&network, data->getSource()).c_str(),
+			ip_to_english(&network, data->getDest()).c_str(),
 			global_time);
 	// Create ack packet to send back to source
 	Ack_packet * ack = new Ack_packet(data->getDest(),

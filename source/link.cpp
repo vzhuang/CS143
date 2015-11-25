@@ -87,8 +87,6 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 		return -1;
 	}
 	
-	printf("Packet added to the buffer on link: %s at time: %f\n", 
-		link_to_english(&network, this).c_str(), global_time);
 	buffer.push(packet);
 	bytes_stored += packet->packetSize();
 	packets_stored += 1;		
@@ -192,18 +190,18 @@ Packet * Link::transmit_packet() {
 		// If endpoint 2 is not final destination, forward the packet
 		else
 		{
-				printf("\n@@@@@@@@@@@@@@@@@ %d Going from ep1 to ep2 @@@@@@@@@@@@@@@\n", transmission_packet->getId());
-				cout << "dest: " << ip_to_english(&network, dest) <<", ep2: " << ip_to_english(&network, endpoint2) << "\n";
+				//printf("\n@@@@@@@@@@@@@@@@@ %d Going from ep1 to ep2 @@@@@@@@@@@@@@@\n", transmission_packet->getId());
+				//cout << "dest: " << ip_to_english(&network, dest) <<", ep2: " << ip_to_english(&network, endpoint2) << "\n";
 				// Use the routing table for endpoint 2 to look up next hop
 				Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
-				cout << "current_link: " << link_to_english(&network, this) << "\n ";
-				cout << "current_node: " << ip_to_english(&network, endpoint1) << ", ";
-				cout << "next_node: " << ip_to_english(&network, next_node) << "\n";
+				//cout << "current_link: " << link_to_english(&network, this) << "\n ";
+				//cout << "current_node: " << ip_to_english(&network, endpoint1) << ", ";
+				//cout << "next_hop: " << ip_to_english(&network, endpoint2) << "\n";
 				// Find the link associated with the next hop and transmit the packet
 				Link * next_link = ((Router *) endpoint2)->get_link(next_node);
-				cout << "next_link: " << link_to_english(&network, next_link) << "\n";
+				//cout << "next_link: " << link_to_english(&network, next_link) << "\n";
 				// Always push packet to buffer before spawning send event
-				if( next_link->add_to_buffer(transmission_packet, next_node) == 0)
+				if( next_link->add_to_buffer(transmission_packet, endpoint2) == 0)
 				{ 
 					Link_Send_Event * send_event = new Link_Send_Event(
 						time_to_send + global_time,
@@ -249,19 +247,23 @@ Packet * Link::transmit_packet() {
 		// Destination must be a router since it isn't a host
 		else
 		{
+			/*
 				printf("\n@@@@@@@@@@@@@@@@@ %d Going from ep2 to ep1 @@@@@@@@@@@@@@@\n", transmission_packet->getId());
 				cout << "dest: " << ip_to_english(&network, dest) <<", ep1: " << ip_to_english(&network, endpoint1) 
 				<<", ep2: " << ip_to_english(&network, endpoint2) <<"\n";
+				* */
 			// Use the routing table for endpoint 1 to look up next hop
 			Node * next_node = ((Router *) endpoint1)->get_routing_table().at(dest);
+			/*
 			cout << "current_link: " << link_to_english(&network, this) << "\n ";
 			cout << "current_node: " << ip_to_english(&network, endpoint2) << ", ";
-			cout << "next_node: " << ip_to_english(&network, next_node) << "\n";
+			cout << "next_hop: " << ip_to_english(&network, endpoint1) << "\n";
+			* */
 			// Find the link associated with the next hop and transmit the packet
 			Link * next_link = ((Router *) endpoint1)->get_link(next_node);
-			cout << "next_link: " << link_to_english(&network, next_link) << "\n";
+			//cout << "next_link: " << link_to_english(&network, next_link) << "\n";
 			// Always push packet to buffer before spawning send event
-			if( next_link->add_to_buffer(transmission_packet, next_node) == 0) { 
+			if( next_link->add_to_buffer(transmission_packet, endpoint1) == 0) { 
 				Link_Send_Event * send_event = new Link_Send_Event(
 				time_to_send + global_time,
 				SEND_EVENT_ID,
@@ -269,7 +271,7 @@ Packet * Link::transmit_packet() {
 				event_queue.push(send_event);
 			}
 		}
-		exit(-1);
+
 	}
 	return transmission_packet;
 }
