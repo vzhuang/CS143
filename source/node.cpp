@@ -67,7 +67,7 @@ Link * Node::get_link(Node * endpoint) {
 * Send a packet along the specified link.
 */
 void Node::send_packet(Packet * packet, Link link) {
-	link.add_to_buffer(packet);
+	//link.add_to_buffer(packet);
 
 }
 

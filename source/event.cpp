@@ -52,7 +52,7 @@ void Flow_Start_Event::handle_event()
 		Link * link = flow->get_source()->get_first_link();
 		Data_packet * packet = new Data_packet(source, destination, 0, flow);
 		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet) == 0)
+		if( link->add_to_buffer(packet, (Node *) source) == 0)
 		{ 
 			Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
 			event_queue.push(event);
@@ -147,7 +147,7 @@ void Data_Receive_Event::handle_event()
 									data->get_index());
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
 	// Always push packet to buffer before spawning send event
-	if(link_to_send_ack->add_to_buffer(ack) == 0)
+	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0)
 	{
 		Link_Send_Event * event = new Link_Send_Event(
 									global_time,

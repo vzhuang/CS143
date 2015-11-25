@@ -80,7 +80,7 @@ public:
 	double get_packet_delay(Packet * packet);
 	
 	// Add a packet to the link's buffer. Return 0 on success. -1 on fail.
-	int add_to_buffer(Packet * packet);
+	int add_to_buffer(Packet * packet, Node * source);
 
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
