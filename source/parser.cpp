@@ -5,7 +5,7 @@
 Node * parse_ip(string token, Network * network)
 {
 	string node_type = token.substr(0,1);
-	int node_number = stoi(token.substr(1));
+	int node_number = stoi(token.substr(1)) - 1;
 		
 	if(node_type.compare("H") == 0)
 	{
@@ -119,9 +119,56 @@ void build_network(Network * network, char * network_file)
 		myfile >> token;
 	}
 	
+}
+
+// Returns node "H/R# as specified by test case diagram"
+string ip_to_english(Network * network, Node * node)
+{
+	if(node == NULL)
+	{
+		return "NULL";
+	}
 	
-	// TODO: Populate routing tables...
-	
-	// TODO: Push flow begin events...
-	
+	int num_r = network->all_routers.size();
+	int num_h = network->all_hosts.size();
+	string output;
+	for(int i = 0; i < num_r; i++)
+	{
+		if(network->all_routers[i] == node)
+		{
+			output = "R";
+			output += std::to_string(i + 1);
+			return output; 
+		}
+	}
+	for(int i = 0; i < num_h; i++)
+	{
+		if(network->all_hosts[i] == node)
+		{
+			output = "H";
+			output += std::to_string(i + 1);
+			return output; 
+		}
+	}
+	printf("FATAL: ip: %lu not in this network\n", (long unsigned int) node);
+	exit(-1);
+}
+
+// Returns link "L#" as specified by test case diagram
+string link_to_english(Network * network, Link * link)
+{
+	int num_l = network->all_links.size();
+	string output;
+	for(int i = 0; i < num_l; i++)
+	{
+		if(network->all_links[i] == link)
+		{
+			output = "L";
+			//@@@@@@@@@@ REMOVE 0 INDEXING LATER @@@@@@@@@@@@@
+			output += std::to_string(i);
+			return output; 
+		}
+	}
+	printf("FATAL: link: %lu not in this network\n", (long unsigned int) link);
+	exit(-1);
 }

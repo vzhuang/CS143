@@ -18,15 +18,15 @@ Flows:
 To elaborate, both hosts and rotuers can be specified by a single integer 
 representing the total number of hosts/routers to be in the network.
 
-Links are specified as individual entries with specific node endpoints and
-a link capacity. For example, the following entry:
-H0, R1, 10, 20, 30
+Links are specified as individual entries with specific node endpoints (1-indexed!)
+and a link capacity. For example, the following entry:
+H0 R1 10 20 30
 specifies to create a link between the first host and the second router with
 a link of capacity 10 MBps, delay of 20 ms, and buffer_size of 30 MB.
 
 Flows are specified as individual entries with specific start and end hosts,
 an amount of data to transmit, and a start time. For example, the following entry:
-H0, H1, 100, 0
+H1, H2, 100, 0
 specifies to create a flow that goes from the first host to the second host. This
 flow will have 100 MB of data at begin at t = 0 ms.
 
@@ -58,6 +58,12 @@ class Link;
 /* Create a network at the passed in Network * using the passed in 
    network specification file. */
 void build_network(Network * network, char * network_file);
+
+// Returns node "H/R# as specified by test case diagram"
+string ip_to_english(Network * network, Node * node);
+
+// Returns link "L#" as specified by test case diagram
+string link_to_english(Network * network, Link * link);
 
 #endif  /* PARSER_H */
 

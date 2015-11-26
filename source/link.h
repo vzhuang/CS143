@@ -15,6 +15,7 @@
 #include "node.h"
 #include "event.h"
 #include <limits>
+#include <vector>
 
 class Event;
 class Node;
@@ -28,10 +29,10 @@ using namespace std;
 class Link {
 	// Maximum rate in Mbps that the link may transmit
 	double capacity;
-	// Total flow rate through the link
+	// Total flow rate through the link (bytes/s)
 	double flowrate;
-	// Number of packets sent since last update of flow rate
-	int packets_sent;
+	// Number of bytes sent since last update of flow rate
+	int bytes_sent;
 	// Time of last update of flow rate
 	double update_time;
 	// Indicates one end point of the link
@@ -55,21 +56,35 @@ public:
 	// Constructor
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);
 
+	// Get the link capacity
+	double get_capacity();
+
+	// Get the flowrate 
+	double get_flowrate();
+
 	// Set the flowrate
 	void set_flowrate();
 	
 	// Calculate the time (s) it would take to clear out everything in the queue
 	double get_queue_delay();
 
+	// Get the endpoints of the link;
+	Node * get_ep1();
+
+	Node * get_ep2();
+
+	// Get vector of both node endpoints of the link
+	vector<Node *> get_endpoints();
+
 	// Calculate the time (s) it would take to send an individual packet
 	double get_packet_delay(Packet * packet);
 	
 	// Add a packet to the link's buffer. Return 0 on success. -1 on fail.
-	int add_to_buffer(Packet * packet);
+	int add_to_buffer(Packet * packet, Node * source);
 
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
-	double calculate_cost(double delay, double flowrate);
+	double calculate_cost();
 
 	//Move a packet to the other side of the link
 	Packet * transmit_packet();

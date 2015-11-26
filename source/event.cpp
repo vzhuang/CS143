@@ -1,7 +1,8 @@
 #include "event.h"
+#include "parser.h"
 extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
-
+extern Network network;
 /////////////////// Generic Event Superclass /////////////////////
 Event::Event(double start_, int event_ID_)
 {
@@ -45,13 +46,21 @@ void Flow_Start_Event::handle_event()
 		double start = flow->get_start();
 		Host * source = flow->get_source();
 		Host * destination = flow->get_destination();
-		printf("This flow is going from %lu to %lu\n",
-			(long unsigned int)source,
-			(long unsigned int)destination );
+		printf("This flow is going from %s to %s\n\n",
+			ip_to_english(&network, source).c_str(),
+			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
 		Data_packet * packet = new Data_packet(source, destination, 0, flow);
+		Data_packet * packet1 = new Data_packet(source, destination, 1, flow);
 		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet) == 0)
+		if( link->add_to_buffer(packet, (Node *) source) == 0)
+		{ 
+			Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
+			event_queue.push(event);
+		}
+		start += link->get_packet_delay(packet);
+		// Always push packet to buffer before spawning send event
+		if( link->add_to_buffer(packet1, (Node *) source) == 0)
 		{ 
 			Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
 			event_queue.push(event);
@@ -82,9 +91,12 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 
 void Link_Send_Event::handle_event()
 {
+	//printf("@@@@@@@@@@@@@@ BEGIN SEND EVENT @@@@@@@@@@@@@@@@\n");
 	global_time = this->get_start();
-	printf("Sending packet. Time: %f\n", global_time);
+	printf("Sending packet on link %s. Time: %f\n\n",
+		link_to_english(&network, link).c_str(), global_time);
 	link->transmit_packet();
+	//printf("@@@@@@@@@@@@@@ FINISH SEND EVENT @@@@@@@@@@@@@@@@\n\n");
 }
 
 /////////////// Link_Free_Event /////////////////
@@ -96,9 +108,12 @@ Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
 
 void Link_Free_Event::handle_event()
 {
+	//printf("@@@@@@@@@@@@@@ BEGIN LINK FREE EVENT @@@@@@@@@@@@@@@@\n");
 	global_time = this->get_start();
 	link->is_free = 1;
-	printf("Packet moved through Link %lu. It is available again. Time: %f\n",(long unsigned int)link, global_time);
+	printf("Packet moved through Link %s. It is available again. Time: %f\n\n",
+		link_to_english(&network, link).c_str(), global_time);
+	//printf("@@@@@@@@@@@@@@ FINISH LINK FREE EVENT @@@@@@@@@@@@@@@@\n\n");
 }
 
 /////////////// Ack_Receive_Event (an ack was recieved by the source) /////////////////
@@ -111,9 +126,9 @@ Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * 
 void Ack_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Ack #%d recieved at host: %lu at time: %f\n", 
+	printf("Ack #%d recieved at host: %s at time: %f\n\n", 
 		ack->get_index(),
-		(long unsigned int)ack->getSource(),
+		ip_to_english(&network, ack->getDest()).c_str(),
 		global_time);
 	Link * link = ack->getSource()->get_first_link();
 
@@ -134,9 +149,9 @@ Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet
 void Data_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Packet #%d recieved at host: %lu at time: %f\n", 
+	printf("Packet #%d recieved at host: %s at time: %f\n\n", 
 			data->get_index(),
-			(long unsigned int)data->getSource(),
+			ip_to_english(&network, data->getDest()).c_str(),
 			global_time);
 	// Create ack packet to send back to source
 	Ack_packet * ack = new Ack_packet(data->getDest(),
@@ -144,11 +159,14 @@ void Data_Receive_Event::handle_event()
 									data->getFlow(),
 									data->get_index());
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
+	
+	double start_time = global_time + link_to_send_ack->get_queue_delay();
+		
 	// Always push packet to buffer before spawning send event
-	if(link_to_send_ack->add_to_buffer(ack) == 0)
+	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0)
 	{
 		Link_Send_Event * event = new Link_Send_Event(
-									global_time,
+									start_time,
 									SEND_EVENT_ID,
 									link_to_send_ack);
 		event_queue.push(event);

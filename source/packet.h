@@ -2,10 +2,11 @@
 #ifndef PACKET_H
 #define PACKET_H
 
-#include <string>
+#include <map>
 #include "node.h"
 #include "flow.h"
 #include "link.h"
+#include <vector>
 // Packet sizes in bytes
 #define DATA_SIZE 1024
 #define ROUTING_SIZE 1
@@ -55,12 +56,16 @@ public:
 /////////////// Routing Packet /////////////////
 class Rout_packet : public Packet 
 {
+	Node * rsrc;
+	map<Node *, double> packet_vector;
 public:
 	Rout_packet(Host * the_source, 
 		       Host * the_dest, 
 		       routing_table * the_rtable);
 	routing_table * getTable();
 	int getId();
+	Node * get_router_source();
+	map<Node *, double> get_packet_vector();
 	
 protected:
 	routing_table * rtable;
