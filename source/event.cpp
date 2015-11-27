@@ -75,10 +75,14 @@ void Flow_Start_Event::handle_event()
 		}
 
 		// Always push packet to buffer before spawning send event
-		//if( link->add_to_buffer(packet2, (Node *) source) == 0)
+		if( link->add_to_buffer(packet2, (Node *) source) == 0)
 		{ 
-		//	Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
-			//event_queue.push(event);
+			Link_Send_Event * event = 
+				new Link_Send_Event(
+					link->earliest_available_time(),
+					SEND_EVENT_ID,
+					link);
+			event_queue.push(event);
 		}
 	
 	}
@@ -208,8 +212,8 @@ void Data_Receive_Event::handle_event()
 			ip_to_english(&network, data->getDest()).c_str(),
 			global_time);
 	// Create ack packet to send back to source
-	Ack_packet * ack = new Ack_packet(data->getDest(),
-									data->getSource(),
+	Ack_packet * ack = new Ack_packet((Host *)data->getDest(),
+									(Host *)data->getSource(),
 									data->getFlow(),
 									data->get_index(),
 									data->get_time());

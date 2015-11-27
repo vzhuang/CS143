@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-
+#include <algorithm>
 class Node;
 class Host;
 class Link;
