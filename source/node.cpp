@@ -123,22 +123,53 @@ void Node::init_distance_vector(Network * network) {
 	distance_vector = distances;
 }
 
-void Node::update_distance_vector(Rout_packet * rpacket) {
-	Node * rnode = rpacket->get_router_source();
-	// Distance from the source to the router that sent the routing packet
-	map<Node *, double> distance_vector = this->get_distance_vector();
-	double dist_to_rsrc = distance_vector.at(rnode);
-	map<Node *, double> packet_vector = rpacket->get_packet_vector();
-	for (map<Node *, double>::iterator it = distance_vector.begin(); it != distance_vector.end(); it++) {
-		Node * dst = it->first;
-		double prev_dist = it->second;
-		// Distance from the routing packet source node to the destination
-		double rsrc_to_dst = packet_vector.at(dst);
-		// If the distance going through rnode is less than the previously 
-		// known shortest distance, update
-		if (dist_to_rsrc + rsrc_to_dst > prev_dist) {
-			distance_vector[dst] = dist_to_rsrc + rsrc_to_dst;
+/**
+* Initialize the node's distance vector to adjacent links
+*/
+void Node::init_distance_vector() {
+	// Distance to self is 0
+	distance_vector[ip] = 0.0;
+	vector <Link *> adj_links = this->get_links();
+	// Node only knows it can reach nodes through its links.
+	for (int i = 0; i < adj_links.size(); i++) {
+		Link * link = adj_links.at(i);
+		Node * ep1 = link->get_ep1();
+		Node * ep2 = link->get_ep2();
+		// Current node is one of the endpoints. Add the other to the distance vector.
+		if (ip == ep1) {
+			distance_vector[ep2] = link->calculate_cost();
 		}
+		else {
+			distance_vector[ep1] = link->calculate_cost();
+		}
+	}
+
+}
+
+// Update the distance vector as routing packets are received
+void Node::update_distance_vector(Rout_packet * rpacket) {
+	// Router and corresponding distance vector from packet
+	Node * rnode = rpacket->get_router_source();
+	map<Node *, double> packet_vector = rpacket->get_packet_vector();
+	// Distance from current node to router that sent packet
+	double dist_to_rsrc = distance_vector.at(rnode);
+	// Iterate over nodes in the packet vector
+	for (map<Node *, double>::iterator it = packet_vector.begin(); it != packet_vector.end(); it++) {
+		// Destination reachable from rnode and its distance
+		Node * dst = it->first;
+		double dist_from_rsrc = it->second;
+		// If dest node is not in distance vector, add it
+		if (distance_vector.find(dst) == distance_vector.end()) {
+			distance_vector.insert(pair<Node *, double>(dst, dist_to_rsrc + dist_from_rsrc));
+		}
+		else {
+			// If a shorter path has been found, update distance vector
+			double prev_dist = distance_vector.at(dst);
+			if (dist_to_rsrc + dist_from_rsrc < prev_dist) {
+				distance_vector[dst] = dist_to_rsrc + dist_from_rsrc;
+			}
+		}
+
 	}
 }
 
@@ -242,6 +273,7 @@ void Router::init_routing_table(Network * network) {
 		if (next[node] == src) {
 			routing_table[node] = node;
 		}
+
 		// Seek a node adjacent to source 
 		else if (next[next[node]] == src) {
 			routing_table[node] = next[node];
@@ -253,32 +285,60 @@ void Router::init_routing_table(Network * network) {
 
 }
 
+/**
+* Initialize the routing table without external knowledge of the network.
+*/ 
+void Router::init_routing_table() {
+	vector<Link *> adj_links = this->get_links();
+	for (int i = 0; i < adj_links.size(); i++) {
+		Link * link = adj_links.at(i);
+		Node * ep1 = link->get_ep1();
+		Node * ep2 = link->get_ep2();
+		// Current node is one of the endpoints. Add the other to the routing table.
+		if (this == ep1) {
+			routing_table[ep2] = ep2;
+		}
+		else {
+			routing_table[ep1] = ep1;
+		}
+
+	}
+}
 
 /*
 * Update a routing table dynamically when a routing packet is received.
 */
 void Router::update_routing_table(Rout_packet * rpacket) {
-	//
-	Node * rnode = rpacket->get_router_source();
-	map<Node *, Node *> next;
-	// Distance from the source to the router that sent the routing packet
-	map<Node *, double> distance_vector = this->get_distance_vector();
-	double dist_to_rsrc = distance_vector.at(rnode);
+	// Router and corresponding distance vector from packet
+	Node * rsrc = rpacket->get_router_source();
 	map<Node *, double> packet_vector = rpacket->get_packet_vector();
-	// Iterate over all destination nodes
-	for (map<Node *, double>::iterator it = distance_vector.begin(); it != distance_vector.end(); it++) {
+	map<Node *, double> distances = this->get_distance_vector();
+	// Distance from current node to router that sent packet
+	double dist_to_rsrc = distances.at(rsrc);
+	// Iterate over nodes in the packet vector
+	for (map<Node *, double>::iterator it = packet_vector.begin(); it != packet_vector.end(); it++) {
+		// Destination reachable from rnode and its distance
 		Node * dst = it->first;
-		double prev_dist = it->second;
-		// Distance from the routing packet source node to the destination
-		double rsrc_to_dst = packet_vector.at(dst);
-		// If the distance going through rnode is less than the previously 
-		// known shortest distance, update routing table
-		if (dist_to_rsrc + rsrc_to_dst > prev_dist) {
-			distance_vector[dst] = dist_to_rsrc + rsrc_to_dst;
-			routing_table[dst] = rnode;
+		double dist_from_rsrc = it->second;
+		// If dest node is not in distance vector, add it
+		if (distances.find(dst) == distances.end()) {
+			distances.insert(pair<Node *, double>(dst, dist_to_rsrc + dist_from_rsrc));
+			// Add the node to the routing table. Since the shortest path 
+			// goes through rsrc
+			routing_table.insert(pair<Node *, Node *>(dst, routing_table.at(rsrc)));
 		}
+		else {
+			// If a shorter path has been found, update distance vector
+			double prev_dist = distances.at(dst);
+			if (dist_to_rsrc + dist_from_rsrc < prev_dist) {
+				distances[dst] = dist_to_rsrc + dist_from_rsrc;
+				routing_table.insert(pair<Node *, Node *>(dst, routing_table.at(rsrc)));
+			}
+		}
+
 	}
 }
+
 
 map<Node *, Node *> Router::get_routing_table() {
 	return routing_table;
@@ -293,7 +353,6 @@ void Router::print_routing_table() {
 		cout <<"	"<<  ip_to_english(&network, it->first) << " " << ip_to_english(&network, it->second) << "\n";
 	}
 }
-
 
 
 
