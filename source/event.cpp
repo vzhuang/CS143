@@ -230,3 +230,13 @@ void Data_Receive_Event::handle_event()
 	}
 	delete data;
 }
+
+// Time out event - check if packet timed out
+
+Time_Out_Event::Time_Out_Event(Data_packet * data_) : Event(start_, event_ID_) {
+	data = data_;	
+}
+
+void Time_Out_Event::handle_event() {
+	
+}

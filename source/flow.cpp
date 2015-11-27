@@ -126,6 +126,15 @@ void Flow::receive_ack(Ack_packet * packet) {
 	last_ack_received = packet->get_index();
 }
 
+void Flow::handle_time_out(){
+	if(sending.size() > 0){
+		ss_threshold = W / 2;
+		window.size = 1;
+		send_packets();
+		last_time_out = global_time;
+	}
+}
+
 bool Flow::received_packet(int num) {
 	if(std::find(received.begin(), received.end(), num) == received.end()){
 		return false;

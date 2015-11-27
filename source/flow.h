@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 class Node;
 class Host;
@@ -35,12 +36,12 @@ class Flow{
     int window_start; 
     int last_ack_received; // to check for duplicate acks
     int num_duplicates; // keeps track of how many duplicate packets received
-    bool slow_start; // in slow start phase?
-    int post_slow_start; // W_0/2
-    
+    int ss_threshold; // W_0/2
+
+    bool slow_start; // in slow start phase?    
     bool fast_retransmit; // use fast retransmit?
     bool fast_recovery; // use fast recovery?
-    
+    double last_time_out;
     
     vector<int> sending; // packets currently sent but not acked
     vector<double> times;
