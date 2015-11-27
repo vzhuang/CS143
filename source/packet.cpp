@@ -88,13 +88,20 @@ map<Node *, double> Rout_packet::get_packet_vector() {
 }
 /////////////////// Ack Packet /////////////////////
 Ack_packet::Ack_packet(Host * the_source, 
-	                   Host * the_dest, 
-	                   Flow * the_flow,
-	                   int my_index)
+	                  Host * the_dest, 
+	                  Flow * the_flow,
+					  int my_index,
+					  double time_)
            : Packet(the_source, the_dest, ACK_SIZE, the_flow)
 {
 	my_flow = the_flow;
 	index = my_index;
+	time = time_;
+}
+
+double Ack_packet::get_time()
+{
+	return time;
 }
 
 int Ack_packet::get_index()

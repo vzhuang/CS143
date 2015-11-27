@@ -7,31 +7,62 @@
 #include "flow.h"
 #include <iostream>
 #include <vector>
+#include <cmath>
+
 class Node;
 class Host;
 class Link;
+class Packet;
+class Data_packet;
+class Ack_packet;
+
 #define TCP_TAHOE 0
 #define TCP_RENO 1
 #define TCP_FAST 2
+
 using namespace std;
-
-
 
 class Flow{
 	Host * source;
 	Host * destination;
 	double start;
-	double size;
+	int size;
+    int algorithm; /** TCP algorithm */
+    vector<int> received; // received packets (by destination)
+    vector<int> sent; // sent packets (by source)
+    int to_receive; // next packet expected to receive
+    double window_size;
+    int window_start; 
+    int last_ack_received; // to check for duplicate acks
+    bool slow_start; // in slow start phase?
+    bool fast_retransmit; // use fast retransmit?
+    bool fast_recovery; // use fast recovery?
+
+    
+    vector<int> sending; // packets currently sent but not acked
+    vector<double> times;
+    double time_out;
+    double a;
+    double b;
+    double rtt_avg;
+    double rtt_dev;
+    vector<int> round_trip_times; 
+  
 	
 public:
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
 	double get_start();
 	Host * get_source();
 	Host * get_destination();
-	void send_stream();
+	vector<Data_packet *> send_packets();
 	void send_data();
-	void generate_packet();
-	void send_packet();
+	Data_packet * generate_packet(int n);
+    Ack_packet * generate_ack_packet();
+	//void send_data_packet(Data_packet * packet); 
+    void send_ack_packet(Ack_packet * packet);
+    void receive_data(Data_packet * packet);
+    bool received_packet(int num);
+    void receive_ack(Ack_packet * packet, double global_time);
 };
 
 #endif
