@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	// Keep dequeuing events and handling them
-	while(!event_queue.empty() || global_time >= end_time)
+	while( (!event_queue.empty()) && (global_time <= end_time) )
 	{
 		Event * to_handle = event_queue.top();
 		event_queue.pop();

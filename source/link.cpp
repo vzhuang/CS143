@@ -28,13 +28,10 @@ double Link::get_flowrate() {
 
 // Calculate the flowrate of the link
 void Link::set_flowrate() {
-
 	// Time elapsed since last update
 	double time_elapsed = global_time - update_time;
-
 	// Flow rate is bytes sent over elapsed time (s)
 	flowrate = bytes_sent / time_elapsed;
-
 	// Reset the bytes sent and most recent update time
 	bytes_sent = 0;
 	update_time = global_time;
@@ -93,189 +90,115 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	Node * endpoint1 = (ep1)->get_ip();
 	Node * endpoint2 = (ep2)->get_ip();
 	// Going from ep1 to ep2.
-	if(source == endpoint1)
-	{
+	if(source == endpoint1) {
 		directions.push(1);
 	}
 	// Going from ep2 to ep1.
-	else if(source == endpoint2)
-	{
+	else if(source == endpoint2) {
 		directions.push(-1);
 	}
 	// Something went wrong
-	else
-	{
+	else {
 		printf("Incoming packet did not come from a link endpoint\n");
 		exit(-1);
 	}
 	return 0;
 }
 
+/* Transmit the first packet on this link's buffer, spawning an 
+   appropriate event in response to the destination of the newly
+   transmitted packet. */
 Packet * Link::transmit_packet() {
 	// Sanity check
-	if(buffer.empty())
-	{
+	if(buffer.empty()) {
 			printf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
 	// Check if the link is free
-	if(!is_free)
-	{
-		printf("Link %s was not free but a push was attempted\n", 
+	if(!is_free) {
+		printf("Link %s was not free but a transmit was attempted\n\n", 
 			link_to_english(&network, this).c_str() );
+		exit(-1);
 		return NULL;
+	}
+	// Set the link to occupied while we send a packet
+	else { 
+		is_free = 0;
 	}
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = buffer.front();
 	int direction = directions.front();
-	// Increment number of packets sent
-	bytes_sent += transmission_packet->packetSize();
-	// Dequeue transmitted packet from the buffer.
-	buffer.pop();
-	directions.pop();
-	bytes_stored -= transmission_packet->packetSize();
-	packets_stored -= 1;
 	// Create some local variables for clarity
 	Node * dest = transmission_packet->getDest();
 	Node * endpoint1 = ep1->get_ip();
 	Node * endpoint2 = ep2->get_ip();
 	// Determine how long it will take to transmit this packet in seconds.
 	double time_to_send = get_packet_delay(transmission_packet);
-	// Designate the link as occupied
-	is_free = 0;
 	
-	if(direction == 1) // Packet is going from ep1 to ep2
-	{	
-		// Check if destination is the endpoint
-		if(dest == endpoint2)
+	// Orient our endpoints to be conistent with the direction == 1 case
+	if(direction == -1) {
+		Node * temp = endpoint1;
+		endpoint1 = endpoint2;
+		endpoint2 = temp;
+	}
+	
+	// Check if destination is the endpoint of this link
+	if(endpoint2 == dest) {
+		int packet_ID = transmission_packet->getId();
+		// Check if this is an ack packet so that that an Ack_Receive_Event is made
+		if( packet_ID == ACK_ID)
 		{
-			int packet_ID = transmission_packet->getId();
-			// Check if this is an ack packet so that that an Ack_Receive_Event is made
-			if( packet_ID == ACK_ID)
-			{
-				Ack_Receive_Event * ack_event = 
-							new Ack_Receive_Event(global_time + time_to_send,
-									ACK_RECEIVE_ID,
-									(Ack_packet *) transmission_packet);
-				event_queue.push(ack_event);
-			}
-			
-			// It must be a data packet. Create a Data_Receive_Event instead
-			else if( packet_ID == DATA_ID)
-			{
-				Data_Receive_Event * receive_event = 
-							new Data_Receive_Event(global_time + time_to_send,
-									DATA_RECEIVE_ID,
-									(Data_packet *) transmission_packet);
-				event_queue.push(receive_event);
-			}
-			// Sanity check
-			else
-			{
-				printf("Unexpected packet ID: %d reached its endpoint\n", packet_ID);
-				exit(-1);
-			}
-
+			Ack_Receive_Event * ack_event = 
+						new Ack_Receive_Event(
+							global_time + time_to_send,
+							ACK_RECEIVE_ID,
+							(Ack_packet *) transmission_packet);
+			event_queue.push(ack_event);
 		}
-		// If endpoint 2 is not final destination, forward the packet using router
+		// It must be a data packet. Create a Data_Receive_Event instead
 		else
 		{
-				//printf("\n@@@@@@@@@@@@@@@@@ %d Going from ep1 to ep2 @@@@@@@@@@@@@@@\n", transmission_packet->getId());
-				//cout << "dest: " << ip_to_english(&network, dest) <<", ep2: " << ip_to_english(&network, endpoint2) << "\n";
-				// Use the routing table for endpoint 2 to look up next hop
-				Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
-				//cout << "current_link: " << link_to_english(&network, this) << "\n ";
-				//cout << "current_node: " << ip_to_english(&network, endpoint1) << ", ";
-				//cout << "next_hop: " << ip_to_english(&network, endpoint2) << "\n";
-				// Find the link associated with the next hop and transmit the packet
-				Link * next_link = ((Router *) endpoint2)->get_link(next_node);
-				//cout << "next_link: " << link_to_english(&network, next_link) << "\n";
-				// Always push packet to buffer before spawning send event
-				
-				// Account for what's already in the link buffer
-				time_to_send += next_link->get_queue_delay();
-				if( next_link->add_to_buffer(transmission_packet, endpoint2) == 0)
-				{ 
-					Link_Send_Event * send_event = new Link_Send_Event(
-						time_to_send + global_time,
-						SEND_EVENT_ID,
-						next_link);
-					event_queue.push(send_event);
-				}
+			Data_Receive_Event * receive_event = 
+						new Data_Receive_Event(
+							global_time + time_to_send,
+							DATA_RECEIVE_ID,
+							(Data_packet *) transmission_packet);
+			event_queue.push(receive_event);
 		}
 	}
-	else // Packet is going from ep2 to ep1
-	{
-		// Check if destination is the endpoint
-		if(dest == endpoint1)
-		{
-
-			int packet_ID = transmission_packet->getId();
-			// Check if this is an ack packet so that that an Ack_Receive_Event is made
-			if( packet_ID == ACK_ID)
-			{
-				Ack_Receive_Event * ack_event = 
-							new Ack_Receive_Event(global_time + time_to_send,
-									ACK_RECEIVE_ID,
-									(Ack_packet *) transmission_packet);
-				event_queue.push(ack_event);
-			}
-			
-			// It must be a data packet. Create a Data_Receive_Event instead
-			else if( packet_ID == DATA_ID)
-			{
-				Data_Receive_Event * receive_event = 
-							new Data_Receive_Event(global_time + time_to_send,
-									DATA_RECEIVE_ID,
-									(Data_packet *) transmission_packet);
-				event_queue.push(receive_event);
-			}
-			// Sanity check
-			else
-			{
-				printf("Unexpected packet ID: %d reached its endpoint\n", packet_ID);
-				exit(-1);
-			}
-	}
-		// If endpoint 1 is not final destination, forward the packet using router
-		else
-		{
-			/*
-				printf("\n@@@@@@@@@@@@@@@@@ %d Going from ep2 to ep1 @@@@@@@@@@@@@@@\n", transmission_packet->getId());
-				cout << "dest: " << ip_to_english(&network, dest) <<", ep1: " << ip_to_english(&network, endpoint1) 
-				<<", ep2: " << ip_to_english(&network, endpoint2) <<"\n";
-				* */
-			// Use the routing table for endpoint 1 to look up next hop
-			Node * next_node = ((Router *) endpoint1)->get_routing_table().at(dest);
-			/*
-			cout << "current_link: " << link_to_english(&network, this) << "\n ";
-			cout << "current_node: " << ip_to_english(&network, endpoint2) << ", ";
-			cout << "next_hop: " << ip_to_english(&network, endpoint1) << "\n";
-			* */
-			// Find the link associated with the next hop and transmit the packet
-			Link * next_link = ((Router *) endpoint1)->get_link(next_node);
-			//cout << "next_link: " << link_to_english(&network, next_link) << "\n";
-			// Always push packet to buffer before spawning send event
-			
-			// Account for what's already in the link buffer
-			time_to_send += next_link->get_queue_delay();
-			if( next_link->add_to_buffer(transmission_packet, endpoint1) == 0) { 
-				Link_Send_Event * send_event = new Link_Send_Event(
-				time_to_send + global_time,
-				SEND_EVENT_ID,
-				next_link);
-				event_queue.push(send_event);
-			}
+	// If endpoint 2 is not a final destination, it must be a router
+	else {
+		// Use the routing table for endpoint 2 to look up next hop
+		Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
+		// Find the link associated with the next hop and transmit the packet
+		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
+		// Account for what's already in the link buffer
+		time_to_send += next_link->get_queue_delay();
+		// Always push packet to buffer before spawning send event
+		if( next_link->add_to_buffer(transmission_packet, endpoint2) == 0)
+		{ 
+			Link_Send_Event * send_event = 
+				new Link_Send_Event(
+					time_to_send + global_time,
+					SEND_EVENT_ID,
+					next_link);
+			event_queue.push(send_event);
 		}
-
 	}
-	/* Create an event to free the link at the same time that the packet
-	   successfully transmits. We achieve this using epsilon. */
-	   //printf("FREE EVENT BEGIN ~~~~~~~~~~~~~~~~~~~~~~~~ %f + %f + %f - %f\n",get_packet_delay(transmission_packet), get_queue_delay(), global_time, .0001);
-	Link_Free_Event * free_event = new Link_Free_Event(
-		time_to_send + global_time - std::numeric_limits<double>::epsilon(),
-		LINK_FREE_ID,
-		this);
+	// Packet succesfully sent. Remove transmitted packet from the buffer.
+	buffer.pop();
+	directions.pop();
+	bytes_stored -= transmission_packet->packetSize();
+	packets_stored--;
+	// Increment number of packets sent across this link
+	bytes_sent += transmission_packet->packetSize();
+	// Create an event to free the link at the same time that the packet
+	// successfully transmits. We achieve this using epsilon.
+	Link_Free_Event * free_event = 
+		new Link_Free_Event(
+			time_to_send + global_time - std::numeric_limits<double>::epsilon(),
+			LINK_FREE_ID,
+			this);
 	event_queue.push(free_event);
 	return transmission_packet;
 }
