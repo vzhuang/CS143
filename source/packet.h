@@ -27,14 +27,14 @@ using namespace std;
 /////////////// General Packet Superclass /////////////////
 class Packet
 { 
-    Host * source;
-    Host * dest;
+    Node * source;
+    Node * dest;
     double size;
     Flow * flow;
 public:
-    Packet(Host * the_source, Host * the_dest, double the_size, Flow * the_flow);
-    Host * getDest();
-    Host * getSource();
+    Packet(Node * the_source, Node * the_dest, double the_size, Flow * the_flow);
+    Node * getDest();
+    Node * getSource();
     Flow * getFlow();
     double packetSize();
     virtual int getId();

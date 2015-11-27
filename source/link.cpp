@@ -134,7 +134,7 @@ Packet * Link::transmit_packet() {
 			link_to_english(&network, this).c_str() );
 
 		Link_Send_Event * send_event = new Link_Send_Event(
-											global_time + delay,
+											t_free,
 											SEND_EVENT_ID,
 											this);
 		event_queue.push(send_event);

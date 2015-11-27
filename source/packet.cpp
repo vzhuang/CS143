@@ -1,7 +1,7 @@
 #include "packet.h"
 /////////////////// Generic Packet Superclass /////////////////////
-Packet::Packet(Host * the_source, 
-	           Host * the_dest, 
+Packet::Packet(Node * the_source, 
+	           Node * the_dest, 
 	           double the_size,
 	           Flow * the_flow)
 {
@@ -11,12 +11,12 @@ Packet::Packet(Host * the_source,
 	flow = the_flow;
 }
 
-Host * Packet::getDest()
+Node * Packet::getDest()
 {
 	return dest;
 }
 
-Host * Packet::getSource()
+Node * Packet::getSource()
 {
 	return source;
 }
