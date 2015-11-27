@@ -47,17 +47,21 @@ class Link {
 	double bytes_stored;
 	// Packets currently stored in the queue
 	int packets_stored;
-	// Queue of packets to be transmitted
-	std::queue <Packet *> buffer;
 	// Directions to send thiose packets
 	std::queue <int> directions;
 
 public:
+	// Queue of packets to be transmitted
+	std::queue <Packet *> buffer;
+
 	// Constructor
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);
 
 	// Get the link capacity
 	double get_capacity();
+
+	// Return the earliest time that the newly added packet can be popped from the buffer
+	double earliest_available_time();
 
 	// Get the flowrate 
 	double get_flowrate();
@@ -85,6 +89,9 @@ public:
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
 	double calculate_cost();
+
+	// Time of most recently assigned free event
+	double t_free;
 
 	//Move a packet to the other side of the link
 	Packet * transmit_packet();

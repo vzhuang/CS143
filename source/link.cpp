@@ -15,6 +15,7 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	is_free = 1;
 	bytes_stored = 0;
 	packets_stored = 0;
+	t_free = 0.0;
 }
 // Get the capacity of the link
 double Link::get_capacity() {
@@ -44,7 +45,6 @@ double Link::get_packet_delay(Packet * packet)
 	double total_delay = delay;
 	// Account for size of packet
 	total_delay += packet->packetSize() / capacity;
-	//printf("packet delay: %f\n", total_delay);
 	return total_delay;
 }
 
@@ -74,13 +74,23 @@ vector<Node *> Link::get_endpoints() {
 	return endpoints;
 }
 
+// Return the earliest time that the newly added packet can be popped from the buffer
+double Link::earliest_available_time() {
+	double proposed_time = global_time + get_queue_delay() - get_packet_delay(buffer.front());
+	if(t_free > proposed_time)
+		return t_free;
+	else
+		return proposed_time;
+}
+	
+	
 /* Add a packet to the buffer and record its direction. Return 0 on success
    and -1 on failure. */
 int Link::add_to_buffer(Packet * packet, Node * source) {
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
 		printf("Packet dropped attempting to join the buffer on link: %s\n",
-		 link_to_english(&network, this).c_str() );
+			link_to_english(&network, this).c_str() );
 		return -1;
 	}
 	
@@ -116,7 +126,7 @@ Packet * Link::transmit_packet() {
 	}
 	// Check if the link is free
 	if(!is_free) {
-		printf("Link %s was not free but a transmit was attempted\n\n", 
+		printf("Link %s was not free but a transmit was attempted. Contact Jordan Bonilla. \n\n", 
 			link_to_english(&network, this).c_str() );
 		exit(-1);
 		return NULL;
@@ -158,6 +168,11 @@ Packet * Link::transmit_packet() {
 		// It must be a data packet. Create a Data_Receive_Event instead
 		else
 		{
+			// Account for bottlenecks upstream
+			if(t_free > time_to_send + global_time)
+			{
+				time_to_send = t_free;
+			}
 			Data_Receive_Event * receive_event = 
 						new Data_Receive_Event(
 							global_time + time_to_send,
@@ -174,6 +189,11 @@ Packet * Link::transmit_packet() {
 		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
 		// Account for what's already in the link buffer
 		time_to_send += next_link->get_queue_delay();
+		// Account for bottlenecks upstream
+		if(next_link->t_free > time_to_send + global_time)
+		{
+			time_to_send = next_link->t_free;
+		}
 		// Always push packet to buffer before spawning send event
 		if( next_link->add_to_buffer(transmission_packet, endpoint2) == 0)
 		{ 
@@ -183,6 +203,8 @@ Packet * Link::transmit_packet() {
 					SEND_EVENT_ID,
 					next_link);
 			event_queue.push(send_event);
+			// Preemptively set the t_free on the next link to prevent directional scheduling conflicts
+			next_link->t_free = time_to_send + global_time + next_link->get_packet_delay(transmission_packet);
 		}
 	}
 	// Packet succesfully sent. Remove transmitted packet from the buffer.
@@ -199,6 +221,7 @@ Packet * Link::transmit_packet() {
 			time_to_send + global_time - std::numeric_limits<double>::epsilon(),
 			LINK_FREE_ID,
 			this);
+	t_free = time_to_send + global_time;
 	event_queue.push(free_event);
 	return transmission_packet;
 }
