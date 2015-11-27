@@ -52,6 +52,7 @@ void Flow_Start_Event::handle_event()
 		Link * link = flow->get_source()->get_first_link();
 		Data_packet * packet = new Data_packet(source, destination, 0, flow);
 		Data_packet * packet1 = new Data_packet(source, destination, 1, flow);
+		Data_packet * packet2 = new Data_packet(source, destination, 2, flow);
 		// Always push packet to buffer before spawning send event
 		if( link->add_to_buffer(packet, (Node *) source) == 0)
 		{ 
@@ -64,6 +65,13 @@ void Flow_Start_Event::handle_event()
 		{ 
 			Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
 			event_queue.push(event);
+		}
+		start += link->get_packet_delay(packet1);
+		// Always push packet to buffer before spawning send event
+		//if( link->add_to_buffer(packet2, (Node *) source) == 0)
+		{ 
+		//	Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
+			//event_queue.push(event);
 		}
 	}
 	else if(event_ID == TCP_RENO)
@@ -91,12 +99,10 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 
 void Link_Send_Event::handle_event()
 {
-	//printf("@@@@@@@@@@@@@@ BEGIN SEND EVENT @@@@@@@@@@@@@@@@\n");
 	global_time = this->get_start();
 	printf("Sending packet on link %s. Time: %f\n\n",
 		link_to_english(&network, link).c_str(), global_time);
 	link->transmit_packet();
-	//printf("@@@@@@@@@@@@@@ FINISH SEND EVENT @@@@@@@@@@@@@@@@\n\n");
 }
 
 /////////////// Link_Free_Event /////////////////
@@ -108,12 +114,10 @@ Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
 
 void Link_Free_Event::handle_event()
 {
-	//printf("@@@@@@@@@@@@@@ BEGIN LINK FREE EVENT @@@@@@@@@@@@@@@@\n");
 	global_time = this->get_start();
 	link->is_free = 1;
 	printf("Packet moved through Link %s. It is available again. Time: %f\n\n",
 		link_to_english(&network, link).c_str(), global_time);
-	//printf("@@@@@@@@@@@@@@ FINISH LINK FREE EVENT @@@@@@@@@@@@@@@@\n\n");
 }
 
 /////////////// Ack_Receive_Event (an ack was recieved by the source) /////////////////
@@ -126,17 +130,18 @@ Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * 
 void Ack_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Ack #%d recieved at host: %s at time: %f\n\n", 
+	printf(" ### Ack #%d recieved at host: %s at time: %f\n\n", 
 		ack->get_index(),
 		ip_to_english(&network, ack->getDest()).c_str(),
 		global_time);
+	delete ack;
 	Link * link = ack->getSource()->get_first_link();
 
 	/* TODO: Update flow based on TCP_ID and send 1 or more
 	 *  Link_Send_Events. Remember to check that packet could be added 
 	 * to buffer i.e: if( link->add_to_buffer(packet) == 0) { ...
 	 */
-	 delete ack;
+
 }
 
 /////////////// Data_Receive_Event (data was recieved by the dest) /////////////////
@@ -149,7 +154,7 @@ Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet
 void Data_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Packet #%d recieved at host: %s at time: %f\n\n", 
+	printf(" $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
 			data->get_index(),
 			ip_to_english(&network, data->getDest()).c_str(),
 			global_time);
@@ -160,6 +165,7 @@ void Data_Receive_Event::handle_event()
 									data->get_index());
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
 	
+	// Account for packets that are ahead in the queue
 	double start_time = global_time + link_to_send_ack->get_queue_delay();
 		
 	// Always push packet to buffer before spawning send event
