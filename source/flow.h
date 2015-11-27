@@ -27,17 +27,20 @@ class Flow{
 	Host * destination;
 	double start;
 	int size;
-    int algorithm; /** TCP algorithm */
+    int algorithm; // TCP algorithm 
     vector<int> received; // received packets (by destination)
     vector<int> sent; // sent packets (by source)
     int to_receive; // next packet expected to receive
     double window_size;
     int window_start; 
     int last_ack_received; // to check for duplicate acks
+    int num_duplicates; // keeps track of how many duplicate packets received
     bool slow_start; // in slow start phase?
+    int post_slow_start; // W_0/2
+    
     bool fast_retransmit; // use fast retransmit?
     bool fast_recovery; // use fast recovery?
-
+    
     
     vector<int> sending; // packets currently sent but not acked
     vector<double> times;
@@ -62,7 +65,7 @@ public:
     void send_ack_packet(Ack_packet * packet);
     void receive_data(Data_packet * packet);
     bool received_packet(int num);
-    void receive_ack(Ack_packet * packet, double global_time);
+    void receive_ack(Ack_packet * packet);
 };
 
 #endif

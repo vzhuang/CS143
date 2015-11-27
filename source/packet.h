@@ -46,9 +46,11 @@ class Data_packet : public Packet
 {
 	int index;
 	Flow * flow;
+    double time;
 public:
 	Data_packet(Host * the_source, 
-		       Host * the_dest, int the_index, Flow * the_flow);
+                Host * the_dest, int the_index, Flow * the_flow, double time_);
+    double get_time();
 	int getId();
 	int get_index();
 };

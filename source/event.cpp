@@ -49,9 +49,9 @@ void Flow_Start_Event::handle_event()
 			ip_to_english(&network, source).c_str(),
 			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
-		Data_packet * packet0 = new Data_packet(source, destination, 0, flow);
-		Data_packet * packet1 = new Data_packet(source, destination, 1, flow);
-		Data_packet * packet2 = new Data_packet(source, destination, 2, flow);
+		Data_packet * packet0 = new Data_packet(source, destination, 0, flow, global_time);
+		Data_packet * packet1 = new Data_packet(source, destination, 1, flow, global_time);
+		Data_packet * packet2 = new Data_packet(source, destination, 2, flow, global_time);
 		// Always push packet to buffer before spawning send event
 		if( link->add_to_buffer(packet0, (Node *) source) == 0)
 		{ 
@@ -210,7 +210,8 @@ void Data_Receive_Event::handle_event()
 	Ack_packet * ack = new Ack_packet(data->getDest(),
 									data->getSource(),
 									data->getFlow(),
-									data->get_index());
+									data->get_index(),
+									data->get_time());
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
 	
 	// Account for packets that are ahead in the queue

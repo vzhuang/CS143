@@ -1,5 +1,7 @@
 #include "flow.h"
 
+extern double global_time;
+
 /**
  *  Basic flow class/TCP implementation
  */
@@ -21,6 +23,12 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	rtt_dev = 0;
 	//round_trip_times(size, 0);
 }
+
+/**
+ * TO DO: make sure packets are removed from sending in events
+ * I.e. in general make sure sending contains list of packets pushed onto queue
+ * but not yet sent.
+ */ 
 
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
@@ -73,7 +81,11 @@ void Flow::receive_data(Data_packet * packet) {
 	}
 }
 
-void Flow::receive_ack(Ack_packet * packet, double global_time) {
+/**
+ * TODO: create and push timeout events
+ */ 
+
+void Flow::receive_ack(Ack_packet * packet) {
 	// recursively compute timeout value
 	double rtt = global_time - packet->get_time();
 	if(last_ack_received == -1){
@@ -87,9 +99,16 @@ void Flow::receive_ack(Ack_packet * packet, double global_time) {
 	}
 	// If duplicate ack, go back n
 	if(packet->get_index() == last_ack_received){
-	    window_start = packet->get_index();
-		window_size /= 2;
-		send_packets();
+		num_duplicates++;
+		// fast retransmit
+		if(num_duplicates == 3){
+			
+		}
+		else{
+			window_start = packet->get_index();
+			window_size /= 2;
+			send_packets();
+		}	    
 	}
 	// Handle normally 
 	else{
@@ -115,7 +134,7 @@ bool Flow::received_packet(int num) {
 }
 
 Data_packet * Flow::generate_packet(int n) {
-	Data_packet * packet = new Data_packet(source, destination, n, this);
+	Data_packet * packet = new Data_packet(source, destination, n, this, global_time);
 	return packet; 
 
 }

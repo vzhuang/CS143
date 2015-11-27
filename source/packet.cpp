@@ -44,11 +44,16 @@ int Packet::get_index()
 }	
 /////////////// Data Packet /////////////////
 Data_packet::Data_packet(Host * the_source, 
-	                   Host * the_dest, int the_index, Flow * the_flow)
+						 Host * the_dest, int the_index, Flow * the_flow, double time_)
            : Packet(the_source, the_dest, DATA_SIZE, the_flow)
 {
 	flow = the_flow;
 	index = the_index;
+	time = time_;
+}
+
+double Data_packet::get_time() {
+	return time;
 }
 
 int Data_packet::getId()
