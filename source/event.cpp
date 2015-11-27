@@ -43,30 +43,37 @@ void Flow_Start_Event::handle_event()
 		// have duplicate packets being sent until an ack is recieved
 		// and the flow object is modified appropriately in the 
 		// "Ack_Receieve_Event" handler.
-		double start = flow->get_start();
 		Host * source = flow->get_source();
 		Host * destination = flow->get_destination();
 		printf("This flow is going from %s to %s\n\n",
 			ip_to_english(&network, source).c_str(),
 			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
-		Data_packet * packet = new Data_packet(source, destination, 0, flow);
+		Data_packet * packet0 = new Data_packet(source, destination, 0, flow);
 		Data_packet * packet1 = new Data_packet(source, destination, 1, flow);
 		Data_packet * packet2 = new Data_packet(source, destination, 2, flow);
 		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet, (Node *) source) == 0)
+		if( link->add_to_buffer(packet0, (Node *) source) == 0)
 		{ 
-			Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
+			Link_Send_Event * event = 
+				new Link_Send_Event(
+					link->earliest_available_time(),
+					SEND_EVENT_ID,
+					link);
 			event_queue.push(event);
 		}
-		start += link->get_packet_delay(packet);
+
 		// Always push packet to buffer before spawning send event
 		if( link->add_to_buffer(packet1, (Node *) source) == 0)
 		{ 
-			Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
+			Link_Send_Event * event = 
+				new Link_Send_Event(
+					link->earliest_available_time(),
+					SEND_EVENT_ID,
+					link);
 			event_queue.push(event);
 		}
-		start += link->get_packet_delay(packet1);
+
 		// Always push packet to buffer before spawning send event
 		//if( link->add_to_buffer(packet2, (Node *) source) == 0)
 		{ 
@@ -100,7 +107,9 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 void Link_Send_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Sending packet on link %s. Time: %f\n\n",
+	printf("Sending packet from %s to %s on link %s. Time: %f\n\n",
+		ip_to_english(&network, link->buffer.front()->getSource()).c_str(),
+		ip_to_english(&network, link->buffer.front()->getDest()).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
 	link->transmit_packet();
 }
@@ -167,7 +176,11 @@ void Data_Receive_Event::handle_event()
 	
 	// Account for packets that are ahead in the queue
 	double start_time = global_time + link_to_send_ack->get_queue_delay();
-		
+	// Account for bottlenecks upstream
+	if(link_to_send_ack->t_free > start_time)
+	{
+		start_time = link_to_send_ack->t_free;
+	}
 	// Always push packet to buffer before spawning send event
 	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0)
 	{
