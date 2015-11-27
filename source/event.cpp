@@ -211,13 +211,8 @@ void Data_Receive_Event::handle_event()
 	Ack_packet * ack = new Ack_packet(data->getDest(),
 									data->getSource(),
 									data->getFlow(),
-<<<<<<< HEAD
 									data->get_index(),
 									data->get_time());
-=======
-									data->get_index());
-	// Identify the link to send the acknowledgement
->>>>>>> 06404e1bb057fe38f9b46d1593f06a646a3cd6ad
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
 	
 	// Always push packet to buffer before spawning send event
