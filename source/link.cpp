@@ -171,7 +171,7 @@ Packet * Link::transmit_packet() {
 			// Account for bottlenecks upstream
 			if(t_free > time_to_send + global_time)
 			{
-				time_to_send = t_free;
+				time_to_send = t_free - global_time;
 			}
 			Data_Receive_Event * receive_event = 
 						new Data_Receive_Event(
@@ -192,7 +192,7 @@ Packet * Link::transmit_packet() {
 		// Account for bottlenecks upstream
 		if(next_link->t_free > time_to_send + global_time)
 		{
-			time_to_send = next_link->t_free;
+			time_to_send = next_link->t_free - global_time;
 		}
 		// Always push packet to buffer before spawning send event
 		if( next_link->add_to_buffer(transmission_packet, endpoint2) == 0)

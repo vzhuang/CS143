@@ -73,16 +73,7 @@ void Flow_Start_Event::handle_event()
 					link);
 			event_queue.push(event);
 		}
-		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet2, (Node *) source) == 0)
-		{ 
-			Link_Send_Event * event = 
-				new Link_Send_Event(
-					link->earliest_available_time(),
-					SEND_EVENT_ID,
-					link);
-			event_queue.push(event);
-		}
+
 		// Always push packet to buffer before spawning send event
 		//if( link->add_to_buffer(packet2, (Node *) source) == 0)
 		{ 
