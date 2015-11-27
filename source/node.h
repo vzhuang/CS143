@@ -45,8 +45,11 @@ public:
 	void receive_packet(Packet * packet);
 	// Compute the distance to all adjacent nodes
 	void init_distance_vector(Network * network);
+	// Initialize the distance vector
+	void init_distance_vector();
 	// Update the distance vector when a routing packet is received
 	void update_distance_vector(Rout_packet * rpacket);
+	// Print the distance vector of the node (debugging)
 	void print_distance_vector();
 	// Get the distance vector of the node
 	map<Node *, double> get_distance_vector();
@@ -70,8 +73,10 @@ class Router: public Node {
 
 public:
 	Router();
-	// Initialize the routing table
+	// Initialize the routing table with knowledge of the network
 	void init_routing_table(Network * network);
+	// Initialize the routing table with knowledge of adjacent links
+	void init_routing_table();
 	// Update the routing table when a routing packet is received
 	void update_routing_table(Rout_packet * rpacket);
 	// Get the routing table of the router

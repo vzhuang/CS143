@@ -74,13 +74,15 @@ protected:
 /////////////// Ack Packet /////////////////
 class Ack_packet : public Packet 
 {
+    double time;
 public:
-	Ack_packet(Host * the_source, 
-		       Host * the_dest, 
-		       Flow * the_flow,
-		       int my_index);
-
+	Ack_packet(Host * the_source,
+              Host * the_dest,
+              Flow * the_flow,
+              int my_index,
+              double time_);
 	Flow * getFlow();
+    double get_time();
 	int get_index();
 	int getId();
 		

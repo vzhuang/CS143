@@ -88,6 +88,45 @@ void Flow_Start_Event::handle_event()
 
 }
 
+/////////////// Routing_Start_Event /////////////////
+Routing_Event::Routing_Event(double start_, int event_ID_, Network * network_)
+           : Event(start_, event_ID_)
+{
+	network = network_;
+}
+
+void Routing_Event::handle_event()
+{
+	//
+	vector<Flow *> flows = network->all_flows;
+	global_time = this->get_start();
+	printf("Updating routing tables. Time: %f\n\n", global_time);
+
+	// Pause all flows
+	for (int i = 0; i < flows.size(); i++) {
+		// TODO: Pausing
+	}
+	// For each link, calculate the cost and update the costs
+	vector<Link *> links = network->all_links;
+	for (int i = 0; i < links.size(); i++) {
+		Link * link = links.at(i);
+	}
+	// For each router, update the distance vector and transmit routing packets
+	vector<Router *> routers = network->all_routers;
+	for (int i = 0; i < routers.size(); i++) {
+		Router * router = routers.at(i);
+		// Recompute distance vector with current costs
+		router->init_distance_vector();
+		// TODO: Transmit the distance vectors
+		vector<Link *> adj_links = router->get_links();
+		for (int j = 0; j < adj_links.size(); j++) {
+			Link * link = adj_links.at(j);
+		}
+		// TODO: When the router receives a routing packet, update the routing table
+	}
+
+}
+
 /////////////// Link_Send_Event /////////////////
 Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
            : Event(start_, event_ID_)

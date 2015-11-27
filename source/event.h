@@ -15,6 +15,7 @@
 
 class Ack_packet;
 class Data_packet;
+class Network;
 using namespace std;
 
 /////////////// General Event Superclass /////////////////
@@ -41,6 +42,15 @@ public:
 	
 };
 
+/////////////// Routing_Start_Event /////////////////
+class Routing_Event : public Event 
+{
+	Network * network;
+public:
+	Routing_Event(double start_, int event_ID_, Network * network);
+	void handle_event();
+	
+};
 
 /////////////// Link_Send_Event /////////////////
 class Link_Send_Event : public Event 
