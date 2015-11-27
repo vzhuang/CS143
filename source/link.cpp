@@ -78,9 +78,13 @@ vector<Node *> Link::get_endpoints() {
 double Link::earliest_available_time() {
 	double proposed_time = global_time + get_queue_delay() - get_packet_delay(buffer.front());
 	if(t_free > proposed_time)
+	{
 		return t_free;
+	}
 	else
+	{
 		return proposed_time;
+	}
 }
 	
 	
@@ -128,7 +132,13 @@ Packet * Link::transmit_packet() {
 	if(!is_free) {
 		printf("Link %s was not free but a transmit was attempted. Contact Jordan Bonilla. \n\n", 
 			link_to_english(&network, this).c_str() );
-		exit(-1);
+
+		Link_Send_Event * send_event = new Link_Send_Event(
+											global_time + delay,
+											SEND_EVENT_ID,
+											this);
+		event_queue.push(send_event);
+
 		return NULL;
 	}
 	// Set the link to occupied while we send a packet
@@ -158,11 +168,10 @@ Packet * Link::transmit_packet() {
 		// Check if this is an ack packet so that that an Ack_Receive_Event is made
 		if( packet_ID == ACK_ID)
 		{
-			Ack_Receive_Event * ack_event = 
-						new Ack_Receive_Event(
-							global_time + time_to_send,
-							ACK_RECEIVE_ID,
-							(Ack_packet *) transmission_packet);
+			Ack_Receive_Event * ack_event = new Ack_Receive_Event(
+									global_time + time_to_send,
+									ACK_RECEIVE_ID,
+									(Ack_packet *) transmission_packet);
 			event_queue.push(ack_event);
 		}
 		// It must be a data packet. Create a Data_Receive_Event instead
@@ -173,11 +182,10 @@ Packet * Link::transmit_packet() {
 			{
 				time_to_send = t_free - global_time;
 			}
-			Data_Receive_Event * receive_event = 
-						new Data_Receive_Event(
-							global_time + time_to_send,
-							DATA_RECEIVE_ID,
-							(Data_packet *) transmission_packet);
+			Data_Receive_Event * receive_event = new Data_Receive_Event(
+									global_time + time_to_send,
+									DATA_RECEIVE_ID,
+									(Data_packet *) transmission_packet);
 			event_queue.push(receive_event);
 		}
 	}
@@ -197,11 +205,10 @@ Packet * Link::transmit_packet() {
 		// Always push packet to buffer before spawning send event
 		if( next_link->add_to_buffer(transmission_packet, endpoint2) == 0)
 		{ 
-			Link_Send_Event * send_event = 
-				new Link_Send_Event(
-					time_to_send + global_time,
-					SEND_EVENT_ID,
-					next_link);
+			Link_Send_Event * send_event = new Link_Send_Event(
+											time_to_send + global_time,
+											SEND_EVENT_ID,
+											next_link);
 			event_queue.push(send_event);
 			// Preemptively set the t_free on the next link to prevent directional scheduling conflicts
 			next_link->t_free = time_to_send + global_time + next_link->get_packet_delay(transmission_packet);
@@ -216,12 +223,13 @@ Packet * Link::transmit_packet() {
 	bytes_sent += transmission_packet->packetSize();
 	// Create an event to free the link at the same time that the packet
 	// successfully transmits. We achieve this using epsilon.
+	printf(" current_time: %f, link will be free at + %f time\n\n", global_time, get_packet_delay(transmission_packet) );
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
-			time_to_send + global_time - std::numeric_limits<double>::epsilon(),
+			get_packet_delay(transmission_packet) + global_time - std::numeric_limits<double>::epsilon(),
 			LINK_FREE_ID,
 			this);
-	t_free = time_to_send + global_time;
+	t_free = get_packet_delay(transmission_packet) + global_time;
 	event_queue.push(free_event);
 	return transmission_packet;
 }

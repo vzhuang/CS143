@@ -9,7 +9,7 @@ Event::Event(double start_, int event_ID_)
 	event_ID = event_ID_;
 	start = start_;
 }
-
+ 
 int Event::get_ID()
 {
 	return event_ID;
@@ -80,6 +80,7 @@ void Flow_Start_Event::handle_event()
 		//	Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
 			//event_queue.push(event);
 		}
+	
 	}
 	else if(event_ID == TCP_RENO)
 	{
@@ -146,7 +147,7 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 void Link_Send_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Sending packet from %s to %s on link %s. Time: %f\n\n",
+	printf("Sending packet from %s to %s on link %s. Time: %f",
 		ip_to_english(&network, link->buffer.front()->getSource()).c_str(),
 		ip_to_english(&network, link->buffer.front()->getDest()).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
@@ -202,7 +203,7 @@ Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet
 void Data_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf(" $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
+	printf(" $$$ Packet #%d recieved at host: %s at time: %f || ", 
 			data->get_index(),
 			ip_to_english(&network, data->getDest()).c_str(),
 			global_time);
@@ -210,24 +211,26 @@ void Data_Receive_Event::handle_event()
 	Ack_packet * ack = new Ack_packet(data->getDest(),
 									data->getSource(),
 									data->getFlow(),
+<<<<<<< HEAD
 									data->get_index(),
 									data->get_time());
+=======
+									data->get_index());
+	// Identify the link to send the acknowledgement
+>>>>>>> 06404e1bb057fe38f9b46d1593f06a646a3cd6ad
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
 	
-	// Account for packets that are ahead in the queue
-	double start_time = global_time + link_to_send_ack->get_queue_delay();
-	// Account for bottlenecks upstream
-	if(link_to_send_ack->t_free > start_time)
-	{
-		start_time = link_to_send_ack->t_free;
-	}
 	// Always push packet to buffer before spawning send event
 	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0)
 	{
+		double start_time = link_to_send_ack->earliest_available_time();
 		Link_Send_Event * event = new Link_Send_Event(
 									start_time,
 									SEND_EVENT_ID,
 									link_to_send_ack);
+		printf("link_to_send_ack->earliest_available_time(): %f\n\n", link_to_send_ack->earliest_available_time());
+		
+		link_to_send_ack->t_free = start_time + link_to_send_ack->get_packet_delay(ack);
 		event_queue.push(event);
 	}
 	delete data;
