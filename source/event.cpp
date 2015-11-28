@@ -95,6 +95,7 @@ void Flow_Start_Event::handle_event()
 			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
 		vector<Data_packet *> to_send = flow->send_packets();
+		printf("%d\n", (int)to_send.size());
 		for(int i = 0; i < to_send.size(); i++){
 			if( link->add_to_buffer(to_send[i], (Node *) source) == 0){ 
 				Link_Send_Event * event = 
