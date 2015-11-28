@@ -244,6 +244,7 @@ void Data_Receive_Event::handle_event()
 		link_to_send_ack->t_free = start_time + link_to_send_ack->get_packet_delay(ack);
 		event_queue.push(event);
 	}
+	data->getFlow()->receive_data(data);
 	delete data;
 }
 
