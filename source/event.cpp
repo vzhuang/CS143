@@ -83,7 +83,6 @@ void Flow_Start_Event::handle_event() {
 			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
 		vector<Data_packet *> to_send = flow->send_packets();
-		printf("%d\n", (int)to_send.size());
 		for(int i = 0; i < to_send.size(); i++) {
 			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
 				Link_Send_Event * event = 
@@ -215,7 +214,20 @@ void Ack_Receive_Event::handle_event() {
 		ack->get_index(),
 		ip_to_english(&network, ack->getDest()).c_str(),
 		global_time);
-	ack->getFlow()->receive_ack(ack);
+	// send new packets
+	Host * source = ack->getFlow()->get_destination();
+	Link * link = source->get_first_link();
+	vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
+	for(int i = 0; i < to_send.size(); i++) {
+		if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+			Link_Send_Event * event = 
+				new Link_Send_Event(
+					link->earliest_available_time(),
+					SEND_EVENT_ID,
+					link);
+			event_queue.push(event);
+		}
+	}
 	delete ack;
 
 }
@@ -290,6 +302,7 @@ Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Data_packet * data_
 }
 
 void Time_Out_Event::handle_event() {
+	printf("Time out\n");
 	if(data->getFlow()->received_packet(data->get_index())){
 		data->getFlow()->handle_time_out();
 	}

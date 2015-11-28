@@ -66,7 +66,7 @@ public:
     void send_ack_packet(Ack_packet * packet);
     void receive_data(Data_packet * packet);
     bool received_packet(int num);
-    void receive_ack(Ack_packet * packet);
+    vector<Data_packet *> receive_ack(Ack_packet * packet);
     void handle_time_out();
 };
 
