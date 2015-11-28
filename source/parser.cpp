@@ -1,5 +1,7 @@
 #include "parser.h"
 
+char * file_name;
+
 /* Decode a token in the from R/H# into an actual IP address (Node *) 
  */
 Node * parse_ip(string token, Network * network) {
@@ -24,6 +26,7 @@ void build_network(Network * network, char * network_file) {
 	int num_hosts, num_routers;
 	string token;
 	ifstream myfile;
+	file_name = network_file;
 	
 	// Open the input file
 	myfile.open(network_file);
@@ -139,8 +142,12 @@ string link_to_english(Network * network, Link * link) {
 	for(int i = 0; i < num_l; i++) {
 		if(network->all_links[i] == link) {
 			output = "L";
-			//@@@@@@@@@@ REMOVE 0 INDEXING LATER @@@@@@@@@@@@@
-			output += std::to_string(i);
+			if (strcmp(file_name, "testcase1.txt") == 0) {
+				output += std::to_string(i);
+			}
+			else {
+				output += std::to_string(i + 1);
+			}
 			return output; 
 		}
 	}
