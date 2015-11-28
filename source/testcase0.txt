@@ -1,0 +1,8 @@
+Hosts:
+2
+Routers:
+0
+Links:
+H1 H2 10 10 64
+Flows:
+H1 H2 100 0
