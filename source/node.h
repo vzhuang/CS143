@@ -32,28 +32,28 @@ public:
 	// Get the address of the Node
 	Node * get_ip();
 	// Add a link to a node
-	void add_link(Link * link);
+	void add_link(Link * link_);
 	// Get the first link a node has
 	Link * get_first_link();
 	// Get the vector of links adjacent to the Node
 	vector<Link *> get_links();
 	// Get the link joining the current node and a desired endpoint
-	Link * get_link(Node * endpoint);
+	Link * get_link(Node * endpoint_);
 	// Send the specified packet through the specified link
-	void send_packet(Packet * packet, Link link);
+	void send_packet(Packet * packet_, Link link_);
 	// Receive a packet
-	void receive_packet(Packet * packet);
+	void receive_packet(Packet * packet_);
 	// Compute the distance to all adjacent nodes
-	void init_distance_vector(Network * network);
+	void init_distance_vector(Network * network_);
 	// Initialize the distance vector
 	void init_distance_vector();
 	// Update the distance vector when a routing packet is received
-	void update_distance_vector(Rout_packet * rpacket);
+	void update_distance_vector(Rout_packet * r_packet_);
 	// Print the distance vector of the node (debugging)
 	void print_distance_vector();
 	// Get the distance vector of the node
 	map<Node *, double> get_distance_vector();
-	void set_distance_vector(map<Node*, double> distances);
+	void set_distance_vector(map<Node*, double> distance_vector_);
 };
 
 // Hosts
@@ -74,16 +74,17 @@ class Router: public Node {
 public:
 	Router();
 	// Initialize the routing table with knowledge of the network
-	void init_routing_table(Network * network);
+	void init_routing_table(Network * network_);
 	// Initialize the routing table with knowledge of adjacent links
 	void init_routing_table();
 	// Update the routing table when a routing packet is received
-	void update_routing_table(Rout_packet * rpacket);
+	void update_routing_table(Rout_packet * r_packet_);
 	// Get the routing table of the router
 	map<Node *, Node *> get_routing_table();
+	// Used for debugging
 	void print_routing_table();
 	// Receive a routing packet
-	void receive_routing_packet(Rout_packet * rpacket);
+	void receive_routing_packet(Rout_packet * r_packet_);
 	// Sends distance vector to all known nodes
 	void send_distance_vector();
 	// Process incoming distance vectors and update distance vector and 

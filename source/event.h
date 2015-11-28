@@ -18,6 +18,7 @@ class Ack_packet;
 class Data_packet;
 class Rout_packet;
 class Network;
+class Router;
 using namespace std;
 
 /////////////// General Event Superclass /////////////////
@@ -43,10 +44,10 @@ public:
 };
 
 /////////////// Routing_Start_Event /////////////////
-class Routing_Event : public Event {
+class Routing_Start_Event : public Event {
 	Network * network;
 public:
-	Routing_Event(double start_, int event_ID_, Network * network);
+	Routing_Start_Event(double start_, int event_ID_, Network * network);
 	void handle_event();
 	
 };
@@ -94,9 +95,10 @@ public:
 /////////////// Rout_Receive_Event /////////////////
 class Rout_Receive_Event : public Event {
 	Rout_packet * r_packet;
+	Router * router;
 	
 public:
-	Rout_Receive_Event(double start_, int event_ID_, Rout_packet * r_packet_);
+	Rout_Receive_Event(Router * router_, double start_, int event_ID_, Rout_packet * r_packet_);
 	void handle_event();
 	
 };

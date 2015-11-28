@@ -105,12 +105,12 @@ void Flow_Start_Event::handle_event() {
 }
 
 /////////////// Routing_Start_Event /////////////////
-Routing_Event::Routing_Event(double start_, int event_ID_, Network * network_)
+Routing_Start_Event::Routing_Start_Event(double start_, int event_ID_, Network * network_)
            : Event(start_, event_ID_) {
 	network = network_;
 }
 
-void Routing_Event::handle_event() {
+void Routing_Start_Event::handle_event() {
 	//
 	vector<Flow *> flows = network->all_flows;
 	global_time = this->get_start();
@@ -230,13 +230,23 @@ void Data_Receive_Event::handle_event() {
 }
 
 /////////////// Rout_Receive_Event (a rout packet was recieved) /////////////////
-Rout_Receive_Event::Rout_Receive_Event(double start_, int event_ID_, Rout_packet * r_packet_)
+Rout_Receive_Event::Rout_Receive_Event(Router * router_, double start_, int event_ID_, Rout_packet * r_packet_)
            : Event(start_, event_ID_) {
 	r_packet = r_packet_;
+	router = router_;
 }
 
 void Rout_Receive_Event::handle_event() {
-	//global_time = this->get_start();
+	global_time = this->get_start();
+
+	printf(" $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
+			r_packet->get_index(),
+			ip_to_english(&network, r_packet->getDest()).c_str(),
+			global_time);
+
+	// Update the routers' distance vector and routing table
+	router->receive_routing_packet(r_packet);
+
 	//printf(" ### Ack #%d recieved at host: %s at time: %f\n\n", 
 	//	ack->get_index(),
 	//	ip_to_english(&network, ack->getDest()).c_str(),

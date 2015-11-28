@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "network.h"
 extern Network network;
+extern priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 
 using namespace std;
 
@@ -17,8 +18,8 @@ Node::Node() {
 /*
 * Add a link to the vector of links adjacent to the Node
 */
-void Node::add_link(Link * myLink) {
-	links.push_back(myLink);
+void Node::add_link(Link * link_) {
+	links.push_back(link_);
 }
 
 /*
@@ -47,26 +48,26 @@ vector<Link *> Node::get_links() {
 /*
 * Get the link connecting the current node to the desired endpoint
 */
-Link * Node::get_link(Node * endpoint) {
+Link * Node::get_link(Node * endpoint_) {
 	vector<Link *> links = this->get_links();
 	for (int i = 0; i < links.size(); i++) 
 	{
 		Link * link = links.at(i);
-		if (link->get_ep1() == endpoint || link->get_ep2() == endpoint)
+		if (link->get_ep1() == endpoint_ || link->get_ep2() == endpoint_)
 		{
 			return link;
 		}
 	}
 	
 	printf("FATAL: Router could not find link to requested endpoint: %s\n",
-		ip_to_english(&network, endpoint).c_str() );
+		ip_to_english(&network, endpoint_).c_str() );
 	exit(-1);
 }
 
 /*
 * Send a packet along the specified link.
 */
-void Node::send_packet(Packet * packet, Link link) {
+void Node::send_packet(Packet * packet_, Link link_) {
 	//link.add_to_buffer(packet);
 
 }
@@ -75,15 +76,16 @@ void Node::send_packet(Packet * packet, Link link) {
 * This function logs the received data packet and sends an acknowledgement
 * packet.
 */
-void Node::receive_packet(Packet * packet) {
+void Node::receive_packet(Packet * packet_) {
 	// TODO
 }
 
 /* Initialize the distance vector of distances between the source node and all
 * other nodes in the network.
 */
-void Node::init_distance_vector(Network * network) {
+void Node::init_distance_vector(Network * network_) {
 	Node * src  = get_ip();
+	Network * network = network_;
 	map<Node *, double> distances;
 
 	vector<Host *> hosts = network->all_hosts;
@@ -147,10 +149,11 @@ void Node::init_distance_vector() {
 }
 
 // Update the distance vector as routing packets are received
-void Node::update_distance_vector(Rout_packet * rpacket) {
+void Node::update_distance_vector(Rout_packet * r_packet_) {
+	Rout_packet * r_packet = r_packet_;
 	// Router and corresponding distance vector from packet
-	Node * rnode = rpacket->get_router_source();
-	map<Node *, double> packet_vector = rpacket->get_packet_vector();
+	Node * rnode = r_packet->get_router_source();
+	map<Node *, double> packet_vector = r_packet->get_packet_vector();
 	// Distance from current node to router that sent packet
 	double dist_to_rsrc = distance_vector.at(rnode);
 	// Iterate over nodes in the packet vector
@@ -215,10 +218,10 @@ Router::Router()
 }
 
 /*
-* Initialize a routing table using the Bellman Ford algorithm.
+* Initialize a static routing table using the Bellman Ford algorithm.
 */
-void Router::init_routing_table(Network * network) {
-	//
+void Router::init_routing_table(Network * network_) {
+	Network * network = network_;
 	Node * src  = get_ip();
 	map<Node *, double> distances;
 	map<Node *, Node *> next;
@@ -290,6 +293,7 @@ void Router::init_routing_table(Network * network) {
 */ 
 void Router::init_routing_table() {
 	vector<Link *> adj_links = this->get_links();
+	// Initially the router only knows about adjacent nodes.
 	for (int i = 0; i < adj_links.size(); i++) {
 		Link * link = adj_links.at(i);
 		Node * ep1 = link->get_ep1();
@@ -308,10 +312,11 @@ void Router::init_routing_table() {
 /*
 * Update a routing table dynamically when a routing packet is received.
 */
-void Router::update_routing_table(Rout_packet * rpacket) {
+void Router::update_routing_table(Rout_packet * r_packet_) {
+	Rout_packet * r_packet = r_packet_;
 	// Router and corresponding distance vector from packet
-	Node * rsrc = rpacket->get_router_source();
-	map<Node *, double> packet_vector = rpacket->get_packet_vector();
+	Node * rsrc = r_packet->get_router_source();
+	map<Node *, double> packet_vector = r_packet->get_packet_vector();
 	map<Node *, double> distances = this->get_distance_vector();
 	// Distance from current node to router that sent packet
 	double dist_to_rsrc = distances.at(rsrc);
@@ -358,10 +363,11 @@ void Router::print_routing_table() {
 * Router receives a routing packet and updates the distance vector and routing
 * table.
 */
-void Router::receive_routing_packet(Rout_packet * rpacket) {
+void Router::receive_routing_packet(Rout_packet * r_packet_) {
+	Rout_packet * r_packet = r_packet_;
 	// Update the distance vector and routing table
-	this->update_distance_vector(rpacket);
-	this->update_routing_table(rpacket);
+	this->update_distance_vector(r_packet);
+	this->update_routing_table(r_packet);
 	// TODO
 }
 
@@ -371,19 +377,32 @@ void Router::receive_routing_packet(Rout_packet * rpacket) {
 void Router::send_distance_vector() {
 	// For every node in the routing table, send the distance vector
 	for (map<Node *, Node *>::iterator it=routing_table.begin(); it!=routing_table.end(); ++it) {
-		//
 		Node * dst = it->first;
+		Node * next_node = it->second;
 		map<Node *, double> d_vector = this->get_distance_vector();
 		// Create a routing packet with the distance vector
-		Rout_packet rpacket = Rout_packet(this, dst, d_vector);
-		// TODO Send the routing packet
+		Rout_packet r_packet = Rout_packet(this, dst, d_vector);
+		// Find the link associated with the next hop and transmit the packet
+		Link * next_link = this->get_link(next_node);
+		// TODO
+		// Add a routing packet send event to the routing queue.
 	}
 	// 
 }
 
+/**
+* The link processes all incoming distance vectors before sending its updated
+* version.
+*/
 void Router::process_incoming_vectors() {
+	// Wait for all routing receive events to be processed
+	while (1) {
+		if (routing_queue.empty()) {
+			break;
+		}
+	}
+
 	// TODO
-	vector<Link *> adj_links = this->get_links();
 	
 }
 
