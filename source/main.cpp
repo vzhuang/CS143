@@ -17,6 +17,8 @@ int TCP_ID;
 /* Defines a priotiy queue that uses Event *'s. CompareEvents is defined
    in event.h and allows the priority to know which events get priority */
 priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
+priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
+
 
 int main(int argc, char *argv[]) {
 	if(argc != 4)
@@ -34,19 +36,39 @@ int main(int argc, char *argv[]) {
 		Router * source = network.all_routers.at(i);
 		source->init_distance_vector(&network);
 		source->init_routing_table(&network);
-		/* USED FOR DEBUGGING
-		vector<Link *> links = source->get_links();
-		cout << "Links at router " << i << ": \n";
-		for (int j = 0; j < links.size(); j++) {
-			cout << "	Link " << j << " ep1: ";  cout << ip_to_english(&network, links.at(j)->get_ep1()) << "\n";
-			cout << "	Link " << j << " ep2: ";  cout << ip_to_english(&network, links.at(j)->get_ep2()) << "\n";
-		}
-		* */
+		/* USED FOR DEBUGGING*/
 		source->print_distance_vector();
 		source->print_routing_table();
-
 	}
-	
+
+	// // For each router in the network, create a routing table.
+	// for (int i = 0; i < network.all_routers.size(); i++) {
+	// 	Router * router_ = network.all_routers.at(i);
+	// 	// Initialize the distance vector and routing table to include 
+	// 	// information about the router's neighbors
+	// 	router_->init_distance_vector();
+	// 	router_->init_routing_table();
+	// }
+	// // Iterate to make sure that the routing tables converge
+	// for (int j = 0; j < network.all_routers.size() + network.all_hosts.size(); j++) {
+	// 	for (int i = 0; i < network.all_routers.size(); i++) {
+	// 		Router * router_ = network.all_routers.at(i);
+	// 		// First, process all incoming information and update distance
+	// 		// vector and routing table
+	// 		router_->process_incoming_vectors();
+	// 		// Send updated distance vector to all routers in the routing table
+	// 		router_->send_distance_vector();
+	// 	}
+	// }
+	// // USED FOR DEBUGGING
+	// for (int i = 0; i < network.all_routers.size(); i++) {
+	// 	Router * router_ = network.all_routers.at(i);
+
+	// 	// USED FOR DEBUGGING
+	// 	router_->print_distance_vector();
+	// 	router_->print_routing_table();
+	// }
+
 	// Push a "Flow_Start_Event" for every flow in the network
 	int num_flows = network.all_flows.size();	
 	for(int i = 0; i < num_flows; i++)

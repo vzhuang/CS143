@@ -61,9 +61,9 @@ class Rout_packet : public Packet
 	Node * rsrc;
 	map<Node *, double> packet_vector;
 public:
-	Rout_packet(Host * the_source, 
-		       Host * the_dest, 
-		       routing_table * the_rtable);
+	Rout_packet(Node * the_source, 
+		       Node * the_dest, 
+		       map<Node *, double> distance_vector);
 	routing_table * getTable();
 	int getId();
 	Node * get_router_source();

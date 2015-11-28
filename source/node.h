@@ -82,6 +82,13 @@ public:
 	// Get the routing table of the router
 	map<Node *, Node *> get_routing_table();
 	void print_routing_table();
+	// Receive a routing packet
+	void receive_routing_packet(Rout_packet * rpacket);
+	// Sends distance vector to all known nodes
+	void send_distance_vector();
+	// Process incoming distance vectors and update distance vector and 
+	// routing table
+	void process_incoming_vectors();
 };
 
 #endif  /* NODE_H */
