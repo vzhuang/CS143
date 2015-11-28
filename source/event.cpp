@@ -151,7 +151,7 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 void Link_Send_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Sending packet from %s to %s on link %s. Time: %f",
+	printf("Sending packet from %s to %s on link %s. Time: %f\n\n",
 		ip_to_english(&network, link->buffer.front()->getSource()).c_str(),
 		ip_to_english(&network, link->buffer.front()->getDest()).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
@@ -207,7 +207,7 @@ Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet
 void Data_Receive_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf(" $$$ Packet #%d recieved at host: %s at time: %f || ", 
+	printf(" $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
 			data->get_index(),
 			ip_to_english(&network, data->getDest()).c_str(),
 			global_time);
@@ -227,8 +227,7 @@ void Data_Receive_Event::handle_event()
 									start_time,
 									SEND_EVENT_ID,
 									link_to_send_ack);
-		printf("link_to_send_ack->earliest_available_time(): %f\n\n", link_to_send_ack->earliest_available_time());
-		
+
 		link_to_send_ack->t_free = start_time + link_to_send_ack->get_packet_delay(ack);
 		event_queue.push(event);
 	}
