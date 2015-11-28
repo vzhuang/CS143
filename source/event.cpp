@@ -88,7 +88,23 @@ void Flow_Start_Event::handle_event()
 	}
 	else if(event_ID == TCP_RENO)
 	{
-		//TODO
+		Host * source = flow->get_source();
+		Host * destination = flow->get_destination();
+		printf("This flow is going from %s to %s\n\n",
+			ip_to_english(&network, source).c_str(),
+			ip_to_english(&network, destination).c_str() );
+		Link * link = flow->get_source()->get_first_link();
+		vector<Data_packet *> to_send = flow->send_packets();
+		for(int i = 0; i < to_send.size(); i++){
+			if( link->add_to_buffer(to_send[i], (Node *) source) == 0){ 
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link);
+				event_queue.push(event);
+			}
+		}
 	}
 	else if(event_ID == TCP_FAST)
 	{
