@@ -23,6 +23,7 @@ class Packet;
 struct CompareEvents;
 extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
+extern priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 
 using namespace std;
 
@@ -50,13 +51,13 @@ class Link {
 	// Directions to send non-routing packets
 	std::queue <int> directions;
 	// Directions to send routing packets
-	std::queue <int> directions_r;
+	std::queue <int> routing_directions;
 public:
 	// Queue of packets (non-routing) to be transmitted
 	std::queue <Packet *> buffer;
 	
 	// Queue of routing packets to be transmitted
-	std::queue <Packet *> buffer_r;
+	std::queue <Packet *> routing_buffer;
 
 	// Constructor
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);

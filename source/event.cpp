@@ -236,19 +236,19 @@ void Data_Receive_Event::handle_event() {
 
 
 /////////////// Rout_Receive_Event (a rout packet was recieved) /////////////////
-Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * ack_)
+Rout_Receive_Event::Rout_Receive_Event(double start_, int event_ID_, Rout_packet * r_packet_)
            : Event(start_, event_ID_) {
-	ack = ack_;
+	r_packet = r_packet_;
 }
 
-void Ack_Receive_Event::handle_event() {
-	global_time = this->get_start();
-	printf(" ### Ack #%d recieved at host: %s at time: %f\n\n", 
-		ack->get_index(),
-		ip_to_english(&network, ack->getDest()).c_str(),
-		global_time);
-	delete ack;
-	Link * link = ack->getSource()->get_first_link();
+void Rout_Receive_Event::handle_event() {
+	//global_time = this->get_start();
+	//printf(" ### Ack #%d recieved at host: %s at time: %f\n\n", 
+	//	ack->get_index(),
+	//	ip_to_english(&network, ack->getDest()).c_str(),
+	//	global_time);
+	//delete ack;
+	//Link * link = ack->getSource()->get_first_link();
 
 	/* TODO: Update flow based on TCP_ID and send 1 or more
 	 *  Link_Send_Events. Remember to check that packet could be added 

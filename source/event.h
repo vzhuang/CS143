@@ -16,6 +16,7 @@
 #define TIMEOUT_EVENT_ID 6
 class Ack_packet;
 class Data_packet;
+class Rout_packet;
 class Network;
 using namespace std;
 
