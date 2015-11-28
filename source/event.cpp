@@ -149,10 +149,17 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 
 void Link_Send_Event::handle_event() {
 	global_time = this->get_start();
+	Node * endpoint1 = link->get_ep1();
+	Node * endpoint2 = link->get_ep2();
+	if (link->data_directions.front() == - 1) {
+		Node * temp = endpoint1;
+		endpoint1 = endpoint2;
+		endpoint2 = temp;
+	} 
 	printf("Sending packet %d from %s to %s on link %s. Time: %f\n\n",
 		link->data_buffer.front()->get_index(),
-		ip_to_english(&network, link->data_buffer.front()->getSource()).c_str(),
-		ip_to_english(&network, link->data_buffer.front()->getDest()).c_str(),
+		ip_to_english(&network, endpoint1).c_str(),
+		ip_to_english(&network, endpoint2).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
 	link->transmit_packet();
 }
