@@ -354,7 +354,38 @@ void Router::print_routing_table() {
 	}
 }
 
+/**
+* Router receives a routing packet and updates the distance vector and routing
+* table.
+*/
+void Router::receive_routing_packet(Rout_packet * rpacket) {
+	// Update the distance vector and routing table
+	this->update_distance_vector(rpacket);
+	this->update_routing_table(rpacket);
+	// TODO
+}
 
+/**
+* Used for routing: router sends its distance vector to all known nodes.
+*/
+void Router::send_distance_vector() {
+	// For every node in the routing table, send the distance vector
+	for (map<Node *, Node *>::iterator it=routing_table.begin(); it!=routing_table.end(); ++it) {
+		//
+		Node * dst = it->first;
+		map<Node *, double> d_vector = this->get_distance_vector();
+		// Create a routing packet with the distance vector
+		Rout_packet rpacket = Rout_packet(this, dst, d_vector);
+		// TODO Send the routing packet
+	}
+	// 
+}
+
+void Router::process_incoming_vectors() {
+	// TODO
+	vector<Link *> adj_links = this->get_links();
+	
+}
 
 
 

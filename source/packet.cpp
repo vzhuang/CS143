@@ -66,12 +66,12 @@ int Data_packet::get_index()
 	return index;
 }
 /////////////////// Routing Packet /////////////////////
-Rout_packet::Rout_packet(Host * the_source, 
-	                   Host * the_dest, 
-	                   routing_table * the_rtable)
+Rout_packet::Rout_packet(Node * the_source, 
+	                   Node * the_dest, 
+	                   map<Node *, double> distance_vector)
            : Packet(the_source, the_dest, ROUTING_SIZE, NULL)
 {
-	rtable = the_rtable;
+	packet_vector = distance_vector;
 }
 
 routing_table * Rout_packet::getTable()
