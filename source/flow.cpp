@@ -74,7 +74,9 @@ void Flow::send_ack_packet(Ack_packet * packet) {
  */
 void Flow::receive_data(Data_packet * packet) {
 	if(packet->getSource() == source && packet->getDest() == destination){
-		sending.erase(sending.begin());
+		if(sending.size() > 0){
+			sending.erase(sending.begin());
+		}
 		received.push_back(packet->get_index());
 		// update expected packet
 		if(packet->get_index() == to_receive){
