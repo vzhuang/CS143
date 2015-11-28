@@ -168,7 +168,8 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 void Link_Send_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Sending packet from %s to %s on link %s. Time: %f\n\n",
+	printf("Sending packet $d from %s to %s on link %s. Time: %f\n\n",
+		link->buffer.front()->my_index,
 		ip_to_english(&network, link->buffer.front()->getSource()).c_str(),
 		ip_to_english(&network, link->buffer.front()->getDest()).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
@@ -204,13 +205,8 @@ void Ack_Receive_Event::handle_event()
 		ack->get_index(),
 		ip_to_english(&network, ack->getDest()).c_str(),
 		global_time);
+	ack->getFlow()->receive_ack(ack);
 	delete ack;
-	Link * link = ack->getSource()->get_first_link();
-
-	/* TODO: Update flow based on TCP_ID and send 1 or more
-	 *  Link_Send_Events. Remember to check that packet could be added 
-	 * to buffer i.e: if( link->add_to_buffer(packet) == 0) { ...
-	 */
 
 }
 
