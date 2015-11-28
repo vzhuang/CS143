@@ -67,6 +67,7 @@ public:
     void receive_data(Data_packet * packet);
     bool received_packet(int num);
     void receive_ack(Ack_packet * packet);
+    void handle_time_out();
 };
 
 #endif

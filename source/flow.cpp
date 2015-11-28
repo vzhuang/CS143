@@ -101,8 +101,8 @@ void Flow::receive_ack(Ack_packet * packet) {
 	if(packet->get_index() == last_ack_received){
 		num_duplicates++;
 		// fast retransmit
-		if(num_duplicates == 3){
-			
+		if(fast_retransmit && num_duplicates == 3){
+			handle_time_out();
 		}
 		else{
 			window_start = packet->get_index();
@@ -112,6 +112,7 @@ void Flow::receive_ack(Ack_packet * packet) {
 	}
 	// Handle normally 
 	else{
+		num_duplicates = 0; 
 		if(slow_start){
 			window_start++;
 			window_size++;
@@ -128,8 +129,8 @@ void Flow::receive_ack(Ack_packet * packet) {
 
 void Flow::handle_time_out(){
 	if(sending.size() > 0){
-		ss_threshold = W / 2;
-		window.size = 1;
+		ss_threshold = window_size / 2;
+		window_size = 1;
 		send_packets();
 		last_time_out = global_time;
 	}
@@ -151,7 +152,6 @@ Data_packet * Flow::generate_packet(int n) {
 Ack_packet * Flow::generate_ack_packet() {
 	Ack_packet * packet = new Ack_packet(source, destination, this, to_receive, global_time);
 	return packet; 
-
 }
 
 Host * Flow::get_source() {

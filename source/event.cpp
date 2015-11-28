@@ -237,10 +237,12 @@ void Data_Receive_Event::handle_event()
 
 // Time out event - check if packet timed out
 
-Time_Out_Event::Time_Out_Event(Data_packet * data_) : Event(start_, event_ID_) {
+Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Data_packet * data_) : Event(start_, event_ID_) {
 	data = data_;	
 }
 
 void Time_Out_Event::handle_event() {
-	
+	if(data->getFlow()->received_packet(data->get_index())){
+		data->getFlow()->handle_time_out();
+	}
 }
