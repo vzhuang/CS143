@@ -14,8 +14,14 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	algorithm = 1;
 	window_size = 2;
 	last_ack_received = -1;
+	num_duplicates = 0;
+	ss_threshold = 0;
+	
 	to_receive = 1;
 	slow_start = true;
+	fast_retransmit = false;
+	fast_recovery = false;
+	last_time_out = global_time;
 
 	time_out = 100;
 	b = 0.25;
@@ -32,14 +38,16 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
-	while(sending.size() < window_size){
+	while(sending.size() < (int) window_size){
 		int next_index;
-		vector<Data_packet *> send_now;
 		if(sending.size() == 0){
 			next_index = to_receive;
 		}
 		else{
 			next_index = sending.back() + 1;
+		}
+		if(next_index >= size){
+			break;
 		}
 		sending.push_back(next_index);
 		Data_packet * new_packet = generate_packet(next_index);

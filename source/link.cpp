@@ -89,7 +89,7 @@ double Link::earliest_available_time() {
 	
 	
 /* Add a packet to the buffer and record its direction. Return 0 on success
-   and -1 on failure@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@. */
+   and -1 on failure. */
 int Link::add_to_buffer(Packet * packet, Node * source) {
 	
 	std::queue <Packet *> * relevant_buffer;

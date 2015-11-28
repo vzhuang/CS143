@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 	}
 	char * network_file = argv[1];
 	end_time = stod(argv[2]);
-	TCP_ID = stod(argv[3]);
+	TCP_ID = stoi(argv[3]);
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
 	// Iterate over all routers and create routing tables
