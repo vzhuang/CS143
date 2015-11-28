@@ -89,8 +89,14 @@ double Link::earliest_available_time() {
 	
 	
 /* Add a packet to the buffer and record its direction. Return 0 on success
-   and -1 on failure. */
+   and -1 on failure@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@. */
 int Link::add_to_buffer(Packet * packet, Node * source) {
+	
+	std::queue <Packet *> * relevant_buffer;
+	if(packet->getId() == ROUT_ID)
+	{
+		
+	}
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
 		printf("Packet dropped attempting to join the buffer on link: %s\n",
@@ -130,7 +136,7 @@ Packet * Link::transmit_packet() {
 	}
 	// Check if the link is free
 	if(!is_free) {
-		printf("Link %s was not free but a transmit was attempted. Contact Jordan Bonilla. \n\n", 
+		printf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
 			link_to_english(&network, this).c_str() );
 
 		Link_Send_Event * send_event = new Link_Send_Event(
@@ -166,7 +172,7 @@ Packet * Link::transmit_packet() {
 	if(endpoint2 == dest) {
 		int packet_ID = transmission_packet->getId();
 		// Check if this is an ack packet so that that an Ack_Receive_Event is made
-		if( packet_ID == ACK_ID)
+		if( packet_ID == ACK_ID )
 		{
 			Ack_Receive_Event * ack_event = new Ack_Receive_Event(
 									global_time + time_to_send,
@@ -174,9 +180,16 @@ Packet * Link::transmit_packet() {
 									(Ack_packet *) transmission_packet);
 			event_queue.push(ack_event);
 		}
+		// Check if this is a rout packet so that that a Rout_Receive_Event is made
+		else if( packet_ID == ROUT_ID ) {
+			Rout_Receive_Event * rr_event = new Rout_Receive_Event(
+									global_time + time_to_send,
+									ROUT_RECEIVE_ID,
+									(Rout_packet *) transmission_packet);
+			routing_queue.push(rr_event);
+		}
 		// It must be a data packet. Create a Data_Receive_Event instead
-		else
-		{
+		else {
 			// Account for bottlenecks upstream
 			if(t_free > time_to_send + global_time)
 			{
@@ -223,7 +236,6 @@ Packet * Link::transmit_packet() {
 	bytes_sent += transmission_packet->packetSize();
 	// Create an event to free the link at the same time that the packet
 	// successfully transmits. We achieve this using epsilon.
-	printf(" current_time: %f, link will be free at + %f time\n\n", global_time, get_packet_delay(transmission_packet) );
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
 			get_packet_delay(transmission_packet) + global_time - std::numeric_limits<double>::epsilon(),

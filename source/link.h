@@ -47,12 +47,16 @@ class Link {
 	double bytes_stored;
 	// Packets currently stored in the queue
 	int packets_stored;
-	// Directions to send thiose packets
+	// Directions to send non-routing packets
 	std::queue <int> directions;
-
+	// Directions to send routing packets
+	std::queue <int> directions_r;
 public:
-	// Queue of packets to be transmitted
+	// Queue of packets (non-routing) to be transmitted
 	std::queue <Packet *> buffer;
+	
+	// Queue of routing packets to be transmitted
+	std::queue <Packet *> buffer_r;
 
 	// Constructor
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);

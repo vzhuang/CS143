@@ -12,15 +12,15 @@
 #define LINK_FREE_ID 2
 #define DATA_RECEIVE_ID 3
 #define ACK_RECEIVE_ID 4
-
+#define ROUT_RECEIVE_ID 5
+#define TIMEOUT_EVENT_ID 6
 class Ack_packet;
 class Data_packet;
 class Network;
 using namespace std;
 
 /////////////// General Event Superclass /////////////////
-class Event
-{ 
+class Event { 
     double start;
     int event_ID;
 
@@ -28,12 +28,11 @@ public:
     Event(double start_, int event_ID_);
     int get_ID();
     virtual void handle_event();
-    double get_start() const;
+    double get_start();
 };
 
 /////////////// Flow_Start_Event /////////////////
-class Flow_Start_Event : public Event 
-{
+class Flow_Start_Event : public Event {
 	Flow * flow;
 	
 public:
@@ -43,8 +42,7 @@ public:
 };
 
 /////////////// Routing_Start_Event /////////////////
-class Routing_Event : public Event 
-{
+class Routing_Event : public Event {
 	Network * network;
 public:
 	Routing_Event(double start_, int event_ID_, Network * network);
@@ -53,8 +51,7 @@ public:
 };
 
 /////////////// Link_Send_Event /////////////////
-class Link_Send_Event : public Event 
-{
+class Link_Send_Event : public Event {
 	Link * link;
 	
 public:
@@ -64,8 +61,7 @@ public:
 };
 
 /////////////// Link_Free_Event /////////////////
-class Link_Free_Event : public Event 
-{
+class Link_Free_Event : public Event {
 	Link * link;
 	
 public:
@@ -75,8 +71,7 @@ public:
 };
 
 /////////////// Ack_Receive_Event /////////////////
-class Ack_Receive_Event : public Event 
-{
+class Ack_Receive_Event : public Event {
 	Ack_packet * ack;
 	
 public:
@@ -86,8 +81,7 @@ public:
 };
 
 /////////////// Data_Receive_Event /////////////////
-class Data_Receive_Event : public Event 
-{
+class Data_Receive_Event : public Event {
 	Data_packet * data;
 	
 public:
@@ -96,6 +90,15 @@ public:
 	
 };
 
+/////////////// Rout_Receive_Event /////////////////
+class Rout_Receive_Event : public Event {
+	Rout_packet * r_packet;
+	
+public:
+	Rout_Receive_Event(double start_, int event_ID_, Rout_packet * r_packet_);
+	void handle_event();
+	
+};
 /////////////// Time_Out_Event //////////////////
 class Time_Out_Event : public Event {
     Data_packet * data;
