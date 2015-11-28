@@ -38,6 +38,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
+	printf("%d %f %d %d\n", (int)sending.size(), window_size, window_start, size);
 	while(sending.size() < (int) window_size){
 		int next_index;
 		if(sending.size() == 0){
@@ -73,6 +74,7 @@ void Flow::send_ack_packet(Ack_packet * packet) {
  */
 void Flow::receive_data(Data_packet * packet) {
 	if(packet->getSource() == source && packet->getDest() == destination){
+		sending.erase(sending.begin());
 		received.push_back(packet->get_index());
 		// update expected packet
 		if(packet->get_index() == to_receive){
@@ -93,7 +95,8 @@ void Flow::receive_data(Data_packet * packet) {
  * TODO: create and push timeout events
  */ 
 
-void Flow::receive_ack(Ack_packet * packet) {
+vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
+	vector<Data_packet *> send_now;
 	// recursively compute timeout value
 	double rtt = global_time - packet->get_time();
 	if(last_ack_received == -1){
@@ -105,6 +108,7 @@ void Flow::receive_ack(Ack_packet * packet) {
 		rtt_dev = (1 - b) * rtt_dev + b * abs(rtt -  rtt_avg);
 		time_out = rtt_avg + 4 * rtt_dev;
 	}
+	printf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
 	// If duplicate ack, go back n
 	if(packet->get_index() == last_ack_received){
 		num_duplicates++;
@@ -115,31 +119,35 @@ void Flow::receive_ack(Ack_packet * packet) {
 		else{
 			window_start = packet->get_index();
 			window_size /= 2;
-			send_packets();
+			send_now = send_packets();
 		}	    
 	}
 	// Handle normally 
-	else{
+	else{	    
 		num_duplicates = 0; 
 		if(slow_start){
 			window_start++;
 			window_size++;
-			send_packets();
+			send_now = send_packets();
 		}
 		else{
 			window_start++;
 			window_size = window_size + 1 / (double)window_size;
-			send_packets();
+			send_now = send_packets();
 		}
 		  
     }
 	last_ack_received = packet->get_index();
+	return send_now;
 }
 
-void Flow::handle_time_out(){
+void Flow::handle_time_out(){	
 	if(sending.size() > 0){
-		ss_threshold = window_size / 2;
-		window_size = 1;
+		if(slow_start){
+			slow_start = false;
+			ss_threshold = window_size / 2;
+			window_size = ss_threshold;
+		}
 		send_packets();
 		last_time_out = global_time;
 	}
