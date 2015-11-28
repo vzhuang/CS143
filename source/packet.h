@@ -1,4 +1,3 @@
-
 #ifndef PACKET_H
 #define PACKET_H
 
@@ -77,7 +76,6 @@ public:
               Flow * flow_,
               int my_index,
               double time_);
-	Flow * getFlow();
     double get_time();
 	int get_index();
 	int getId();

@@ -127,6 +127,7 @@ void Flow::receive_ack(Ack_packet * packet) {
 			send_packets();
 		}
 		else{
+			window_start++;
 			window_size = window_size + 1 / (double)window_size;
 			send_packets();
 		}

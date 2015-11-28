@@ -168,10 +168,10 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 void Link_Send_Event::handle_event()
 {
 	global_time = this->get_start();
-	printf("Sending packet $d from %s to %s on link %s. Time: %f\n\n",
-		link->buffer.front()->my_index,
-		ip_to_english(&network, link->buffer.front()->getSource()).c_str(),
-		ip_to_english(&network, link->buffer.front()->getDest()).c_str(),
+	printf("Sending packet %d from %s to %s on link %s. Time: %f\n\n",
+		link->data_buffer.front()->get_index(),
+		ip_to_english(&network, link->data_buffer.front()->getSource()).c_str(),
+		ip_to_english(&network, link->data_buffer.front()->getDest()).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
 	link->transmit_packet();
 }

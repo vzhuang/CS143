@@ -49,61 +49,44 @@ class Link {
 	// Packets currently stored in the queue
 	int packets_stored;
 	// Directions to send non-routing packets
-	std::queue <int> directions;
+	std::queue <int> data_directions;
 	// Directions to send routing packets
 	std::queue <int> routing_directions;
 public:
 	// Queue of packets (non-routing) to be transmitted
-	std::queue <Packet *> buffer;
-	
+	std::queue <Packet *> data_buffer;
 	// Queue of routing packets to be transmitted
 	std::queue <Packet *> routing_buffer;
-
 	// Constructor
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);
-
 	// Get the link capacity
 	double get_capacity();
-
 	// Return the earliest time that the newly added packet can be popped from the buffer
 	double earliest_available_time();
-
 	// Get the flowrate 
 	double get_flowrate();
-
 	// Set the flowrate
 	void set_flowrate();
-	
 	// Calculate the time (s) it would take to clear out everything in the queue
 	double get_queue_delay();
-
 	// Get the endpoints of the link;
 	Node * get_ep1();
-
 	Node * get_ep2();
-
 	// Get vector of both node endpoints of the link
 	vector<Node *> get_endpoints();
-
 	// Calculate the time (s) it would take to send an individual packet
 	double get_packet_delay(Packet * packet);
-	
 	// Add a packet to the link's buffer. Return 0 on success. -1 on fail.
 	int add_to_buffer(Packet * packet, Node * source);
-
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
 	double calculate_cost();
-
 	// Time of most recently assigned free event
 	double t_free;
-
 	//Move a packet to the other side of the link
 	Packet * transmit_packet();
-	
 	//Connect a router/host to each side of the link. WANRING NAIVE IMPLEMENTATION
 	void connect(Node * device1, Node * device2);
-	
 	// Set to 0 for the duration of a packet transmission. 
 	// Freed to 1 during a "free" event that cooresponds to
 	// The duration of a packet transmission
