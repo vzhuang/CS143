@@ -4,41 +4,34 @@ extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
 extern Network network;
 /////////////////// Generic Event Superclass /////////////////////
-Event::Event(double start_, int event_ID_)
-{
+Event::Event(double start_, int event_ID_) {
 	event_ID = event_ID_;
 	start = start_;
 }
  
-int Event::get_ID()
-{
+int Event::get_ID() {
 	return event_ID;
 }
 
-double Event::get_start()
-{
+double Event::get_start() {
 	return start;
 }
 
 
-void Event::handle_event()
-{
+void Event::handle_event() {
 	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 }
 
 /////////////// Flow_Start_Event /////////////////
 Flow_Start_Event::Flow_Start_Event(double start_, int event_ID_, Flow * flow_)
-           : Event(start_, event_ID_)
-{
+           : Event(start_, event_ID_) {
 	flow = flow_;
 }
 
-void Flow_Start_Event::handle_event()
-{
+void Flow_Start_Event::handle_event() {
 	global_time = this->get_start();
 	int event_ID = this->get_ID();
-	if(event_ID == TCP_TAHOE)
-	{
+	if(event_ID == TCP_TAHOE) {
 		//TODO. Fake ass implementation. Will likely want to always
 		// have duplicate packets being sent until an ack is recieved
 		// and the flow object is modified appropriately in the 
@@ -53,8 +46,7 @@ void Flow_Start_Event::handle_event()
 		Data_packet * packet1 = new Data_packet(source, destination, 1, flow, global_time);
 		Data_packet * packet2 = new Data_packet(source, destination, 2, flow, global_time);
 		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet0, (Node *) source) == 0)
-		{ 
+		if( link->add_to_buffer(packet0, (Node *) source) == 0) { 
 			Link_Send_Event * event = 
 				new Link_Send_Event(
 					link->earliest_available_time(),
@@ -64,8 +56,7 @@ void Flow_Start_Event::handle_event()
 		}
 
 		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet1, (Node *) source) == 0)
-		{ 
+		if( link->add_to_buffer(packet1, (Node *) source) == 0) { 
 			Link_Send_Event * event = 
 				new Link_Send_Event(
 					link->earliest_available_time(),
@@ -75,8 +66,7 @@ void Flow_Start_Event::handle_event()
 		}
 
 		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet2, (Node *) source) == 0)
-		{ 
+		if( link->add_to_buffer(packet2, (Node *) source) == 0) { 
 			Link_Send_Event * event = 
 				new Link_Send_Event(
 					link->earliest_available_time(),
@@ -84,10 +74,8 @@ void Flow_Start_Event::handle_event()
 					link);
 			event_queue.push(event);
 		}
-	
 	}
-	else if(event_ID == TCP_RENO)
-	{
+	else if(event_ID == TCP_RENO) {
 		Host * source = flow->get_source();
 		Host * destination = flow->get_destination();
 		printf("This flow is going from %s to %s\n\n",
@@ -96,8 +84,8 @@ void Flow_Start_Event::handle_event()
 		Link * link = flow->get_source()->get_first_link();
 		vector<Data_packet *> to_send = flow->send_packets();
 		printf("%d\n", (int)to_send.size());
-		for(int i = 0; i < to_send.size(); i++){
-			if( link->add_to_buffer(to_send[i], (Node *) source) == 0){ 
+		for(int i = 0; i < to_send.size(); i++) {
+			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
 				Link_Send_Event * event = 
 					new Link_Send_Event(
 						link->earliest_available_time(),
@@ -107,27 +95,22 @@ void Flow_Start_Event::handle_event()
 			}
 		}
 	}
-	else if(event_ID == TCP_FAST)
-	{
+	else if(event_ID == TCP_FAST) {
 		//TODO
 	}
-	else
-	{
+	else {
 		printf("Invalid event_ID: %d\n", event_ID);
 		exit(-1);
 	}
-
 }
 
 /////////////// Routing_Start_Event /////////////////
 Routing_Event::Routing_Event(double start_, int event_ID_, Network * network_)
-           : Event(start_, event_ID_)
-{
+           : Event(start_, event_ID_) {
 	network = network_;
 }
 
-void Routing_Event::handle_event()
-{
+void Routing_Event::handle_event() {
 	//
 	vector<Flow *> flows = network->all_flows;
 	global_time = this->get_start();
@@ -160,13 +143,11 @@ void Routing_Event::handle_event()
 
 /////////////// Link_Send_Event /////////////////
 Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
-           : Event(start_, event_ID_)
-{
+           : Event(start_, event_ID_) {
 	link = link_;
 }
 
-void Link_Send_Event::handle_event()
-{
+void Link_Send_Event::handle_event() {
 	global_time = this->get_start();
 	printf("Sending packet %d from %s to %s on link %s. Time: %f\n\n",
 		link->data_buffer.front()->get_index(),
@@ -178,13 +159,11 @@ void Link_Send_Event::handle_event()
 
 /////////////// Link_Free_Event /////////////////
 Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
-           : Event(start_, event_ID_)
-{
+           : Event(start_, event_ID_) {
 	link = link_;
 }
 
-void Link_Free_Event::handle_event()
-{
+void Link_Free_Event::handle_event() {
 	global_time = this->get_start();
 	link->is_free = 1;
 	printf("Packet moved through Link %s. It is available again. Time: %f\n\n",
@@ -193,13 +172,11 @@ void Link_Free_Event::handle_event()
 
 /////////////// Ack_Receive_Event (an ack was recieved by the source) /////////////////
 Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * ack_)
-           : Event(start_, event_ID_)
-{
+           : Event(start_, event_ID_) {
 	ack = ack_;
 }
 
-void Ack_Receive_Event::handle_event()
-{
+void Ack_Receive_Event::handle_event() {
 	global_time = this->get_start();
 	printf(" ### Ack #%d recieved at host: %s at time: %f\n\n", 
 		ack->get_index(),
@@ -212,13 +189,11 @@ void Ack_Receive_Event::handle_event()
 
 /////////////// Data_Receive_Event (data was recieved by the dest) /////////////////
 Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet * data_)
-           : Event(start_, event_ID_)
-{
+           : Event(start_, event_ID_) {
 	data = data_;
 }
 
-void Data_Receive_Event::handle_event()
-{
+void Data_Receive_Event::handle_event() {
 	global_time = this->get_start();
 	printf(" $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
 			data->get_index(),
@@ -233,8 +208,7 @@ void Data_Receive_Event::handle_event()
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
 	
 	// Always push packet to buffer before spawning send event
-	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0)
-	{
+	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
 		double start_time = link_to_send_ack->earliest_available_time();
 		Link_Send_Event * event = new Link_Send_Event(
 									start_time,
