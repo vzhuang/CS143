@@ -25,14 +25,13 @@ class Host;
 using namespace std;
 
 /////////////// General Packet Superclass /////////////////
-class Packet
-{ 
+class Packet { 
     Node * source;
     Node * dest;
     double size;
     Flow * flow;
 public:
-    Packet(Node * the_source, Node * the_dest, double the_size, Flow * the_flow);
+    Packet(Node * source_, Node * dest_, double the_size, Flow * flow_);
     Node * getDest();
     Node * getSource();
     Flow * getFlow();
@@ -41,46 +40,41 @@ public:
     virtual int get_index();
 
 };
+
 /////////////// Data Packet /////////////////
-class Data_packet : public Packet 
-{
+class Data_packet : public Packet {
 	int index;
 	Flow * flow;
     double time;
 public:
-	Data_packet(Host * the_source, 
-                Host * the_dest, int the_index, Flow * the_flow, double time_);
+	Data_packet(Host * source_, 
+                Host * dest_, int index_, Flow * flow_, double time_);
     double get_time();
 	int getId();
 	int get_index();
 };
 
 /////////////// Routing Packet /////////////////
-class Rout_packet : public Packet 
-{
+class Rout_packet : public Packet {
 	Node * rsrc;
 	map<Node *, double> packet_vector;
 public:
-	Rout_packet(Node * the_source, 
-		       Node * the_dest, 
+	Rout_packet(Node * source_, 
+		       Node * dest_, 
 		       map<Node *, double> distance_vector);
-	routing_table * getTable();
 	int getId();
 	Node * get_router_source();
 	map<Node *, double> get_packet_vector();
 	
-protected:
-	routing_table * rtable;
 };
 
 /////////////// Ack Packet /////////////////
-class Ack_packet : public Packet 
-{
+class Ack_packet : public Packet {
     double time;
 public:
-	Ack_packet(Host * the_source,
-              Host * the_dest,
-              Flow * the_flow,
+	Ack_packet(Host * source_,
+              Host * dest_,
+              Flow * flow_,
               int my_index,
               double time_);
 	Flow * getFlow();

@@ -5,8 +5,7 @@
 #include "flow.h"
 using namespace std;
 
-class Network
-{ 
+class Network { 
 public:
 	vector<Link *> all_links;
 	vector<Host *> all_hosts;

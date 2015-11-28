@@ -1,53 +1,46 @@
 #include "packet.h"
 /////////////////// Generic Packet Superclass /////////////////////
-Packet::Packet(Node * the_source, 
-	           Node * the_dest, 
-	           double the_size,
-	           Flow * the_flow)
-{
-	source = the_source;
-	dest = the_dest;
-	size = the_size;
-	flow = the_flow;
+Packet::Packet(Node * source_, 
+	           Node * dest_, 
+	           double size_,
+	           Flow * flow_) {
+	source = source_;
+	dest = dest_;
+	size = size_;
+	flow = flow_;
 }
 
-Node * Packet::getDest()
-{
+Node * Packet::getDest() {
 	return dest;
 }
 
-Node * Packet::getSource()
-{
+Node * Packet::getSource() {
 	return source;
 }
 
-Flow * Packet::getFlow()
-{
+Flow * Packet::getFlow() {
 	return flow;
 }
 
-double Packet::packetSize()
-{
+double Packet::packetSize() {
 	return size;
 }
 
-int Packet::getId()
-{
+int Packet::getId() {
 	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 	return -1;
 }
 
-int Packet::get_index()
-{
+int Packet::get_index() {
 	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 	return -1;
 }	
+
 /////////////// Data Packet /////////////////
-Data_packet::Data_packet(Host * the_source, 
-						 Host * the_dest, int the_index, Flow * the_flow, double time_)
-           : Packet(the_source, the_dest, DATA_SIZE, the_flow)
-{
-	flow = the_flow;
+Data_packet::Data_packet(Host * source_, 
+						 Host * dest_, int the_index, Flow * flow_, double time_)
+           : Packet(source_, dest_, DATA_SIZE, flow_) {
+	flow = flow_;
 	index = the_index;
 	time = time_;
 }
@@ -56,31 +49,22 @@ double Data_packet::get_time() {
 	return time;
 }
 
-int Data_packet::getId()
-{
+int Data_packet::getId() {
 	return DATA_ID;
 }
 
-int Data_packet::get_index()
-{
+int Data_packet::get_index() {
 	return index;
 }
 /////////////////// Routing Packet /////////////////////
-Rout_packet::Rout_packet(Node * the_source, 
-	                   Node * the_dest, 
+Rout_packet::Rout_packet(Node * source_, 
+	                   Node * dest_, 
 	                   map<Node *, double> distance_vector)
-           : Packet(the_source, the_dest, ROUTING_SIZE, NULL)
-{
+           : Packet(source_, dest_, ROUTING_SIZE, NULL) {
 	packet_vector = distance_vector;
 }
 
-routing_table * Rout_packet::getTable()
-{
-	return rtable;
-}
-
-int Rout_packet::getId()
-{
+int Rout_packet::getId() {
 	return ROUT_ID;
 }
 
@@ -92,29 +76,26 @@ map<Node *, double> Rout_packet::get_packet_vector() {
 	return packet_vector;
 }
 /////////////////// Ack Packet /////////////////////
-Ack_packet::Ack_packet(Host * the_source, 
-	                  Host * the_dest, 
-	                  Flow * the_flow,
-					  int my_index,
+Ack_packet::Ack_packet(Host * source_, 
+	                  Host * dest_, 
+	                  Flow * flow_,
+					  int index_,
 					  double time_)
-           : Packet(the_source, the_dest, ACK_SIZE, the_flow)
+           : Packet(source_, dest_, ACK_SIZE, flow_)
 {
-	my_flow = the_flow;
-	index = my_index;
+	my_flow = flow_;
+	index = index_;
 	time = time_;
 }
 
-double Ack_packet::get_time()
-{
+double Ack_packet::get_time() {
 	return time;
 }
 
-int Ack_packet::get_index()
-{
+int Ack_packet::get_index() {
 	return index;
 }
 
-int Ack_packet::getId()
-{
+int Ack_packet::getId() {
 	return ACK_ID;
 }
