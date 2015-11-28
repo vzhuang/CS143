@@ -96,6 +96,14 @@ public:
 	
 };
 
+/////////////// Time_Out_Event //////////////////
+class Time_Out_Event : public Event {
+    Data_packet * data;
+public:
+    Time_Out_Event(double start_, int event_ID_, Data_packet * data_);
+    void handle_event();
+};
+
 // Allows priority queue to determine priority of an Event *
 struct CompareEvents {
   bool operator() (Event * arg1, Event * arg2) {
