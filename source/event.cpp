@@ -169,8 +169,8 @@ void Link_Send_Event::handle_event()
 {
 	global_time = this->get_start();
 	printf("Sending packet from %s to %s on link %s. Time: %f\n\n",
-		ip_to_english(&network, link->buffer.front()->getSource()).c_str(),
-		ip_to_english(&network, link->buffer.front()->getDest()).c_str(),
+		ip_to_english(&network, link->data_buffer.front()->getSource()).c_str(),
+		ip_to_english(&network, link->data_buffer.front()->getDest()).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
 	link->transmit_packet();
 }

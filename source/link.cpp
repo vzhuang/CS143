@@ -1,3 +1,5 @@
+/* Link routines for the data_buffer and link ititialization code */
+
 #include "link.h"
 #include "parser.h"
 extern Network network;
@@ -76,7 +78,7 @@ vector<Node *> Link::get_endpoints() {
 
 // Return the earliest time that the newly added packet can be popped from the buffer
 double Link::earliest_available_time() {
-	double proposed_time = global_time + get_queue_delay() - get_packet_delay(buffer.front());
+	double proposed_time = global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
 	if(t_free > proposed_time)
 	{
 		return t_free;
@@ -104,18 +106,18 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 		return -1;
 	}
 	
-	buffer.push(packet);
+	data_buffer.push(packet);
 	bytes_stored += packet->packetSize();
 	packets_stored += 1;		
 	Node * endpoint1 = (ep1)->get_ip();
 	Node * endpoint2 = (ep2)->get_ip();
 	// Going from ep1 to ep2.
 	if(source == endpoint1) {
-		directions.push(1);
+		data_directions.push(1);
 	}
 	// Going from ep2 to ep1.
 	else if(source == endpoint2) {
-		directions.push(-1);
+		data_directions.push(-1);
 	}
 	// Something went wrong
 	else {
@@ -130,7 +132,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
    transmitted packet. */
 Packet * Link::transmit_packet() {
 	// Sanity check
-	if(buffer.empty()) {
+	if(data_buffer.empty()) {
 			printf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
@@ -152,8 +154,8 @@ Packet * Link::transmit_packet() {
 		is_free = 0;
 	}
 	// The packet at the front of the buffer is transmitted.
-	Packet * transmission_packet = buffer.front();
-	int direction = directions.front();
+	Packet * transmission_packet = data_buffer.front();
+	int direction = data_directions.front();
 	// Create some local variables for clarity
 	Node * dest = transmission_packet->getDest();
 	Node * endpoint1 = ep1->get_ip();
@@ -179,14 +181,6 @@ Packet * Link::transmit_packet() {
 									ACK_RECEIVE_ID,
 									(Ack_packet *) transmission_packet);
 			event_queue.push(ack_event);
-		}
-		// Check if this is a rout packet so that that a Rout_Receive_Event is made
-		else if( packet_ID == ROUT_ID ) {
-			Rout_Receive_Event * rr_event = new Rout_Receive_Event(
-									global_time + time_to_send,
-									ROUT_RECEIVE_ID,
-									(Rout_packet *) transmission_packet);
-			routing_queue.push(rr_event);
 		}
 		// It must be a data packet. Create a Data_Receive_Event instead
 		else {
@@ -228,8 +222,8 @@ Packet * Link::transmit_packet() {
 		}
 	}
 	// Packet succesfully sent. Remove transmitted packet from the buffer.
-	buffer.pop();
-	directions.pop();
+	data_buffer.pop();
+	data_directions.pop();
 	bytes_stored -= transmission_packet->packetSize();
 	packets_stored--;
 	// Increment number of packets sent across this link
