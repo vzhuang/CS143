@@ -2,6 +2,8 @@
 #include "parser.h"
 extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
+extern priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
+extern double end_time;
 extern Network network;
 /////////////////// Generic Event Superclass /////////////////////
 Event::Event(double start_, int event_ID_) {
@@ -17,6 +19,9 @@ double Event::get_start() {
 	return start;
 }
 
+void Event::change_start(double new_start) {
+	start = new_start;
+}
 
 void Event::handle_event() {
 	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
@@ -103,42 +108,6 @@ void Flow_Start_Event::handle_event() {
 	}
 }
 
-/////////////// Routing_Start_Event /////////////////
-Routing_Start_Event::Routing_Start_Event(double start_, int event_ID_, Network * network_)
-           : Event(start_, event_ID_) {
-	network = network_;
-}
-
-void Routing_Start_Event::handle_event() {
-	//
-	vector<Flow *> flows = network->all_flows;
-	global_time = this->get_start();
-	printf("Updating routing tables. Time: %f\n\n", global_time);
-
-	// Pause all flows
-	for (int i = 0; i < flows.size(); i++) {
-		// TODO: Pausing
-	}
-	// For each link, calculate the cost and update the costs
-	vector<Link *> links = network->all_links;
-	for (int i = 0; i < links.size(); i++) {
-		Link * link = links.at(i);
-	}
-	// For each router, update the distance vector and transmit routing packets
-	vector<Router *> routers = network->all_routers;
-	for (int i = 0; i < routers.size(); i++) {
-		Router * router = routers.at(i);
-		// Recompute distance vector with current costs
-		router->init_distance_vector();
-		// TODO: Transmit the distance vectors
-		vector<Link *> adj_links = router->get_links();
-		for (int j = 0; j < adj_links.size(); j++) {
-			Link * link = adj_links.at(j);
-		}
-		// TODO: When the router receives a routing packet, update the routing table
-	}
-
-}
 
 /////////////// Link_Send_Event /////////////////
 Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
@@ -293,6 +262,64 @@ void Rout_Receive_Event::handle_event() {
 	//Link * link = ack->getSource()->get_first_link();
 
 
+}
+
+/////////////// Update_Rtables_Event /////////////////
+Update_Rtables_Event::Update_Rtables_Event(double start_, int event_ID_, Network * network_)
+           : Event(start_, event_ID_) {
+	network = network_;
+}
+void Update_Rtables_Event::handle_event() {
+	global_time = this->get_start();
+	double t_0 = global_time;
+	// Spawn all neccessary routing events.
+	// example of spawning a routing packet send event:
+	/*
+	  		Rout_Packet rpacket = new Rout_Packet(...);
+			Link * link_to_send_r_packet = ... ;
+			Node * start_point = r_packet->get_source();
+			// Always push packet to buffer before spawning send event
+			if( link_to_send_r_packet->add_to_buffer_r(rpacket, start_point) == 0)
+			{ 
+				Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
+											link_to_send_r_packet->earliest_available_time_r(),
+											RSEND_EVENT_ID,
+											link_to_send_r_packet);
+			}
+											
+	*/
+	// See the event Rout_Receive_Event to adjust what happens when a rotuing packet arrives at its intended destination.
+	
+	//Handle all events
+	while( (!routing_queue.empty()) && (global_time <= end_time) )
+	{
+		Event * to_handle = routing_queue.top();
+		routing_queue.pop();
+		to_handle->handle_event();
+		delete to_handle;
+	}
+	double t_f = global_time;
+	double elapsed_time = t_f - t_0;
+	// Increment the start times of all events in event_queue.
+	queue <Event *> temp_queue;
+	Event * temp_event;
+	int num_events = event_queue.size();
+	for(int i = 0; i < num_events; i++)
+	{
+		temp_event = event_queue.top();
+		event_queue.pop();
+		double new_start = temp_event->get_start() + elapsed_time;
+		temp_event->change_start(new_start);
+		temp_queue.push(temp_event);
+	}
+	// Refill event queue with the updated events
+	for(int i = 0; i < num_events; i++)
+	{
+		temp_event = temp_queue.front();
+		temp_queue.pop();
+		event_queue.push(temp_event);
+	}
+	// Done.
 }
 
 /////////////// Time out event (check if packet timed out) /////////////////

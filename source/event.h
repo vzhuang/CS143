@@ -16,6 +16,7 @@
 #define TIMEOUT_EVENT_ID 6
 #define RSEND_EVENT_ID 7
 #define RFREE_EVENT_ID 8
+#define REFRESH_RTABLES_ID 9 
 class Ack_packet;
 class Data_packet;
 class Rout_packet;
@@ -33,6 +34,7 @@ public:
     int get_ID();
     virtual void handle_event();
     double get_start();
+    void change_start(double new_start);
 };
 
 /////////////// Flow_Start_Event /////////////////
@@ -41,15 +43,6 @@ class Flow_Start_Event : public Event {
 	
 public:
 	Flow_Start_Event(double start_, int event_ID_, Flow * flow_);
-	void handle_event();
-	
-};
-
-/////////////// Routing_Start_Event /////////////////
-class Routing_Start_Event : public Event {
-	Network * network;
-public:
-	Routing_Start_Event(double start_, int event_ID_, Network * network);
 	void handle_event();
 	
 };
@@ -119,7 +112,13 @@ public:
     Time_Out_Event(double start_, int event_ID_, Data_packet * data_);
     void handle_event();
 };
-
+/////////////// Update_Rtables_Event //////////////////
+class Update_Rtables_Event : public Event {
+    Network * network;
+public:
+    Update_Rtables_Event(double start_, int event_ID_, Network * network_);
+    void handle_event();
+};
 // Allows priority queue to determine priority of an Event *
 struct CompareEvents {
   bool operator() (Event * arg1, Event * arg2) {
