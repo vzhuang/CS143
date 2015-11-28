@@ -44,10 +44,14 @@ class Link {
 	double delay;
 	// Number of Bytes that the link can store in queue
 	double buffersize;
-	// Bytes curretnly stored in the queue
+	// Bytes currently stored in the data queue
 	double bytes_stored;
-	// Packets currently stored in the queue
+	// Bytes curretnly stored in the routing queue
+	double bytes_stored_r;
+	// Packets currently stored in the data queue
 	int packets_stored;
+	// Packets currently stored in the routing queue
+	int packets_stored_r;
 public:
 	// Queue of packets (non-routing) to be transmitted
 	std::queue <Packet *> data_buffer;
@@ -63,12 +67,16 @@ public:
 	double get_capacity();
 	// Return the earliest time that the newly added packet can be popped from the buffer
 	double earliest_available_time();
+	// Return the earliest time that the newly added packet can be popped from the routing buffer
+	double earliest_available_time_r();
 	// Get the flowrate 
 	double get_flowrate();
 	// Set the flowrate
 	void set_flowrate();
-	// Calculate the time (s) it would take to clear out everything in the queue
+	// Calculate the time (s) it would take to clear out everything in the data queue
 	double get_queue_delay();
+	// Calculate the time (s) it would take to clear out everything in the routing queue
+	double get_queue_delay_r();
 	// Get the endpoints of the link;
 	Node * get_ep1();
 	Node * get_ep2();
@@ -76,21 +84,29 @@ public:
 	vector<Node *> get_endpoints();
 	// Calculate the time (s) it would take to send an individual packet
 	double get_packet_delay(Packet * packet);
-	// Add a packet to the link's buffer. Return 0 on success. -1 on fail.
+	// Add a packet to the link's data buffer. Return 0 on success. -1 on fail.
 	int add_to_buffer(Packet * packet, Node * source);
+	// Add a packet to the link's routing buffer. Return 0 on success. -1 on fail.
+	int add_to_buffer_r(Packet * packet, Node * source);
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
 	double calculate_cost();
-	// Time of most recently assigned free event
+	// Time of most recently assigned data free event
 	double t_free;
-	//Move a packet to the other side of the link
+	// Time of most recently assigned routing free event
+	double t_free_r;
+	//Move a data packet to the other side of the link
 	Packet * transmit_packet();
+	//Move a routing packet to the other side of the link
+	Packet * transmit_packet_r();
 	//Connect a router/host to each side of the link. WANRING NAIVE IMPLEMENTATION
 	void connect(Node * device1, Node * device2);
 	// Set to 0 for the duration of a packet transmission. 
 	// Freed to 1 during a "free" event that cooresponds to
-	// The duration of a packet transmission
+	// The duration of a packet transmission. Functions as a link lock. 
 	bool is_free;	
+	// Routing routines disregard the data bool. Need their own lock.
+	bool is_free_r;	
 };
 
 #endif  /* LINK_H */

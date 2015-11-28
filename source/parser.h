@@ -52,6 +52,7 @@ network.
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <cstring>
 class Flow;
 class Link;
 

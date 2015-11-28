@@ -14,6 +14,8 @@
 #define ACK_RECEIVE_ID 4
 #define ROUT_RECEIVE_ID 5
 #define TIMEOUT_EVENT_ID 6
+#define RSEND_EVENT_ID 7
+#define RFREE_EVENT_ID 8
 class Ack_packet;
 class Data_packet;
 class Rout_packet;
@@ -59,7 +61,15 @@ class Link_Send_Event : public Event {
 public:
 	Link_Send_Event(double start_, int event_ID_, Link * link_);
 	void handle_event();
+};
+
+/////////////// Link_Send_Routing_Event /////////////////
+class Link_Send_Routing_Event : public Event {
+	Link * link;
 	
+public:
+	Link_Send_Routing_Event(double start_, int event_ID_, Link * link_);
+	void handle_event();
 };
 
 /////////////// Link_Free_Event /////////////////
