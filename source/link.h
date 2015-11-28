@@ -48,15 +48,15 @@ class Link {
 	double bytes_stored;
 	// Packets currently stored in the queue
 	int packets_stored;
-	// Directions to send non-routing packets
-	std::queue <int> data_directions;
-	// Directions to send routing packets
-	std::queue <int> routing_directions;
 public:
 	// Queue of packets (non-routing) to be transmitted
 	std::queue <Packet *> data_buffer;
 	// Queue of routing packets to be transmitted
 	std::queue <Packet *> routing_buffer;
+	// Directions to send non-routing packets
+	std::queue <int> data_directions;
+	// Directions to send routing packets
+	std::queue <int> routing_directions;
 	// Constructor
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);
 	// Get the link capacity
