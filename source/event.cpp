@@ -164,6 +164,28 @@ void Link_Send_Event::handle_event() {
 	link->transmit_packet();
 }
 
+/////////////// Link_Send_Routing_Event /////////////////
+Link_Send_Routing_Event::Link_Send_Routing_Event(double start_, int event_ID_, Link * link_)
+           : Event(start_, event_ID_) {
+	link = link_;
+}
+void Link_Send_Routing_Event::handle_event() {
+	global_time = this->get_start();
+	Node * endpoint1 = link->get_ep1();
+	Node * endpoint2 = link->get_ep2();
+	if (link->routing_directions.front() == - 1) {
+		Node * temp = endpoint1;
+		endpoint1 = endpoint2;
+		endpoint2 = temp;
+	} 
+	printf("Routing: Sending packet %d from %s to %s on link %s. Time: %f\n\n",
+		link->data_buffer.front()->get_index(),
+		ip_to_english(&network, endpoint1).c_str(),
+		ip_to_english(&network, endpoint2).c_str(),
+		link_to_english(&network, link).c_str(), global_time);
+	link->transmit_packet_r();
+}										
+
 /////////////// Link_Free_Event /////////////////
 Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
            : Event(start_, event_ID_) {
@@ -172,7 +194,11 @@ Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
 
 void Link_Free_Event::handle_event() {
 	global_time = this->get_start();
-	link->is_free = 1;
+	// Check if we are freeing for a routing send or a data send
+	if(get_ID() == RFREE_EVENT_ID)
+		link->is_free_r = 1;
+	else
+		link->is_free = 1;
 	printf("Packet moved through Link %s. It is available again. Time: %f\n\n",
 		link_to_english(&network, link).c_str(), global_time);
 }
@@ -254,10 +280,6 @@ void Rout_Receive_Event::handle_event() {
 	//delete ack;
 	//Link * link = ack->getSource()->get_first_link();
 
-	/* TODO: Update flow based on TCP_ID and send 1 or more
-	 *  Link_Send_Events. Remember to check that packet could be added 
-	 * to buffer i.e: if( link->add_to_buffer(packet) == 0) { ...
-	 */
 
 }
 
