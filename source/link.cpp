@@ -214,8 +214,13 @@ Packet * Link::transmit_packet() {
  * dynamic component (flow rate).
  */
 double Link::calculate_cost() {
-	return delay;
-	//return bytes_stored / capacity;
+	if (bytes_stored == 0) {
+		return delay;
+	}
+	else {
+		// Time to clear queue.
+		return bytes_stored / capacity;
+	}	
 }
 
 

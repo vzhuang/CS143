@@ -17,6 +17,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	last_ack_received = -1;
 	num_duplicates = 0;
 	ss_threshold = 0;
+	sent = 0;
 	
 	to_receive = 1;
 	slow_start = true;
@@ -40,7 +41,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
 	//printf("%d %f %d %d\n", (int)sending.size(), window_size, window_start, size);
-	while(sending.size() < (int) window_size){
+	while(sending.size() < (int) window_size and sent <= size){
 		int next_index;
 		if(sending.size() == 0){
 			next_index = to_receive;
@@ -53,6 +54,7 @@ vector<Data_packet *> Flow::send_packets() {
 		}
 		sending.push_back(next_index);
 		Data_packet * new_packet = generate_packet(next_index);
+		sent += new_packet->packetSize();
 		send_now.push_back(new_packet);
 	}
 	return send_now;

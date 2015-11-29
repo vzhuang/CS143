@@ -29,7 +29,7 @@ class Flow{
 	int size;
     int algorithm; // TCP algorithm 
     vector<int> received; // received packets (by destination)
-    vector<int> sent; // sent packets (by source)
+    int sent;
     int to_receive; // next packet expected to receive
     double window_size;
     int window_start; 
