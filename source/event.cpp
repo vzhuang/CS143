@@ -220,7 +220,8 @@ void Data_Receive_Event::handle_event() {
 									data->get_index(),
 									data->get_time());
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
-	
+	printf("\nack->getSource(): %s\n", ip_to_english(&network, ack->getSource()).c_str() );
+	printf("ack->getDest(): %s\n", ip_to_english(&network, ack->getDest()).c_str() );
 	// Always push packet to buffer before spawning send event
 	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
 		double start_time = link_to_send_ack->earliest_available_time();

@@ -1,5 +1,6 @@
 #include "flow.h"
-
+#include "parser.h"
+extern Network network;
 extern double global_time;
 
 /**
