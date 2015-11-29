@@ -15,7 +15,7 @@ Node * parse_ip(string token, Network * network) {
 		return network->all_routers[node_number]->get_ip();
 	}
 	else {
-		mexPrintf( "Invalid R/H# token. Unexpected token: %s. Exiting.\n", token.c_str());
+		printf( "Invalid R/H# token. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 }
@@ -31,13 +31,13 @@ void build_network(Network * network, char * network_file) {
 	// Open the input file
 	myfile.open(network_file);
   	if(! myfile.is_open()) {
-		mexPrintf("Could not open file: %s. Exiting.\n", network_file);
+		printf("Could not open file: %s. Exiting.\n", network_file);
 		exit(0);
 	}
 	// Read the number of hosts
 	myfile >> token;
   	if(token.compare("Hosts:") != 0) {
-		mexPrintf("Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
+		printf("Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 	myfile >> token;
@@ -46,7 +46,7 @@ void build_network(Network * network, char * network_file) {
 	// Read the number of routers
 	myfile >> token;
   	if(token.compare("Routers:") != 0) {
-		mexPrintf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
+		printf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 	myfile >> token;
@@ -66,13 +66,13 @@ void build_network(Network * network, char * network_file) {
 	// Read and create the links, conencting them to their endpoints
 	myfile >> token;
   	if(token.compare("Links:") != 0) {
-		mexPrintf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
+		printf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 	myfile >> token;
 	while(token.compare("Flows:") != 0) {
 		if(myfile.eof()) {
-			mexPrintf( "Invalid file format. Exiting\n");
+			printf( "Invalid file format. Exiting\n");
 			exit(-1);
 		}
 		Node * ep1 = parse_ip(token, network);
@@ -131,7 +131,7 @@ string ip_to_english(Network * network, Node * node) {
 			return output; 
 		}
 	}
-	mexPrintf("FATAL: ip: %lu not in this network\n", (long unsigned int) node);
+	printf("FATAL: ip: %lu not in this network\n", (long unsigned int) node);
 	exit(-1);
 }
 
@@ -151,6 +151,6 @@ string link_to_english(Network * network, Link * link) {
 			return output; 
 		}
 	}
-	mexPrintf("FATAL: link: %lu not in this network\n", (long unsigned int) link);
+	printf("FATAL: link: %lu not in this network\n", (long unsigned int) link);
 	exit(-1);
 }

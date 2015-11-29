@@ -35,7 +35,7 @@ int Link::add_to_buffer_r(Packet * packet, Node * source) {
 	
 	// If the buffer is full, drop it.
 	if (bytes_stored_r + packet->packetSize() > buffersize) {
-		mexPrintf("Routing: Packet dropped attempting to join the buffer on link: %s\n",
+		printf("Routing: Packet dropped attempting to join the buffer on link: %s\n",
 			link_to_english(&network, this).c_str() );
 		return -1;
 	}
@@ -55,7 +55,7 @@ int Link::add_to_buffer_r(Packet * packet, Node * source) {
 	}
 	// Something went wrong
 	else {
-		mexPrintf("Routing: Incoming packet did not come from a link endpoint\n");
+		printf("Routing: Incoming packet did not come from a link endpoint\n");
 		exit(-1);
 	}
 	return 0;
@@ -67,12 +67,12 @@ int Link::add_to_buffer_r(Packet * packet, Node * source) {
 Packet * Link::transmit_packet_r() {
 	// Sanity check
 	if(routing_buffer.empty()) {
-			mexPrintf("Routing: Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
+			printf("Routing: Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
 	// Check if the link is free
 	if(!is_free_r) {
-		mexPrintf("Routing: Link %s was not free but a transmit was attempted. Retrying \n\n", 
+		printf("Routing: Link %s was not free but a transmit was attempted. Retrying \n\n", 
 			link_to_english(&network, this).c_str() );
 		cout << t_free_r << "\n";
 

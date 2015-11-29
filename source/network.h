@@ -3,7 +3,7 @@
 #include "link.h"
 #include "node.h"
 #include "flow.h"
-#include "mex.h"
+
 using namespace std;
 
 class Network { 

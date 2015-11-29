@@ -6,7 +6,7 @@
 #include "event.h"
 #include "network.h"
 #include <vector>
-#include "mex.h"
+
 double global_time;
 double end_time;
 Network network;
@@ -20,16 +20,15 @@ priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
 priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 
 
-void mexFunction(int nlhs, mxArray *plhs[],
-                 int nrhs, mxArray const *prhs[]) {
-	if(nrhs != 3)
+int main(int argc, char *argv[]) {
+	if(argc != 4)
 	{
-		mexPrintf("./proj [network.txt] [double simulation_time (s)] [TCP_ID]\n");
+		printf("./proj [network.txt] [double simulation_time (s)] [TCP_ID]\n");
 		exit(-1);
 	}
-	char * network_file = mxArrayToString(prhs[0]);
-	end_time = (double) mxGetScalar(prhs[1]);
-	TCP_ID = (int) mxGetScalar(prhs[2]);
+	char * network_file = argv[1];
+	end_time = stod(argv[2]);
+	TCP_ID = stod(argv[3]);
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
 
@@ -44,17 +43,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	// }
 
 	// Create an event to update the routing tables
-	Update_Rtables_Event * event = new Update_Rtables_Event(global_time, TCP_ID, &network);
-	routing_queue.push(event);
-
-	// Complete all routing events
-	while((!routing_queue.empty()) && (global_time <= end_time)) {
-		Event * to_handle = routing_queue.top();
-		routing_queue.pop();
-		to_handle->handle_event();
-		delete to_handle;
-	}
-	
+	Update_Rtables_Event * event = new Update_Rtables_Event(0.0, TCP_ID, &network);
+	event_queue.push(event);
+/*	
 	// USED FOR DEBUGGING
 	for (int i = 0; i < network.all_routers.size(); i++) {
 		Router * router_ = network.all_routers.at(i);
@@ -63,7 +54,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		router_->print_distance_vector();
 		router_->print_routing_table();
 	}
-
+*/
 	// Push a "Flow_Start_Event" for every flow in the network
 	int num_flows = network.all_flows.size();	
 	for(int i = 0; i < num_flows; i++)
@@ -83,7 +74,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		delete to_handle;
 	}
 	
-	mexPrintf("Exiting\n");
+	printf("Exiting\n");
 	
 }
 

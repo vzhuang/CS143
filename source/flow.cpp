@@ -39,7 +39,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
-	//mexPrintf("%d %f %d %d\n", (int)sending.size(), window_size, window_start, size);
+	//printf("%d %f %d %d\n", (int)sending.size(), window_size, window_start, size);
 	while(sending.size() < (int) window_size){
 		int next_index;
 		if(sending.size() == 0){
@@ -78,8 +78,8 @@ void Flow::receive_data(Data_packet * packet) {
 		if(sending.size() > 0){
 			sending.erase(sending.begin());
 		}
-		//mexPrintf("sending: %d\n", (int) sending.size());
-		//mexPrintf("to_receive: %d\n", to_receive);
+		//printf("sending: %d\n", (int) sending.size());
+		//printf("to_receive: %d\n", to_receive);
 		received.push_back(packet->get_index());
 		// update expected packet
 		if(packet->get_index() == to_receive){
@@ -92,7 +92,7 @@ void Flow::receive_data(Data_packet * packet) {
 		}
 	}
 	else{
-		mexPrintf("Wrong packet received");
+		printf("Wrong packet received");
 	}
 }
 
@@ -113,7 +113,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		rtt_dev = (1 - b) * rtt_dev + b * abs(rtt -  rtt_avg);
 		time_out = rtt_avg + 4 * rtt_dev;
 	}
-	//mexPrintf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
+	//printf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
 	// If duplicate ack, go back n
 	if(packet->get_index() == last_ack_received){
 		num_duplicates++;
