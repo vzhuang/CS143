@@ -198,7 +198,7 @@ Packet * Link::transmit_packet() {
 	}
 	// If endpoint 2 is not a final destination, it must be a router
 	else {
-		// Use the routing table for endpoint 2 to look up next hop
+		// Use the routing table for endpoint 2 to look up next hop		
 		Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
 		// Find the link associated with the next hop and transmit the packet
 		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
