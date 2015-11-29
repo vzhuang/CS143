@@ -184,7 +184,7 @@ void Ack_Receive_Event::handle_event() {
 		ip_to_english(&network, ack->getDest()).c_str(),
 		global_time);
 	// send new packets
-	Host * source = ack->getFlow()->get_destination();
+	Host * source = ack->getFlow()->get_source();
 	Link * link = source->get_first_link();
 	vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
 	for(int i = 0; i < to_send.size(); i++) {
