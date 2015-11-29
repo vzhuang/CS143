@@ -7,9 +7,9 @@
 #include "link.h"
 #include <vector>
 // Packet sizes in bytes
-#define DATA_SIZE 1024
-#define ROUTING_SIZE 1
-#define ACK_SIZE 4
+#define DATA_SIZE 1024.0
+#define ROUTING_SIZE 1.0
+#define ACK_SIZE 4.0
 // Packet IDs
 #define DATA_ID 0
 #define ROUT_ID 1

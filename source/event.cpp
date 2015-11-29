@@ -83,9 +83,9 @@ void Flow_Start_Event::handle_event() {
 	else if(event_ID == TCP_RENO) {
 		Host * source = flow->get_source();
 		Host * destination = flow->get_destination();
-		printf("This flow is going from %s to %s\n\n",
+		printf("This flow is going from %s to %s. Time: %f\n\n",
 			ip_to_english(&network, source).c_str(),
-			ip_to_english(&network, destination).c_str() );
+			ip_to_english(&network, destination).c_str(), get_start() );
 		Link * link = flow->get_source()->get_first_link();
 		vector<Data_packet *> to_send = flow->send_packets();
 		for(int i = 0; i < to_send.size(); i++) {
@@ -124,7 +124,7 @@ void Link_Send_Event::handle_event() {
 		endpoint1 = endpoint2;
 		endpoint2 = temp;
 	} 
-	printf("Sending packet %d from %s to %s on link %s. Time: %f\n\n",
+	printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
 		link->data_buffer.front()->get_index(),
 		ip_to_english(&network, endpoint1).c_str(),
 		ip_to_english(&network, endpoint2).c_str(),
@@ -147,7 +147,7 @@ void Link_Send_Routing_Event::handle_event() {
 		endpoint2 = temp;
 	} 
 
-	printf("Sending packet %d from %s to %s on link %s. Time: %f\n\n",
+	printf("ROUTING: Sending packet %d from %s to %s on link %s. Time: %f\n\n",
 		link->routing_buffer.front()->get_index(),
 		ip_to_english(&network, endpoint1).c_str(),
 		ip_to_english(&network, endpoint2).c_str(),
@@ -168,7 +168,7 @@ void Link_Free_Event::handle_event() {
 		link->is_free_r = 1;
 	else
 		link->is_free = 1;
-	printf("Packet moved through Link %s. It is available again. Time: %f\n\n",
+	printf("Packet cleared from buffer on Link %s. Link is available again. Time: %.20f\n\n",
 		link_to_english(&network, link).c_str(), global_time);
 }
 
@@ -223,17 +223,38 @@ void Data_Receive_Event::handle_event() {
 	Link * link_to_send_ack = ack->getSource()->get_first_link();
 	// Always push packet to buffer before spawning send event
 	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
-		double start_time = link_to_send_ack->earliest_available_time();
 		Link_Send_Event * event = new Link_Send_Event(
-									start_time,
+									link_to_send_ack->earliest_available_time(),
 									SEND_EVENT_ID,
 									link_to_send_ack);
 
-		link_to_send_ack->t_free = start_time + link_to_send_ack->get_packet_delay(ack);
 		event_queue.push(event);
 	}
 	data->getFlow()->receive_data(data);
 	delete data;
+}
+
+/////////////// Packet_Receive_Event (packet was recieved by a router) /////////////////
+Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Data_packet * data_, Link * link_, Node * src_)
+           : Event(start_, event_ID_) {
+	data = data_;
+	link = link_;
+	src = src_;
+}
+
+void Packet_Receive_Event::handle_event() {
+	global_time = this->get_start();
+	printf(" Packet #%d recieved at the intended router at time: %f\n\n", 
+			data->get_index(),
+			global_time);
+	if( link->add_to_buffer(data, src) == 0)
+	{ 
+		Link_Send_Event * send_event = new Link_Send_Event(
+										link->earliest_available_time(),
+										SEND_EVENT_ID,
+										link);
+		event_queue.push(send_event);
+	}
 }
 
 /////////////// Rout_Receive_Event (a rout packet was recieved) /////////////////
@@ -246,7 +267,7 @@ Rout_Receive_Event::Rout_Receive_Event(Router * router_, double start_, int even
 void Rout_Receive_Event::handle_event() {
 	global_time = this->get_start();
 
-	printf(" $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
+	printf(" ROUTING: $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
 			r_packet->get_index(),
 			ip_to_english(&network, r_packet->getDest()).c_str(),
 			global_time);

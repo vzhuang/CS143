@@ -95,6 +95,17 @@ public:
 	
 };
 
+/////////////// Packet_Receive_Event /////////////////
+class Packet_Receive_Event : public Event {
+	Data_packet * data;
+	Link * link;
+	Node * src;
+public:
+	Packet_Receive_Event(double start_, int event_ID_, Data_packet * data_, Link * link_, Node * src_);
+	void handle_event();
+	
+};
+
 /////////////// Rout_Receive_Event /////////////////
 class Rout_Receive_Event : public Event {
 	Rout_packet * r_packet;

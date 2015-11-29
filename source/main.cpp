@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 	// }
 
 	// Create an event to update the routing tables
-	Update_Rtables_Event * event = new Update_Rtables_Event(0.0, TCP_ID, &network);
+	Update_Rtables_Event * event = new Update_Rtables_Event(0 - EPSILON, TCP_ID, &network);
 	event_queue.push(event);
 /*	
 	// USED FOR DEBUGGING

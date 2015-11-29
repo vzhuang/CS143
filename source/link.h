@@ -16,6 +16,7 @@
 #include "event.h"
 #include <limits>
 #include <vector>
+#define EPSILON .0000000001
 
 class Event;
 class Node;
@@ -33,15 +34,13 @@ class Link {
 	// Total flow rate through the link (bytes/s)
 	double flowrate;
 	// Number of bytes sent since last update of flow rate
-	int bytes_sent;
+	double bytes_sent;
 	// Time of last update of flow rate
 	double update_time;
 	// Indicates one end point of the link
 	Node * ep1;
 	// Indicates second end point of the link
 	Node * ep2;
-	// Time in ms required to transmit packet
-	double delay;
 	// Number of Bytes that the link can store in queue
 	double buffersize;
 	// Bytes currently stored in the data queue
@@ -63,6 +62,8 @@ public:
 	std::queue <int> routing_directions;
 	// Constructor
 	Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double my_buf);
+	// Time in ms required to transmit packet
+	double delay;
 	// Get the link capacity
 	double get_capacity();
 	// Return the earliest time that the newly added packet can be popped from the buffer
