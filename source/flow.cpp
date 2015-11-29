@@ -77,6 +77,8 @@ void Flow::receive_data(Data_packet * packet) {
 		if(sending.size() > 0){
 			sending.erase(sending.begin());
 		}
+		printf("sending: %d\n", (int) sending.size());
+		printf("to_receive: %d\n", to_receive);
 		received.push_back(packet->get_index());
 		// update expected packet
 		if(packet->get_index() == to_receive){
