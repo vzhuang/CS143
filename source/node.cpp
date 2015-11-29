@@ -152,10 +152,10 @@ void Node::init_distance_vector() {
 void Node::update_distance_vector(Rout_packet * r_packet_) {
 	Rout_packet * r_packet = r_packet_;
 	// Router and corresponding distance vector from packet
-	Node * rnode = r_packet->get_router_source();
+	Node * rsrc = r_packet->getSource();
 	map<Node *, double> packet_vector = r_packet->get_packet_vector();
 	// Distance from current node to router that sent packet
-	double dist_to_rsrc = distance_vector.at(rnode);
+	double dist_to_rsrc = distance_vector.at(rsrc);
 	// Iterate over nodes in the packet vector
 	for (map<Node *, double>::iterator it = packet_vector.begin(); it != packet_vector.end(); it++) {
 		// Destination reachable from rnode and its distance
@@ -315,9 +315,10 @@ void Router::init_routing_table() {
 void Router::update_routing_table(Rout_packet * r_packet_) {
 	Rout_packet * r_packet = r_packet_;
 	// Router and corresponding distance vector from packet
-	Node * rsrc = r_packet->get_router_source();
+	Node * rsrc = r_packet->getSource();
 	map<Node *, double> packet_vector = r_packet->get_packet_vector();
 	map<Node *, double> distances = this->get_distance_vector();
+	// map<Node *, Node *> r_table = this->get_routing_table();
 	// Distance from current node to router that sent packet
 	double dist_to_rsrc = distances.at(rsrc);
 	// Iterate over nodes in the packet vector
@@ -325,8 +326,11 @@ void Router::update_routing_table(Rout_packet * r_packet_) {
 		// Destination reachable from rnode and its distance
 		Node * dst = it->first;
 		double dist_from_rsrc = it->second;
-		// If dest node is not in distance vector, add it
-		if (distances.find(dst) == distances.end()) {
+		if (dst == this) {
+			// If the destination is the current router, do not add to routing table.
+		}
+		// If dest node is not in the routing table, add it
+		else if (routing_table.find(dst) == routing_table.end()) {
 			distances.insert(pair<Node *, double>(dst, dist_to_rsrc + dist_from_rsrc));
 			// Add the node to the routing table. Since the shortest path 
 			// goes through rsrc
@@ -338,6 +342,13 @@ void Router::update_routing_table(Rout_packet * r_packet_) {
 			if (dist_to_rsrc + dist_from_rsrc < prev_dist) {
 				distances[dst] = dist_to_rsrc + dist_from_rsrc;
 				routing_table.insert(pair<Node *, Node *>(dst, routing_table.at(rsrc)));
+			}
+			// If a path of equal length has been found, update next hop to 
+			// the lower-indexed of the two routers
+			else if (dist_to_rsrc + dist_from_rsrc == prev_dist) {
+				if (ip_to_english(&network, routing_table.at(rsrc)) < ip_to_english(&network, routing_table.at(dst))) {
+					routing_table.at(dst) = routing_table.at(rsrc);
+				}
 			}
 		}
 
@@ -352,8 +363,9 @@ map<Node *, Node *> Router::get_routing_table() {
 //USED FOR DEBUGGING
 void Router::print_routing_table() {
 	//
+	map<Node *, Node *> rtable = this->get_routing_table();
 	cout << "Routing table for source: " << ip_to_english(&network, this) << "\n";
-	for (map<Node *, Node *>::iterator it=routing_table.begin(); it!=routing_table.end(); ++it) {
+	for (map<Node *, Node *>::iterator it=rtable.begin(); it!=rtable.end(); ++it) {
 		//
 		cout <<"	"<<  ip_to_english(&network, it->first) << " " << ip_to_english(&network, it->second) << "\n";
 	}
@@ -368,7 +380,6 @@ void Router::receive_routing_packet(Rout_packet * r_packet_) {
 	// Update the distance vector and routing table
 	this->update_distance_vector(r_packet);
 	this->update_routing_table(r_packet);
-	// TODO
 }
 
 /**
@@ -377,11 +388,11 @@ void Router::receive_routing_packet(Rout_packet * r_packet_) {
 void Router::send_distance_vector() {
 	// For every node in the routing table, send the distance vector
 	for (map<Node *, Node *>::iterator it=routing_table.begin(); it!=routing_table.end(); ++it) {
-		Node * dst = it->first;
+		Node * dest = it->first;
 		Node * next_node = it->second;
 		map<Node *, double> d_vector = this->get_distance_vector();
 		// Create a routing packet with the distance vector
-		Rout_packet r_packet = Rout_packet(this, dst, d_vector);
+		Rout_packet r_packet = Rout_packet(this, dest, d_vector);
 		// Find the link associated with the next hop and transmit the packet
 		Link * next_link = this->get_link(next_node);
 		// TODO
@@ -391,20 +402,16 @@ void Router::send_distance_vector() {
 }
 
 /**
-* The link processes all incoming distance vectors before sending its updated
-* version.
+* Virtual function to check if a node is a router.
 */
-void Router::process_incoming_vectors() {
-	// Wait for all routing receive events to be processed
-	while (1) {
-		if (routing_queue.empty()) {
-			break;
-		}
-	}
-
-	// TODO
-	
+bool Node::is_router() {
+	return false;
 }
 
-
+/**
+* Returns true. Overwrites Node::is_router() if the node is a router.
+*/
+bool Router::is_router() {
+	return true;
+}
 

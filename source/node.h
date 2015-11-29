@@ -54,6 +54,8 @@ public:
 	// Get the distance vector of the node
 	map<Node *, double> get_distance_vector();
 	void set_distance_vector(map<Node*, double> distance_vector_);
+	// Returns true if the node is a router
+	virtual bool is_router();
 };
 
 // Hosts
@@ -87,9 +89,7 @@ public:
 	void receive_routing_packet(Rout_packet * r_packet_);
 	// Sends distance vector to all known nodes
 	void send_distance_vector();
-	// Process incoming distance vectors and update distance vector and 
-	// routing table
-	void process_incoming_vectors();
+	bool is_router();
 };
 
 #endif  /* NODE_H */
