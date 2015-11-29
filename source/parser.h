@@ -53,6 +53,7 @@ network.
 #include <iostream>
 #include <string>
 #include <cstring>
+#include "mex.h"
 class Flow;
 class Link;
 
