@@ -15,7 +15,7 @@ Node * parse_ip(string token, Network * network) {
 		return network->all_routers[node_number]->get_ip();
 	}
 	else {
-		fprintf(stderr, "Invalid R/H# token. Unexpected token: %s. Exiting.\n", token.c_str());
+		mexPrintf( "Invalid R/H# token. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 }
@@ -31,13 +31,13 @@ void build_network(Network * network, char * network_file) {
 	// Open the input file
 	myfile.open(network_file);
   	if(! myfile.is_open()) {
-		fprintf(stderr,"Could not open file: %s. Exiting.\n", network_file);
+		mexPrintf("Could not open file: %s. Exiting.\n", network_file);
 		exit(0);
 	}
 	// Read the number of hosts
 	myfile >> token;
   	if(token.compare("Hosts:") != 0) {
-		fprintf(stderr,"Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
+		mexPrintf("Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 	myfile >> token;
@@ -46,7 +46,7 @@ void build_network(Network * network, char * network_file) {
 	// Read the number of routers
 	myfile >> token;
   	if(token.compare("Routers:") != 0) {
-		fprintf(stderr, "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
+		mexPrintf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 	myfile >> token;
@@ -66,22 +66,22 @@ void build_network(Network * network, char * network_file) {
 	// Read and create the links, conencting them to their endpoints
 	myfile >> token;
   	if(token.compare("Links:") != 0) {
-		fprintf(stderr, "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
+		mexPrintf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
 		exit(-1);
 	}
 	myfile >> token;
 	while(token.compare("Flows:") != 0) {
 		if(myfile.eof()) {
-			fprintf(stderr, "Invalid file format. Exiting\n");
+			mexPrintf( "Invalid file format. Exiting\n");
 			exit(-1);
 		}
 		Node * ep1 = parse_ip(token, network);
 		myfile >> token;
 		Node * ep2 = parse_ip(token, network);
 		myfile >> token;
-		double capacity = 1000000 / 8 * stod(token); // Since its given in Mb/s and we want B/s
+		double capacity = 1000000.0 / 8.0 * stod(token); // Since its given in Mb/s and we want B/s
 		myfile >> token;
-		double delay = stod(token) / 1000; // Since its given in ms and we want s
+		double delay = stod(token) / 1000.0; // Since its given in ms and we want s
 		myfile >> token;
 		double buffer_size = 1000.0 * stod(token);	 // Since it's given in KB	and we want B
 		Link * link = new Link(capacity, ep1, ep2, delay, buffer_size);
@@ -99,7 +99,7 @@ void build_network(Network * network, char * network_file) {
 		myfile >> token;
 		Host * dest = (Host *) parse_ip(token, network);
 		myfile >> token;
-		double data_amount = stod(token);
+		double data_amount = stod(token) * 1000000.0; // Since given in MB and we want B;
 		myfile >> token;
 		double start = stod(token);
 		Flow * flow = new Flow(source, dest, data_amount, start);
@@ -131,7 +131,7 @@ string ip_to_english(Network * network, Node * node) {
 			return output; 
 		}
 	}
-	printf("FATAL: ip: %lu not in this network\n", (long unsigned int) node);
+	mexPrintf("FATAL: ip: %lu not in this network\n", (long unsigned int) node);
 	exit(-1);
 }
 
@@ -151,6 +151,6 @@ string link_to_english(Network * network, Link * link) {
 			return output; 
 		}
 	}
-	printf("FATAL: link: %lu not in this network\n", (long unsigned int) link);
+	mexPrintf("FATAL: link: %lu not in this network\n", (long unsigned int) link);
 	exit(-1);
 }
