@@ -148,7 +148,7 @@ void Link_Send_Routing_Event::handle_event() {
 	} 
 
 	printf("Sending packet %d from %s to %s on link %s. Time: %f\n\n",
-		link->data_buffer.front()->get_index(),
+		link->routing_buffer.front()->get_index(),
 		ip_to_english(&network, endpoint1).c_str(),
 		ip_to_english(&network, endpoint2).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
