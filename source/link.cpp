@@ -57,7 +57,7 @@ double Link::get_queue_delay() {
 	total_delay += delay * packets_stored;
 	// Contribution from the size of the data to be transmitted
 	total_delay += bytes_stored / capacity; 
-	//mexPrintf("queue delay: %f\n", total_delay);
+	//printf("queue delay: %f\n", total_delay);
 	return total_delay;
 }
 
@@ -101,7 +101,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	}
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
-		mexPrintf("Packet dropped attempting to join the buffer on link: %s\n",
+		printf("Packet dropped attempting to join the buffer on link: %s\n",
 			link_to_english(&network, this).c_str() );
 		return -1;
 	}
@@ -121,7 +121,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	}
 	// Something went wrong
 	else {
-		mexPrintf("Incoming packet did not come from a link endpoint\n");
+		printf("Incoming packet did not come from a link endpoint\n");
 		exit(-1);
 	}
 	return 0;
@@ -133,12 +133,12 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 Packet * Link::transmit_packet() {
 	// Sanity check
 	if(data_buffer.empty()) {
-			mexPrintf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
+			printf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
 	// Check if the link is free
 	if(!is_free) {
-		mexPrintf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
+		printf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
 			link_to_english(&network, this).c_str() );
 
 		Link_Send_Event * send_event = new Link_Send_Event(
