@@ -31,6 +31,7 @@ int main(int argc, char *argv[]) {
 	TCP_ID = stoi(argv[3]);
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
+
 	// // Iterate over all routers and create routing tables
 	// for (int i = 0; i < network.all_routers.size(); i++) {
 	// 	Router * source = network.all_routers.at(i);
@@ -41,10 +42,11 @@ int main(int argc, char *argv[]) {
 	// 	source->print_routing_table();
 	// }
 
+	// Create an event to update the routing tables
 	Update_Rtables_Event * event = new Update_Rtables_Event(global_time, TCP_ID, &network);
 	routing_queue.push(event);
 
-
+	// Complete all routing events
 	while((!routing_queue.empty()) && (global_time <= end_time)) {
 		Event * to_handle = routing_queue.top();
 		routing_queue.pop();
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]) {
 		delete to_handle;
 	}
 	
-		// USED FOR DEBUGGING
+	// USED FOR DEBUGGING
 	for (int i = 0; i < network.all_routers.size(); i++) {
 		Router * router_ = network.all_routers.at(i);
 
