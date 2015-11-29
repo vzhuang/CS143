@@ -83,7 +83,7 @@ void build_network(Network * network, char * network_file) {
 		myfile >> token;
 		double delay = stod(token) / 1000.0; // Since its given in ms and we want s
 		myfile >> token;
-		double buffer_size = 1000.0 * stod(token);	 // Since it's given in KB	and we want B
+		double buffer_size = 1000000.0 * stod(token);	 // Since it's given in KB	and we want B
 		Link * link = new Link(capacity, ep1, ep2, delay, buffer_size);
 		link->connect(ep1,ep2);
 		
