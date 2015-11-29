@@ -15,9 +15,11 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	delay = my_delay;
 	buffersize = my_buf;
 	is_free = 1;
+	is_free_r = 1;
 	bytes_stored = 0;
 	packets_stored = 0;
 	t_free = 0.0;
+	t_free_r = 0.0;
 }
 // Get the capacity of the link
 double Link::get_capacity() {

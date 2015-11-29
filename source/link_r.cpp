@@ -74,12 +74,13 @@ Packet * Link::transmit_packet_r() {
 	if(!is_free_r) {
 		printf("Routing: Link %s was not free but a transmit was attempted. Retrying \n\n", 
 			link_to_english(&network, this).c_str() );
+		cout << t_free_r << "\n";
 
-		Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
-											t_free_r,
-											RSEND_EVENT_ID,
-											this);
-		routing_queue.push(send_event);
+		// Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
+		// 									t_free_r,
+		// 									RSEND_EVENT_ID,
+		// 									this);
+		// routing_queue.push(send_event);
 
 		return NULL;
 	}
@@ -106,6 +107,7 @@ Packet * Link::transmit_packet_r() {
 	
 	// Check if destination is the endpoint of this link
 	if(endpoint2 == dest) {
+		// If yes, have the destination router receive the packet
 		Rout_Receive_Event * rr_event = new Rout_Receive_Event(
 									(Router *) endpoint2,
 									global_time + time_to_send,

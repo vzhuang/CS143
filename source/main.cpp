@@ -31,51 +31,35 @@ int main(int argc, char *argv[]) {
 	TCP_ID = stoi(argv[3]);
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
-	// Iterate over all routers and create routing tables
-	for (int i = 0; i < network.all_routers.size(); i++) {
-		Router * source = network.all_routers.at(i);
-		source->init_distance_vector(&network);
-		source->init_routing_table(&network);
-		/* USED FOR DEBUGGING*/
-		source->print_distance_vector();
-		source->print_routing_table();
+	// // Iterate over all routers and create routing tables
+	// for (int i = 0; i < network.all_routers.size(); i++) {
+	// 	Router * source = network.all_routers.at(i);
+	// 	source->init_distance_vector(&network);
+	// 	source->init_routing_table(&network);
+	// 	/* USED FOR DEBUGGING*/
+	// 	source->print_distance_vector();
+	// 	source->print_routing_table();
+	// }
+
+	Update_Rtables_Event * event = new Update_Rtables_Event(global_time, TCP_ID, &network);
+	routing_queue.push(event);
+
+
+	while((!routing_queue.empty()) && (global_time <= end_time)) {
+		Event * to_handle = routing_queue.top();
+		routing_queue.pop();
+		to_handle->handle_event();
+		delete to_handle;
 	}
+	
+		// USED FOR DEBUGGING
+	for (int i = 0; i < network.all_routers.size(); i++) {
+		Router * router_ = network.all_routers.at(i);
 
-	// // For each router in the network, create a routing table.
-	// for (int i = 0; i < network.all_routers.size(); i++) {
-	// 	Router * router_ = network.all_routers.at(i);
-	// 	// Initialize the distance vector and routing table to include 
-	// 	// information about the router's neighbors
-	// 	router_->init_distance_vector();
-	// 	router_->init_routing_table();
-	// }
-	// // Iterate to make sure that the routing tables converge
-	// for (int j = 1; j < network.all_routers.size() + network.all_hosts.size(); j++) {
-	// 	// First, process all incoming information (routing packet receive events)
-	// 	while( (!routing_queue.empty()) && (global_time <= end_time)) {
-	// 		Event * to_handle = routing_queue.top();
-	// 		routing_queue.pop();
-	// 		to_handle->handle_event();
-	// 		delete to_handle;
-	// 	}
-
-	// 	for (int i = 0; i < network.all_routers.size(); i++) {
-	// 		Router * router_ = network.all_routers.at(i);
-	// 		// First, process all incoming information and update distance
-	// 		// vector and routing table
-	// 		router_->process_incoming_vectors();
-	// 		// Send updated distance vector to all routers in the routing table
-	// 		router_->send_distance_vector();
-	// 	}
-	// }
-	// // USED FOR DEBUGGING
-	// for (int i = 0; i < network.all_routers.size(); i++) {
-	// 	Router * router_ = network.all_routers.at(i);
-
-	// 	// USED FOR DEBUGGING
-	// 	router_->print_distance_vector();
-	// 	router_->print_routing_table();
-	// }
+		// USED FOR DEBUGGING
+		router_->print_distance_vector();
+		router_->print_routing_table();
+	}
 
 	// Push a "Flow_Start_Event" for every flow in the network
 	int num_flows = network.all_flows.size();	
@@ -86,7 +70,7 @@ int main(int argc, char *argv[]) {
 		Flow_Start_Event * event = new Flow_Start_Event(start, TCP_ID, this_flow);
 		event_queue.push(event);
 	}
-	
+
 	// Keep dequeuing events and handling them
 	while( (!event_queue.empty()) && (global_time <= end_time) )
 	{

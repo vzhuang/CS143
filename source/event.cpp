@@ -147,7 +147,7 @@ void Link_Send_Routing_Event::handle_event() {
 		endpoint2 = temp;
 	} 
 	printf("Routing: Sending packet %d from %s to %s on link %s. Time: %f\n\n",
-		link->data_buffer.front()->get_index(),
+		link->routing_buffer.front()->get_index(),
 		ip_to_english(&network, endpoint1).c_str(),
 		ip_to_english(&network, endpoint2).c_str(),
 		link_to_english(&network, link).c_str(), global_time);
@@ -245,22 +245,12 @@ Rout_Receive_Event::Rout_Receive_Event(Router * router_, double start_, int even
 void Rout_Receive_Event::handle_event() {
 	global_time = this->get_start();
 
-	printf(" $$$ Packet #%d recieved at host: %s at time: %f\n\n", 
+	printf(" $$$ Packet #%d recieved at router: %s at time: %f\n\n", 
 			r_packet->get_index(),
 			ip_to_english(&network, r_packet->getDest()).c_str(),
 			global_time);
-
 	// Update the routers' distance vector and routing table
 	router->receive_routing_packet(r_packet);
-
-	//printf(" ### Ack #%d recieved at host: %s at time: %f\n\n", 
-	//	ack->get_index(),
-	//	ip_to_english(&network, ack->getDest()).c_str(),
-	//	global_time);
-	//delete ack;
-	//Link * link = ack->getSource()->get_first_link();
-
-
 }
 
 /////////////// Update_Rtables_Event /////////////////
@@ -271,32 +261,56 @@ Update_Rtables_Event::Update_Rtables_Event(double start_, int event_ID_, Network
 void Update_Rtables_Event::handle_event() {
 	global_time = this->get_start();
 	double t_0 = global_time;
-	// Spawn all neccessary routing events.
-	// example of spawning a routing packet send event:
-	/*
-	  		Rout_Packet rpacket = new Rout_Packet(...);
-			Link * link_to_send_r_packet = ... ;
-			Node * start_point = r_packet->get_source();
-			// Always push packet to buffer before spawning send event
-			if( link_to_send_r_packet->add_to_buffer_r(rpacket, start_point) == 0)
-			{ 
-				Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
-											link_to_send_r_packet->earliest_available_time_r(),
-											RSEND_EVENT_ID,
-											link_to_send_r_packet);
-			}
-											
-	*/
-	// See the event Rout_Receive_Event to adjust what happens when a rotuing packet arrives at its intended destination.
-	
-	//Handle all events
-	while( (!routing_queue.empty()) && (global_time <= end_time) )
-	{
-		Event * to_handle = routing_queue.top();
-		routing_queue.pop();
-		to_handle->handle_event();
-		delete to_handle;
+
+	// See the event Rout_Receive_Event to adjust what happens when a rotuing
+	// packet arrives at its intended destination.
+	for (int i = 0; i < network->all_routers.size(); i++) {
+		// For each router in the network, initialize the distance vector and
+		// routing table to include information about its neighbors
+		Router * router = network->all_routers.at(i);
+		router->init_distance_vector();
+		router->init_routing_table();
 	}
+
+	// Iterate N-1 times, where N = number of nodes in the network, to make 
+	// sure that the routing table converges
+	for (int i = 1; i < network->all_routers.size() + network->all_hosts.size(); i++) {
+		// Each router sends its distance vector to all known nodes
+		for (int j = 0; j < network->all_routers.size(); j++) {
+			Router * router = network->all_routers.at(j);
+			map<Node *, Node *> r_table = router->get_routing_table();
+			// Create a routing packet and send it to each router in its routing table
+			for (map<Node *, Node *>::iterator it = r_table.begin(); it != r_table.end(); it++) {
+				Node * dest = it->first;
+				// Send a routing packet only if the destination is a router
+				if (dest->is_router()) {
+					//
+					Node * next_node = it->second;
+					Rout_packet * r_packet = new Rout_packet(router, dest, 
+											router->get_distance_vector());
+					Link * link_to_send_r_packet = router->get_link(next_node);
+					// Push the packet to the routing buffer
+					if (link_to_send_r_packet->add_to_buffer_r(r_packet, router) == 0) {
+						// If successfully added to buffer, create a send event
+						Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
+											link_to_send_r_packet->earliest_available_time_r(),
+											RSEND_EVENT_ID, link_to_send_r_packet);
+						routing_queue.push(send_event);
+					} 
+				}
+			}
+		}
+		
+		// In each iteration, empty the routing queue of the events sending
+		// and receiving the last iteration's distance vectors
+		while((!routing_queue.empty()) && (global_time <= end_time)) {
+			Event * to_handle = routing_queue.top();
+			routing_queue.pop();
+			to_handle->handle_event();
+			delete to_handle;
+		}
+	}
+
 	double t_f = global_time;
 	double elapsed_time = t_f - t_0;
 	// Increment the start times of all events in event_queue.
