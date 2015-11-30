@@ -5,4 +5,4 @@ Routers:
 Links:
 H1 H2 10 10 64
 Flows:
-H1 H2 20 0
+H1 H2 20 1
