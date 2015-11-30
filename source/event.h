@@ -118,9 +118,10 @@ public:
 };
 /////////////// Time_Out_Event //////////////////
 class Time_Out_Event : public Event {
-    Data_packet * data;
+    Flow * flow;
+    int index;
 public:
-    Time_Out_Event(double start_, int event_ID_, Data_packet * data_);
+    Time_Out_Event(double start_, int event_ID_, Flow * flow_, int n);
     void handle_event();
 };
 /////////////// Update_Rtables_Event //////////////////

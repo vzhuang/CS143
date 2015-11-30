@@ -125,11 +125,11 @@ void Link_Send_Event::handle_event() {
 		endpoint1 = endpoint2;
 		endpoint2 = temp;
 	} 
-	 printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
+	/* printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
 	 	link->data_buffer.front()->get_index(),
 	 	ip_to_english(&network, endpoint1).c_str(),
 	 	ip_to_english(&network, endpoint2).c_str(),
-	 	link_to_english(&network, link).c_str(), global_time);
+	 	link_to_english(&network, link).c_str(), global_time);*/
 	link->transmit_packet();
 }
 
@@ -200,7 +200,8 @@ void Ack_Receive_Event::handle_event() {
 				new Time_Out_Event(
 					link->earliest_available_time() + to_send[i]->getFlow()->time_out,
 					TIMEOUT_EVENT_ID,
-					to_send[i]);
+					to_send[i]->getFlow(),
+					to_send[i]->get_index());
 			event_queue.push(event);
 			event_queue.push(timeout);
 		}
@@ -398,14 +399,15 @@ void Update_Rtables_Event::handle_event() {
 }
 
 /////////////// Time out event (check if packet timed out) /////////////////
-Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Data_packet * data_)
+Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, int n)
            : Event(start_, event_ID_) {
-	data = data_;	
+	flow = flow_;
+	index = n;
 }
 
-void Time_Out_Event::handle_event() {	
-	if(!data->getFlow()->received_packet(data->get_index())){
+void Time_Out_Event::handle_event() {
+	if(!flow->received_packet(index)){
 		printf("Time out\n");
-		data->getFlow()->handle_time_out();
+		flow->handle_time_out();
 	}
 }

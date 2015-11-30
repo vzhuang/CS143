@@ -14,7 +14,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	start = start_;
 	algorithm = 1;
 	window_size = 2;
-	last_ack_received = 0;
+	last_ack_received = 1;
 	num_duplicates = 0;
 	ss_threshold = 0;
 	sent = 0;
@@ -40,12 +40,12 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
-	printf("sending: %d window size: %f  window start: %d\n", (int)sending.size(), window_size, window_start);
+	printf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
 	printf("ss threshold: %d\n", ss_threshold);
 	while(sending.size() < (int) window_size and sent <= size){
 		int next_index;
 		if(sending.size() == 0){
-			next_index = last_ack_received + 1;
+			next_index = last_ack_received;
 		}
 		else{
 			next_index = sending.back() + 1;
@@ -106,7 +106,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	vector<Data_packet *> send_now;
 	// recursively compute timeout value
 	double rtt = global_time - packet->get_time();
-	if(last_ack_received == -1){
+	if(last_ack_received == 0){
 		rtt_avg = rtt;
 		rtt_dev = rtt;		
 	}
@@ -128,9 +128,10 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 				handle_time_out();
 			}			
 		}	    
-	}
+	}	
 	// Handle normally 
-	else{	    
+	else{
+		last_ack_received = packet->get_index();
 		num_duplicates = 0;
 		// slow start
 		if(slow_start){
@@ -146,23 +147,20 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			//window_start++;
 			window_size += 1 / window_size;
 			send_now = send_packets();
-		}
-		  
+		}		  
     }
 	last_ack_received = packet->get_index();
 	return send_now;
 }
 
 void Flow::handle_time_out(){	
-	if(sending.size() > 0){
-		num_duplicates = 0;
-		slow_start = true;
-		ss_threshold = window_size / 2;
-		//window_start = to_receive;
-		window_size = 1;
-		send_packets();
-		last_time_out = global_time;
-	}
+	num_duplicates = 0;
+	slow_start = true;
+	ss_threshold = window_size / 2;
+	//window_start = to_receive;
+	window_size = 1;
+	send_packets();
+	last_time_out = global_time;	
 }
 
 bool Flow::received_packet(int num) {
