@@ -222,7 +222,7 @@ double Link::calculate_cost() {
 	}
 	else {
 		// Time to clear queue.
-		return bytes_stored / capacity;
+		return bytes_stored / capacity + delay;
 	}	
 }
 

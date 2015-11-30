@@ -21,8 +21,8 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	
 	to_receive = 1;
 	slow_start = true;
-	fast_retransmit = false;
-	fast_recovery = false;
+	fast_retransmit = true;
+	fast_recovery = true;
 	last_time_out = global_time;
 
 	time_out = 100;
@@ -40,7 +40,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
-	//printf("%d %f %d %d\n", (int)sending.size(), window_size, window_start, size);
+	//mexPrintf("%d %f %d %d\n", (int)sending.size(), window_size, window_start, size);
 	while(sending.size() < (int) window_size and sent <= size){
 		int next_index;
 		if(sending.size() == 0){
@@ -80,8 +80,8 @@ void Flow::receive_data(Data_packet * packet) {
 		if(sending.size() > 0){
 			sending.erase(sending.begin());
 		}
-		//printf("sending: %d\n", (int) sending.size());
-		//printf("to_receive: %d\n", to_receive);
+		//mexPrintf("sending: %d\n", (int) sending.size());
+		//mexPrintf("to_receive: %d\n", to_receive);
 		received.push_back(packet->get_index());
 		// update expected packet
 		if(packet->get_index() == to_receive){
@@ -94,7 +94,7 @@ void Flow::receive_data(Data_packet * packet) {
 		}
 	}
 	else{
-		printf("Wrong packet received");
+		mexPrintf("Wrong packet received");
 	}
 }
 
@@ -115,13 +115,14 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		rtt_dev = (1 - b) * rtt_dev + b * abs(rtt -  rtt_avg);
 		time_out = rtt_avg + 4 * rtt_dev;
 	}
-	//printf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
+	//mexPrintf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
 	// If duplicate ack, go back n
 	if(packet->get_index() == last_ack_received){
 		num_duplicates++;
 		// fast retransmit
 		if(fast_retransmit && num_duplicates == 3){
 			handle_time_out();
+			
 		}
 		else{
 			window_start = packet->get_index();
@@ -139,7 +140,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		}
 		else{
 			window_start++;
-			window_size = window_size + 1 / (double)window_size;
+			window_size += 1 / (double)window_size;
 			send_now = send_packets();
 		}
 		  
@@ -155,6 +156,8 @@ void Flow::handle_time_out(){
 			ss_threshold = window_size / 2;
 			window_size = ss_threshold;
 		}
+		num_duplicates = 0;
+		window_size /= 2;
 		send_packets();
 		last_time_out = global_time;
 	}

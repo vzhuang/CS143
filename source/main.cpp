@@ -9,7 +9,7 @@
 #include "graphing.h"
 #include "mex.h"
 #define SAMPLING_RATE 0.1
-#define REFRESH_RATE 0.48
+#define REFRESH_RATE 5.0
 double global_time;
 double end_time;
 Network network;
@@ -76,6 +76,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	// Keep dequeuing events and handling them
 	while( (!event_queue.empty()) && (global_time <= end_time) )
 	{
+		if(global_time >= 3.)
+			break;
 		double data_sampler = global_time - prev_time0;
 		if(data_sampler > SAMPLING_RATE) {
 			prev_time0 = global_time;
