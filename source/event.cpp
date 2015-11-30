@@ -247,13 +247,25 @@ void Packet_Receive_Event::handle_event() {
 	printf(" Packet #%d recieved at the intended router at time: %f\n\n", 
 			data->get_index(),
 			global_time);
-	if( link->add_to_buffer(data, src) == 0)
-	{ 
-		Link_Send_Event * send_event = new Link_Send_Event(
-										link->earliest_available_time(),
-										SEND_EVENT_ID,
-										link);
-		event_queue.push(send_event);
+			
+	if(get_ID() == RSEND_EVENT_ID) {
+		if (link->add_to_buffer_r(data, src) == 0) {
+			// If successfully added to buffer, create a send event
+			Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
+								link->earliest_available_time_r(),
+								RSEND_EVENT_ID, link);
+			routing_queue.push(send_event);
+		} 	
+	}
+	else {
+		if( link->add_to_buffer(data, src) == 0)
+		{ 
+			Link_Send_Event * send_event = new Link_Send_Event(
+											link->earliest_available_time(),
+											SEND_EVENT_ID,
+											link);
+			event_queue.push(send_event);
+		}
 	}
 }
 

@@ -20,6 +20,7 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	packets_stored = 0;
 	t_free = 0.0;
 	t_free_r = 0.0;
+	packets_dropped = 0;
 }
 // Get the capacity of the link
 double Link::get_capacity() {
@@ -85,6 +86,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	if (bytes_stored + packet->packetSize() > buffersize) {
 		printf("Packet dropped attempting to join the buffer on link: %s\n",
 			link_to_english(&network, this).c_str() );
+		packets_dropped++;
 		return -1;
 	}
 	data_buffer.push(packet);

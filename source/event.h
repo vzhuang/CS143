@@ -97,7 +97,7 @@ public:
 
 /////////////// Packet_Receive_Event /////////////////
 class Packet_Receive_Event : public Event {
-	Data_packet * data;
+	Packet * data;
 	Link * link;
 	Node * src;
 public:

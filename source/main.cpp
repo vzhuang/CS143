@@ -6,7 +6,8 @@
 #include "event.h"
 #include "network.h"
 #include <vector>
-
+#define SAMPLING_RATE 0.1
+#define REFRESH_RATE 0.48
 double global_time;
 double end_time;
 Network network;
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
 		router_->print_routing_table();
 	}
 */
+	//init_graphs();
 	// Push a "Flow_Start_Event" for every flow in the network
 	int num_flows = network.all_flows.size();	
 	for(int i = 0; i < num_flows; i++)
@@ -64,10 +66,22 @@ int main(int argc, char *argv[]) {
 		Flow_Start_Event * event = new Flow_Start_Event(start, TCP_ID, this_flow);
 		event_queue.push(event);
 	}
-
+	double prev_time0 = 0.0;
+	double prev_time1 = 0.0;
 	// Keep dequeuing events and handling them
 	while( (!event_queue.empty()) && (global_time <= end_time) )
 	{
+		double data_sampler = global_time - prev_time0;
+		if(data_sampler > SAMPLING_RATE) {
+			prev_time0 = global_time;
+			//update_graphs(&network);
+		}
+		double refresh_sampler = global_time - prev_time1;
+		if(refresh_sampler > REFRESH_RATE) {
+			prev_time1 = global_time;
+			Update_Rtables_Event * event = new Update_Rtables_Event(global_time, TCP_ID, &network);
+			event_queue.push(event);
+		}
 		Event * to_handle = event_queue.top();
 		event_queue.pop();
 		to_handle->handle_event();
