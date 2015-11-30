@@ -29,6 +29,7 @@ double Link::get_capacity() {
 
 // Get the flowrate of the link
 double Link::get_flowrate() {
+	set_flowrate();
 	return flowrate;
 }
 
@@ -84,7 +85,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
-		printf("Packet dropped attempting to join the buffer on link: %s\n",
+		mexPrintf("Packet dropped attempting to join the buffer on link: %s\n",
 			link_to_english(&network, this).c_str() );
 		packets_dropped++;
 		return -1;
@@ -104,7 +105,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	}
 	// Something went wrong
 	else {
-		printf("Incoming packet did not come from a link endpoint\n");
+		mexPrintf("Incoming packet did not come from a link endpoint\n");
 		exit(-1);
 	}
 	return 0;
@@ -116,13 +117,13 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 Packet * Link::transmit_packet() {
 	// Sanity check
 	if(data_buffer.empty()) {
-			printf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
+			mexPrintf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
 	/*
 	// Check if the link is free
 	if(!is_free) {
-		printf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
+		mexPrintf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
 			link_to_english(&network, this).c_str() );
 		exit(-1);
 		Link_Send_Event * send_event = new Link_Send_Event(

@@ -1,6 +1,7 @@
 static double * vector_time;
 static double * vector_flow_rate;
 static int vector_index;
+extern double global_time;
 #include "graphing.h"
 void init_graphs(Network * network, mxArray **plhs) {
     mexEvalString("close all; clear all;");
@@ -20,8 +21,8 @@ void init_graphs(Network * network, mxArray **plhs) {
 }
 
 void update_graphs(Network * network, mxArray **plhs) {
-    vector_time[vector_index] = vector_index;
-    vector_flow_rate[vector_index] = vector_index;
+    vector_time[vector_index] = global_time;
+    vector_flow_rate[vector_index] = network->all_links[0]->get_flowrate();
     vector_index++;
     mxArray *inplot[2];
     // Changing the active figure
