@@ -30,7 +30,7 @@ class Flow{
     int algorithm; // TCP algorithm 
     vector<int> received; // received packets (by destination)
     int sent;
-    int to_receive; // next packet expected to receive
+
     double window_size;
     int window_start; 
     int last_ack_received; // to check for duplicate acks
@@ -44,7 +44,6 @@ class Flow{
     
     vector<int> sending; // packets currently sent but not acked
     vector<double> times;
-    double time_out;
     double a;
     double b;
     double rtt_avg;
@@ -53,6 +52,11 @@ class Flow{
   
 	
 public:
+    // variables
+    double time_out;
+    int to_receive; // next packet expected to receive    
+
+    // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
 	double get_start();
 	Host * get_source();

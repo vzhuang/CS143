@@ -122,25 +122,23 @@ Packet * Link::transmit_packet() {
 			printf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
-	/*
 	// Check if the link is free
 	if(!is_free) {
 		printf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
 			link_to_english(&network, this).c_str() );
-		exit(-1);
+		//exit(-1);
 		Link_Send_Event * send_event = new Link_Send_Event(
 											t_free,
 											SEND_EVENT_ID,
 											this);
 		event_queue.push(send_event);
-
-		return NULL;
+		
+		return NULL;		
 	}
 	// Set the link to occupied while we send a packet
 	else { 
 		is_free = 0;
 	}
-	*/
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = data_buffer.front();
 	int direction = data_directions.front();
