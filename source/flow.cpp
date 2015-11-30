@@ -55,9 +55,14 @@ vector<Data_packet *> Flow::send_packets() {
 		}
 		sending.push_back(next_index);
 		Data_packet * new_packet = generate_packet(next_index);
-		sent += new_packet->packetSize();
+		if(!sent_packet(next_index)){
+			sent += new_packet->packetSize();
+			sent_packets.push_back(next_index);
+		}
+		
 		send_now.push_back(new_packet);
 	}
+	printf("after: sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
 	return send_now;
 }
 
@@ -118,6 +123,14 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			time_out = 2000; // avoids small time_out errors
 		}
 	}
+	for(vector<int>::iterator iter = sending.begin(); iter != sending.end();){
+		if(*iter < packet->get_index()){
+			iter = sending.erase(iter);
+		}
+		else{
+			iter++;
+		}
+	}
 	//printf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
 	// If duplicate ack, go back n
 	if(packet->get_index() == last_ack_received){
@@ -130,7 +143,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		}	    
 	}	
 	// Handle normally 
-	else{
+	else{		
 		last_ack_received = packet->get_index();
 		num_duplicates = 0;
 		// slow start
@@ -161,6 +174,13 @@ void Flow::handle_time_out(){
 	window_size = 1;
 	send_packets();
 	last_time_out = global_time;	
+}
+
+bool Flow::sent_packet(int num) {
+	if(std::find(sent_packets.begin(), sent_packets.end(), num) == sent_packets.end()){
+		return false;
+	}
+	return true;
 }
 
 bool Flow::received_packet(int num) {

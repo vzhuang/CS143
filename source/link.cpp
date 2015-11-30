@@ -123,7 +123,7 @@ Packet * Link::transmit_packet() {
 			exit(-1);
 	}
 	// Check if the link is free
-	if(!is_free) {
+	/*if(!is_free) {
 		//printf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
 		//	link_to_english(&network, this).c_str() );
 		//exit(-1);
@@ -138,7 +138,7 @@ Packet * Link::transmit_packet() {
 	// Set the link to occupied while we send a packet
 	else { 
 		is_free = 0;
-	}
+	}*/
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = data_buffer.front();
 	int direction = data_directions.front();

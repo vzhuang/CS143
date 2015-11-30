@@ -29,6 +29,7 @@ class Flow{
 	int size;
     int algorithm; // TCP algorithm 
     vector<int> received; // received packets (by destination)
+    vector<int> sent_packets;
     int sent;
 
     double window_size;
@@ -67,7 +68,8 @@ public:
     Ack_packet * generate_ack_packet();
 	//void send_data_packet(Data_packet * packet); 
     void send_ack_packet(Ack_packet * packet);
-    void receive_data(Data_packet * packet);
+    void receive_data(Data_packet * packet);    
+    bool sent_packet(int num);
     bool received_packet(int num);
     vector<Data_packet *> receive_ack(Ack_packet * packet);
     void handle_time_out();
