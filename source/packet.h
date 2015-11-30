@@ -6,6 +6,7 @@
 #include "flow.h"
 #include "link.h"
 #include <vector>
+#include "mex.h"
 // Packet sizes in bytes
 #define DATA_SIZE 1024.0
 #define ROUTING_SIZE 1.0

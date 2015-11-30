@@ -6,6 +6,7 @@
 #include "event.h"
 #include "network.h"
 #include <vector>
+#include "mex.h"
 #define SAMPLING_RATE 0.1
 #define REFRESH_RATE 0.48
 double global_time;
@@ -21,15 +22,16 @@ priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
 priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 
 
-int main(int argc, char *argv[]) {
-	if(argc != 4)
+void mexFunction(int nlhs, mxArray *plhs[],
+                 int nrhs, mxArray const *prhs[]) {
+	if(nrhs != 3)
 	{
-		printf("./proj [network.txt] [double simulation_time (s)] [TCP_ID]\n");
+		mexPrintf("./proj [network.txt] [double simulation_time (s)] [TCP_ID]\n");
 		exit(-1);
 	}
-	char * network_file = argv[1];
-	end_time = stod(argv[2]);
-	TCP_ID = stod(argv[3]);
+	char * network_file = mxArrayToString(prhs[0]);
+	end_time = (double) mxGetScalar(prhs[1]);
+	TCP_ID = (int) mxGetScalar(prhs[2]);
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
 
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]) {
 		delete to_handle;
 	}
 	
-	printf("Exiting\n");
+	mexPrintf("Exiting\n");
 	
 }
 

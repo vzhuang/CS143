@@ -59,7 +59,7 @@ Link * Node::get_link(Node * endpoint_) {
 		}
 	}
 	
-	printf("FATAL: Router could not find link to requested endpoint: %s\n",
+	mexPrintf("FATAL: Router could not find link to requested endpoint: %s\n",
 		ip_to_english(&network, endpoint_).c_str() );
 	exit(-1);
 }
