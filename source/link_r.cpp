@@ -61,6 +61,11 @@ Packet * Link::transmit_packet_r() {
 			mexPrintf("Routing: Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
+	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
+	if(is_free_r != 0)
+	{
+		is_free_r = 0;
+	}
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = routing_buffer.front();
 	int direction = routing_directions.front();
@@ -98,7 +103,7 @@ Packet * Link::transmit_packet_r() {
 		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
 									RPACKET_RECEIVE_EVENT_ID,
-									(Data_packet *) transmission_packet,
+									transmission_packet,
 									next_link,
 									endpoint2);
 		event_queue.push(pr_event);
