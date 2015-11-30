@@ -60,6 +60,11 @@ Packet * Link::transmit_packet_r() {
 	if(routing_buffer.empty()) {
 			printf("Routing: Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
+	}	
+	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
+	if(is_free != 0)
+	{
+		is_free = 0;
 	}
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = routing_buffer.front();

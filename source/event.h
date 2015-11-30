@@ -97,11 +97,11 @@ public:
 
 /////////////// Packet_Receive_Event /////////////////
 class Packet_Receive_Event : public Event {
-	Packet * data;
+	Packet * packet;
 	Link * link;
 	Node * src;
 public:
-	Packet_Receive_Event(double start_, int event_ID_, Data_packet * data_, Link * link_, Node * src_);
+	Packet_Receive_Event(double start_, int event_ID_, Packet * packet_, Link * link_, Node * src_);
 	void handle_event();
 	
 };
