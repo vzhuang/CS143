@@ -241,35 +241,37 @@ void Data_Receive_Event::handle_event() {
 }
 
 /////////////// Packet_Receive_Event (packet was recieved by a router) /////////////////
-Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Data_packet * data_, Link * link_, Node * src_)
+Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Packet * packet_, Link * link_, Node * src_)
            : Event(start_, event_ID_) {
-	data = data_;
+	packet = packet_;
 	link = link_;
 	src = src_;
 }
 
 void Packet_Receive_Event::handle_event() {
 	global_time = this->get_start();
-	printf(" Packet #%d received at the intended router at time: %f\n\n", 
-	 		data->get_index(),
+	printf(" Packet #%d received at the intended router at time: %f (-1 for routing packet)\n\n", 
+	 		packet->get_index(),
 	 		global_time);
-			
+	// A packet was received during a routing table update (so we want to use routing buffer)
 	if(get_ID() == RSEND_EVENT_ID) {
-		if (link->add_to_buffer_r(data, src) == 0) {
-			// If successfully added to buffer, create a send event
+		if (link->add_to_buffer_r(packet, src) == 0) {
+			// If successfully added to buffer, create a routing send event (uses routing buffer)
 			Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
 								link->earliest_available_time_r(),
 								RSEND_EVENT_ID, link);
 			routing_queue.push(send_event);
 		} 	
 	}
+	// A packet was received during normal flow progression (so we want to use data buffer)
 	else {
-		if( link->add_to_buffer(data, src) == 0)
+		if( link->add_to_buffer(packet, src) == 0)
 		{ 
+			// A packet was received during normal flow progression (so we want to use data buffer)
 			Link_Send_Event * send_event = new Link_Send_Event(
-											link->earliest_available_time(),
-											SEND_EVENT_ID,
-											link);
+									link->earliest_available_time(),
+									SEND_EVENT_ID,
+									link);
 			event_queue.push(send_event);
 		}
 	}
