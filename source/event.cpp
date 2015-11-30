@@ -221,6 +221,7 @@ void Data_Receive_Event::handle_event() {
 	 		data->get_index(),
 	 		ip_to_english(&network, data->getDest()).c_str(),
 	 		global_time);
+	data->getFlow()->receive_data(data);
 	 // Create ack packet to send back to source
 	Ack_packet * ack = new Ack_packet((Host *)data->getDest(),
 									(Host *)data->getSource(),
@@ -235,8 +236,7 @@ void Data_Receive_Event::handle_event() {
 									SEND_EVENT_ID,
 									link_to_send_ack);
 		event_queue.push(event);
-	}
-	data->getFlow()->receive_data(data);
+	}	
 	delete data;
 }
 
