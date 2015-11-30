@@ -95,13 +95,12 @@ Packet * Link::transmit_packet_r() {
 		// Find the link associated with the next hop and transmit the packet
 		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
 
-		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
+		Rout_Receive_Event * pr_event = new Rout_Receive_Event(
+									(Router *) endpoint2,
 									global_time + time_to_send + delay,
-									RSEND_EVENT_ID,
-									(Data_packet *) transmission_packet,
-									next_link,
-									endpoint2);
-		event_queue.push(pr_event);
+									ROUT_RECEIVE_ID,
+									(Rout_packet *) transmission_packet);
+		routing_queue.push(pr_event);
 	}
 	// Packet succesfully sent. Remove transmitted packet from the buffer.
 	routing_buffer.pop();

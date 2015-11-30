@@ -46,7 +46,7 @@ void Link::set_flowrate() {
 // Calculate the time (s) it would take to clear an individual packet from the buffer
 double Link::get_packet_delay(Packet * packet)
 {	
-	return packet->packetSize() / capacity;
+	return delay + packet->packetSize() / capacity;
 }
 
 // Calculate the time (s) it would take to clear out everything in the buffer
@@ -60,6 +60,10 @@ Node * Link::get_ep1() {
 
 Node * Link::get_ep2() {
 	return ep2;
+}
+
+double Link::get_bytes_stored() {
+	return bytes_stored;
 }
 
 vector<Node *> Link::get_endpoints() {
@@ -80,8 +84,7 @@ double Link::earliest_available_time() {
 	
 /* Add a packet to the buffer and record its direction. Return 0 on success
    and -1 on failure. */
-int Link::add_to_buffer(Packet * packet, Node * source) {
-	
+int Link::add_to_buffer(Packet * packet, Node * source) {	
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
 		printf("Packet dropped attempting to join the buffer on link: %s\n",
@@ -216,13 +219,11 @@ Packet * Link::transmit_packet() {
  * dynamic component (flow rate).
  */
 double Link::calculate_cost() {
-	if (bytes_stored == 0) {
-		return delay;
-	}
-	else {
-		// Time to clear queue.
-		return bytes_stored / capacity;
-	}	
+
+	// Time to clear queue.
+	//this->set_flowrate();
+	return delay + flowrate;
+	
 }
 
 

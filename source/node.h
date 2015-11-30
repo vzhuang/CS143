@@ -24,9 +24,10 @@ class Node {
 	// List of links adjacent to Node
 	vector<Link *> links;
 	// Distance vector
-	map<Node *, double> distance_vector;
+	//map<Node *, double> distance_vector;
 	
 public:
+	map<Node *, double> distance_vector;
 	// Constructor
 	Node();
 	// Get the address of the Node
@@ -43,8 +44,6 @@ public:
 	void send_packet(Packet * packet_, Link link_);
 	// Receive a packet
 	void receive_packet(Packet * packet_);
-	// Compute the distance to all adjacent nodes
-	void init_distance_vector(Network * network_);
 	// Initialize the distance vector
 	void init_distance_vector();
 	// Update the distance vector when a routing packet is received
@@ -75,8 +74,6 @@ class Router: public Node {
 
 public:
 	Router();
-	// Initialize the routing table with knowledge of the network
-	void init_routing_table(Network * network_);
 	// Initialize the routing table with knowledge of adjacent links
 	void init_routing_table();
 	// Update the routing table when a routing packet is received

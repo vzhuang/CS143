@@ -7,7 +7,7 @@
 #include "network.h"
 #include <vector>
 #define SAMPLING_RATE 0.1
-#define REFRESH_RATE 0.48
+#define REFRESH_RATE 5.0
 double global_time;
 double end_time;
 Network network;
@@ -33,29 +33,10 @@ int main(int argc, char *argv[]) {
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
 
-	// // Iterate over all routers and create routing tables
-	// for (int i = 0; i < network.all_routers.size(); i++) {
-	// 	Router * source = network.all_routers.at(i);
-	// 	source->init_distance_vector(&network);
-	// 	source->init_routing_table(&network);
-	// 	/* USED FOR DEBUGGING*/
-	// 	source->print_distance_vector();
-	// 	source->print_routing_table();
-	// }
-
 	// Create an event to update the routing tables
 	Update_Rtables_Event * event = new Update_Rtables_Event(0 - EPSILON, TCP_ID, &network);
 	event_queue.push(event);
-/*	
-	// USED FOR DEBUGGING
-	for (int i = 0; i < network.all_routers.size(); i++) {
-		Router * router_ = network.all_routers.at(i);
 
-		// USED FOR DEBUGGING
-		router_->print_distance_vector();
-		router_->print_routing_table();
-	}
-*/
 	//init_graphs();
 	// Push a "Flow_Start_Event" for every flow in the network
 	int num_flows = network.all_flows.size();	
@@ -78,14 +59,26 @@ int main(int argc, char *argv[]) {
 		}
 		double refresh_sampler = global_time - prev_time1;
 		if(refresh_sampler > REFRESH_RATE) {
+			// Set the distance vector to reflect the most recent link costs
+
+			cout << "Time: " << global_time << "\n";
+			for (int i = 0; i < network.all_links.size(); i++) {
+				Link * link = network.all_links.at(i);
+				link->set_flowrate();
+				cout << "Cost for link " << link_to_english(&network, link) << ":  "<< link->calculate_cost() << "\n";
+			}
+
 			prev_time1 = global_time;
 			Update_Rtables_Event * event = new Update_Rtables_Event(global_time, TCP_ID, &network);
 			event_queue.push(event);
 		}
+
 		Event * to_handle = event_queue.top();
 		event_queue.pop();
 		to_handle->handle_event();
 		delete to_handle;
+
+
 	}
 	
 	printf("Exiting\n");
