@@ -108,6 +108,7 @@ public:
 	bool is_free;	
 	// Routing routines disregard the data bool. Need their own lock.
 	bool is_free_r;	
+	// Total number of packets dropped
 	int packets_dropped;
 };
 

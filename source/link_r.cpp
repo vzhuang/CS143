@@ -84,7 +84,7 @@ Packet * Link::transmit_packet_r() {
 		Rout_Receive_Event * rr_event = new Rout_Receive_Event(
 									(Router *) endpoint2,
 									global_time + time_to_send + delay,
-									ROUT_RECEIVE_ID,
+									ROUT_RECEIVE_EVENT_ID,
 									(Rout_packet *) transmission_packet);
 		routing_queue.push(rr_event);
 	}
@@ -97,7 +97,7 @@ Packet * Link::transmit_packet_r() {
 
 		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
-									RSEND_EVENT_ID,
+									RPACKET_RECEIVE_EVENT_ID,
 									(Data_packet *) transmission_packet,
 									next_link,
 									endpoint2);
@@ -115,7 +115,7 @@ Packet * Link::transmit_packet_r() {
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
 			get_packet_delay(transmission_packet) + global_time - EPSILON,
-			RFREE_EVENT_ID,
+			RLINK_FREE_EVENT_ID ,
 			this);
 	t_free_r = get_packet_delay(transmission_packet) + global_time;
 	routing_queue.push(free_event);

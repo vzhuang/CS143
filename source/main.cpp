@@ -49,7 +49,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	// }
 
 	// Create an event to update the routing tables
-	Update_Rtables_Event * event = new Update_Rtables_Event(0 - EPSILON, TCP_ID, &network);
+	Update_Rtables_Event * event = 
+					new Update_Rtables_Event(
+						0 - EPSILON, 
+						REFRESH_RTABLES_EVENT_ID,
+						&network);
 	event_queue.push(event);
 /*	
 	// USED FOR DEBUGGING
@@ -68,7 +72,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	{
 		Flow * this_flow = network.all_flows[i];
 		double start = this_flow->get_start();
-		Flow_Start_Event * event = new Flow_Start_Event(start, TCP_ID, this_flow);
+		Flow_Start_Event * event = 
+						new Flow_Start_Event(
+							start, 
+							FLOW_START_EVENT_ID,
+							this_flow);
 		event_queue.push(event);
 	}
 	double prev_time0 = 0.0;
@@ -86,7 +94,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		double refresh_sampler = global_time - prev_time1;
 		if(refresh_sampler > REFRESH_RATE) {
 			prev_time1 = global_time;
-			Update_Rtables_Event * event = new Update_Rtables_Event(global_time, TCP_ID, &network);
+			Update_Rtables_Event * event = 
+								new Update_Rtables_Event(
+									global_time, 
+									REFRESH_RTABLES_EVENT_ID,
+									&network);
 			event_queue.push(event);
 		}
 		Event * to_handle = event_queue.top();

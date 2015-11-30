@@ -164,7 +164,7 @@ Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
 void Link_Free_Event::handle_event() {
 	global_time = this->get_start();
 	// Check if we are freeing for a routing send or a data send
-	if(get_ID() == RFREE_EVENT_ID)
+	if(get_ID() == RLINK_FREE_EVENT_ID )
 		link->is_free_r = 1;
 	else
 		link->is_free = 1;
@@ -236,7 +236,7 @@ void Data_Receive_Event::handle_event() {
 	delete data;
 }
 
-/////////////// Packet_Receive_Event (packet was recieved by a router) /////////////////
+/////////////// Packet_Receive_Event (some packet was recieved by a router) /////////////////
 Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Data_packet * data_, Link * link_, Node * src_)
            : Event(start_, event_ID_) {
 	data = data_;
@@ -249,19 +249,21 @@ void Packet_Receive_Event::handle_event() {
 	mexPrintf(" Packet #%d recieved at the intended router at time: %f\n\n", 
 			data->get_index(),
 			global_time);
-			
-	if(get_ID() == RSEND_EVENT_ID) {
+	// A packet was received during a routing table update (so we want to use routing buffer)
+	if(get_ID() == RPACKET_RECEIVE_EVENT_ID) {
 		if (link->add_to_buffer_r(data, src) == 0) {
-			// If successfully added to buffer, create a send event
+			// If successfully added to buffer, create a routing send event (uses routing buffer)
 			Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
 								link->earliest_available_time_r(),
 								RSEND_EVENT_ID, link);
 			routing_queue.push(send_event);
 		} 	
 	}
+	// A packet was received during normal flow progression (so we want to use data buffer)
 	else {
 		if( link->add_to_buffer(data, src) == 0)
 		{ 
+			// If successfully added to buffer, create a normal data send event (uses data buffer)
 			Link_Send_Event * send_event = new Link_Send_Event(
 											link->earliest_available_time(),
 											SEND_EVENT_ID,

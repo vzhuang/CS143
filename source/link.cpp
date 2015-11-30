@@ -120,25 +120,6 @@ Packet * Link::transmit_packet() {
 			mexPrintf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
-	/*
-	// Check if the link is free
-	if(!is_free) {
-		mexPrintf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
-			link_to_english(&network, this).c_str() );
-		exit(-1);
-		Link_Send_Event * send_event = new Link_Send_Event(
-											t_free,
-											SEND_EVENT_ID,
-											this);
-		event_queue.push(send_event);
-
-		return NULL;
-	}
-	// Set the link to occupied while we send a packet
-	else { 
-		is_free = 0;
-	}
-	*/
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = data_buffer.front();
 	int direction = data_directions.front();
@@ -164,7 +145,7 @@ Packet * Link::transmit_packet() {
 		{
 			Ack_Receive_Event * ack_event = new Ack_Receive_Event(
 									global_time + time_to_send + delay,
-									ACK_RECEIVE_ID,
+									ACK_RECEIVE_EVENT_ID,
 									(Ack_packet *) transmission_packet);
 			event_queue.push(ack_event);
 		}
@@ -172,7 +153,7 @@ Packet * Link::transmit_packet() {
 		else {
 			Data_Receive_Event * receive_event = new Data_Receive_Event(
 									global_time + time_to_send + delay,
-									DATA_RECEIVE_ID,
+									DATA_RECEIVE_EVENT_ID,
 									(Data_packet *) transmission_packet);
 			event_queue.push(receive_event);
 		}
@@ -183,10 +164,10 @@ Packet * Link::transmit_packet() {
 		Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
 		// Find the link associated with the next hop and transmit the packet
 		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
-
+		// Packet Receive event will allow the packet to go to the next router
 		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
-									-1,
+									PACKET_RECEIVE_EVENT_ID,
 									(Data_packet *) transmission_packet,
 									next_link,
 									endpoint2);
@@ -205,7 +186,7 @@ Packet * Link::transmit_packet() {
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
 			get_packet_delay(transmission_packet) + global_time - EPSILON,
-			LINK_FREE_ID,
+			LINK_FREE_EVENT_ID ,
 			this);
 	t_free = get_packet_delay(transmission_packet) + global_time;
 	event_queue.push(free_event);
@@ -222,7 +203,7 @@ double Link::calculate_cost() {
 	}
 	else {
 		// Time to clear queue.
-		return bytes_stored / capacity + delay;
+		return bytes_sent / capacity + delay;
 	}	
 }
 
