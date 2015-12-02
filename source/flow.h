@@ -73,6 +73,7 @@ public:
     bool received_packet(int num);
     vector<Data_packet *> receive_ack(Ack_packet * packet);
     void handle_time_out();
+    void print_sending();
 };
 
 #endif
