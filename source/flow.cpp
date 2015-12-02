@@ -32,6 +32,14 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	//round_trip_times(size, 0);
 }
 
+void Flow::print_sending(){
+	printf("sending: ");
+	for(int i = 0; i < sending.size(); i++){
+		printf("%d ", sending[i]);
+	}
+	printf("\n");
+}
+
 /**
  * TO DO: make sure packets are removed from sending in events
  * I.e. in general make sure sending contains list of packets pushed onto queue
@@ -41,6 +49,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
 	printf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
+	print_sending();
 	printf("ss threshold: %d\n", ss_threshold);
 	while(sending.size() < (int) window_size and sent <= size){
 		int next_index;
@@ -63,6 +72,7 @@ vector<Data_packet *> Flow::send_packets() {
 		send_now.push_back(new_packet);
 	}
 	printf("after: sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
+	print_sending();
 	return send_now;
 }
 
@@ -111,6 +121,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	vector<Data_packet *> send_now;
 	// recursively compute timeout value
 	double rtt = global_time - packet->get_time();
+	// initialize rtt;
 	if(last_ack_received == 0){
 		rtt_avg = rtt;
 		rtt_dev = rtt;		
@@ -123,14 +134,15 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			time_out = 2000; // avoids small time_out errors
 		}
 	}
-	for(vector<int>::iterator iter = sending.begin(); iter != sending.end();){
-		if(*iter < packet->get_index()){
-			iter = sending.erase(iter);
-		}
-		else{
-			iter++;
-		}
-	}
+	// stop sending all unnecessary packetsn
+	// for(vector<int>::iterator iter = sending.begin(); iter != sending.end();){
+	//	if(*iter < packet->get_index()){
+	//		iter = sending.erase(iter);
+	//	}
+	//	else{
+	//		iter++;
+	//	}
+	//}
 	//printf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
 	// If duplicate ack, go back n
 	if(packet->get_index() == last_ack_received){
@@ -140,7 +152,12 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			if(num_duplicates == 3){
 				handle_time_out();
 			}			
-		}	    
+		}
+		if(fast_recovery){
+			if(num_duplicates == 3){
+				
+			}
+		}
 	}	
 	// Handle normally 
 	else{		

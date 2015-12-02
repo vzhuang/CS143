@@ -49,7 +49,7 @@ public:
 	// Update the distance vector when a routing packet is received
 	void update_distance_vector(Rout_packet * r_packet_);
 	// Print the distance vector of the node (debugging)
-	void mexPrintf_distance_vector();
+	void print_distance_vector();
 	// Get the distance vector of the node
 	map<Node *, double> get_distance_vector();
 	void set_distance_vector(map<Node*, double> distance_vector_);
@@ -81,7 +81,7 @@ public:
 	// Get the routing table of the router
 	map<Node *, Node *> get_routing_table();
 	// Used for debugging
-	void mexPrintf_routing_table();
+	void print_routing_table();
 	// Receive a routing packet
 	void receive_routing_packet(Rout_packet * r_packet_);
 	// Sends distance vector to all known nodes

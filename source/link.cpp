@@ -46,7 +46,7 @@ void Link::set_flowrate() {
 // Calculate the time (s) it would take to clear an individual packet from the buffer
 double Link::get_packet_delay(Packet * packet)
 {	
-	return delay + packet->packetSize() / capacity;
+	return packet->packetSize() / capacity;
 }
 
 // Calculate the time (s) it would take to clear out everything in the buffer
@@ -136,8 +136,12 @@ Packet * Link::transmit_packet() {
 		return NULL;		
 	}
 	// Set the link to occupied while we send a packet
-	*/
-	if(is_free) { 
+	else { 
+		is_free = 0;
+	}*/
+	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
+	if(is_free != 0)
+	{
 		is_free = 0;
 	}
 	// The packet at the front of the buffer is transmitted.

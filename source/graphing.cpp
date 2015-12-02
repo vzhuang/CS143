@@ -18,7 +18,7 @@ void init_graphs(Network * network, mxArray **plhs) {
 		init_testcase1(network, plhs);
 	}
 	else {
-		printf("graphing.cpp: unrecognized file: %s\n. Exiting.\n", file_name);
+		mexPrintf("graphing.cpp: unrecognized file: %s\n. Exiting.\n", file_name);
 		exit(-1);
 	}
     // Flow rate graph
@@ -66,7 +66,7 @@ void update_graphs(Network * network, mxArray **plhs) {
 		update_testcase1(network, plhs);
 	}
 	else {
-		printf("graphing.cpp: unrecognized file: %s\n. Exiting.\n", file_name);
+		mexPrintf("graphing.cpp: unrecognized file: %s\n. Exiting.\n", file_name);
 		exit(-1);
 	}
     // Flush graphs

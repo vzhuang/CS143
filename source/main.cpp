@@ -7,6 +7,7 @@
 #include "network.h"
 #include "graphing.h"
 #include <vector>
+#include "mex.h"
 #define SAMPLING_RATE 0.1
 #define REFRESH_RATE 10.0
 double global_time;
@@ -84,12 +85,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 
 	}
-	
+		mexPrintf("end time: %f, global_time: %f\n", end_time, global_time);
 	mexPrintf("Exiting\n");
 	
 }
-
-
-
-
-

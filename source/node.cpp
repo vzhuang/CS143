@@ -93,7 +93,7 @@ map<Node *, double> Node::get_distance_vector() {
 }
 
 // USED FOR DEBUGGING
-void Node::mexPrintf_distance_vector() {
+void Node::print_distance_vector() {
 	
 	cout << "Distance vector for source: " << ip_to_english(&network, this) << "\n";
 	for (map<Node *, double>::iterator it=distance_vector.begin(); it!=distance_vector.end(); ++it) {
@@ -207,7 +207,7 @@ map<Node *, Node *> Router::get_routing_table() {
 }
 
 //USED FOR DEBUGGING: Prints the contents of the routing table
-void Router::mexPrintf_routing_table() {
+void Router::print_routing_table() {
 	map<Node *, Node *> rtable = this->get_routing_table();
 	cout << "Routing table for source: " << ip_to_english(&network, this) << "\n";
 	for (map<Node *, Node *>::iterator it=rtable.begin(); it!=rtable.end(); ++it) {
