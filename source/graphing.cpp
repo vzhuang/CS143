@@ -31,17 +31,17 @@ void init_graphs(Network * network, mxArray **plhs) {
 void update_graphs(Network * network, mxArray **plhs) {
     vector_time[vector_index] = global_time;
     vector_flow_rate1[vector_index] = network->all_links[1]->get_flowrate();
-    vector_flow_rate2[vector_index] = network->all_links[2]->get_flowrate();
+    vector_flow_rate2[vector_index] = network->all_links[0]->get_flowrate();
     vector_index++;
     mxArray *inplot[2];
     // Changing the active figure
     mexEvalString("figure(fig1)");
     // Overwriting the active figure
-    inplot[0] = plhs[0];
-    inplot[1] = plhs[1];
+    inplot[0] = plhs[0]; // time
+    inplot[1] = plhs[1]; // set x axis to link1 flowrate
     mexCallMATLAB(0, NULL, 2, inplot, "plot");
     mexEvalString("hold on");
-    inplot[1] = plhs[2];
+    inplot[1] = plhs[2]; //set y axis to link2 flowrate
     mexCallMATLAB(0, NULL, 2, inplot, "plot");
     mexEvalString("hold off");
     mexEvalString("pause(.00001)");
