@@ -47,11 +47,11 @@ class Link {
 	double bytes_stored;
 	// Bytes curretnly stored in the routing queue
 	double bytes_stored_r;
+public:
 	// Packets currently stored in the data queue
 	int packets_stored;
 	// Packets currently stored in the routing queue
 	int packets_stored_r;
-public:
 	// Queue of packets (non-routing) to be transmitted
 	std::queue <Packet *> data_buffer;
 	// Queue of routing packets to be transmitted
