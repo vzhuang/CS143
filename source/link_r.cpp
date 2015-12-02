@@ -62,9 +62,9 @@ Packet * Link::transmit_packet_r() {
 			exit(-1);
 	}	
 	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(is_free != 0)
+	if(is_free_r != 0)
 	{
-		is_free = 0;
+		is_free_r = 0;
 	}
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = routing_buffer.front();
