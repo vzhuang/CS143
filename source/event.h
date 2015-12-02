@@ -8,17 +8,15 @@
 #include "packet.h"
 
 #define SEND_EVENT_ID 0
-#define FLOW_START_EVENT_ID 1
-#define LINK_FREE_EVENT_ID  2
-#define RLINK_FREE_EVENT_ID  3
-#define DATA_RECEIVE_EVENT_ID 4
-#define ACK_RECEIVE_EVENT_ID 5
-#define ROUT_RECEIVE_EVENT_ID 6
-#define TIMEOUT_EVENT_ID 7
-#define RSEND_EVENT_ID 8
-#define REFRESH_RTABLES_EVENT_ID 9 
-#define PACKET_RECEIVE_EVENT_ID 10
-#define RPACKET_RECEIVE_EVENT_ID 11
+#define FLOW_START_ID 1
+#define LINK_FREE_ID 2
+#define DATA_RECEIVE_ID 3
+#define ACK_RECEIVE_ID 4
+#define ROUT_RECEIVE_ID 5
+#define TIMEOUT_EVENT_ID 6
+#define RSEND_EVENT_ID 7
+#define RFREE_EVENT_ID 8
+#define REFRESH_RTABLES_ID 9 
 class Ack_packet;
 class Data_packet;
 class Rout_packet;
@@ -99,11 +97,11 @@ public:
 
 /////////////// Packet_Receive_Event /////////////////
 class Packet_Receive_Event : public Event {
-	Packet * data;
+	Packet * packet;
 	Link * link;
 	Node * src;
 public:
-	Packet_Receive_Event(double start_, int event_ID_, Data_packet * data_, Link * link_, Node * src_);
+	Packet_Receive_Event(double start_, int event_ID_, Packet * packet_, Link * link_, Node * src_);
 	void handle_event();
 	
 };
@@ -120,9 +118,10 @@ public:
 };
 /////////////// Time_Out_Event //////////////////
 class Time_Out_Event : public Event {
-    Data_packet * data;
+    Flow * flow;
+    int index;
 public:
-    Time_Out_Event(double start_, int event_ID_, Data_packet * data_);
+    Time_Out_Event(double start_, int event_ID_, Flow * flow_, int n);
     void handle_event();
 };
 /////////////// Update_Rtables_Event //////////////////

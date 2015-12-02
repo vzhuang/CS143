@@ -9,7 +9,7 @@
 #include "mex.h"
 // Packet sizes in bytes
 #define DATA_SIZE 1024.0
-#define ROUTING_SIZE 1024.0
+#define ROUTING_SIZE 1.0
 #define ACK_SIZE 4.0
 // Packet IDs
 #define DATA_ID 0

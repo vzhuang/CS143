@@ -60,10 +60,9 @@ Packet * Link::transmit_packet_r() {
 	if(routing_buffer.empty()) {
 			mexPrintf("Routing: Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
-	}
+	}	
 	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(is_free_r != 0)
-	{
+	if(is_free_r) { 
 		is_free_r = 0;
 	}
 	// The packet at the front of the buffer is transmitted.
@@ -89,7 +88,7 @@ Packet * Link::transmit_packet_r() {
 		Rout_Receive_Event * rr_event = new Rout_Receive_Event(
 									(Router *) endpoint2,
 									global_time + time_to_send + delay,
-									ROUT_RECEIVE_EVENT_ID,
+									ROUT_RECEIVE_ID,
 									(Rout_packet *) transmission_packet);
 		routing_queue.push(rr_event);
 	}
@@ -100,13 +99,12 @@ Packet * Link::transmit_packet_r() {
 		// Find the link associated with the next hop and transmit the packet
 		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
 
-		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
+		Rout_Receive_Event * pr_event = new Rout_Receive_Event(
+									(Router *) endpoint2,
 									global_time + time_to_send + delay,
-									RPACKET_RECEIVE_EVENT_ID,
-									transmission_packet,
-									next_link,
-									endpoint2);
-		event_queue.push(pr_event);
+									ROUT_RECEIVE_ID,
+									(Rout_packet *) transmission_packet);
+		routing_queue.push(pr_event);
 	}
 	// Packet succesfully sent. Remove transmitted packet from the buffer.
 	routing_buffer.pop();
@@ -120,7 +118,7 @@ Packet * Link::transmit_packet_r() {
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
 			get_packet_delay(transmission_packet) + global_time - EPSILON,
-			RLINK_FREE_EVENT_ID ,
+			RFREE_EVENT_ID,
 			this);
 	t_free_r = get_packet_delay(transmission_packet) + global_time;
 	routing_queue.push(free_event);

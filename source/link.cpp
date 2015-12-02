@@ -1,5 +1,5 @@
 /* Link routines for the data_buffer and link ititialization code */
-  
+
 #include "link.h"
 #include "parser.h"
 extern Network network;
@@ -29,7 +29,6 @@ double Link::get_capacity() {
 
 // Get the flowrate of the link
 double Link::get_flowrate() {
-	set_flowrate();
 	return flowrate;
 }
 
@@ -47,7 +46,7 @@ void Link::set_flowrate() {
 // Calculate the time (s) it would take to clear an individual packet from the buffer
 double Link::get_packet_delay(Packet * packet)
 {	
-	return packet->packetSize() / capacity;
+	return delay + packet->packetSize() / capacity;
 }
 
 // Calculate the time (s) it would take to clear out everything in the buffer
@@ -61,6 +60,10 @@ Node * Link::get_ep1() {
 
 Node * Link::get_ep2() {
 	return ep2;
+}
+
+double Link::get_bytes_stored() {
+	return bytes_stored;
 }
 
 vector<Node *> Link::get_endpoints() {
@@ -81,8 +84,7 @@ double Link::earliest_available_time() {
 	
 /* Add a packet to the buffer and record its direction. Return 0 on success
    and -1 on failure. */
-int Link::add_to_buffer(Packet * packet, Node * source) {
-	
+int Link::add_to_buffer(Packet * packet, Node * source) {	
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
 		mexPrintf("Packet dropped attempting to join the buffer on link: %s\n",
@@ -120,9 +122,22 @@ Packet * Link::transmit_packet() {
 			mexPrintf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}
-	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(is_free != 0)
-	{
+	// Check if the link is free
+	/*if(!is_free) {
+		//mexPrintf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
+		//	link_to_english(&network, this).c_str() );
+		//exit(-1);
+		Link_Send_Event * send_event = new Link_Send_Event(
+											t_free,
+											SEND_EVENT_ID,
+											this);
+		event_queue.push(send_event);
+		
+		return NULL;		
+	}
+	// Set the link to occupied while we send a packet
+	*/
+	if(is_free) { 
 		is_free = 0;
 	}
 	// The packet at the front of the buffer is transmitted.
@@ -150,7 +165,7 @@ Packet * Link::transmit_packet() {
 		{
 			Ack_Receive_Event * ack_event = new Ack_Receive_Event(
 									global_time + time_to_send + delay,
-									ACK_RECEIVE_EVENT_ID,
+									ACK_RECEIVE_ID,
 									(Ack_packet *) transmission_packet);
 			event_queue.push(ack_event);
 		}
@@ -158,7 +173,7 @@ Packet * Link::transmit_packet() {
 		else {
 			Data_Receive_Event * receive_event = new Data_Receive_Event(
 									global_time + time_to_send + delay,
-									DATA_RECEIVE_EVENT_ID,
+									DATA_RECEIVE_ID,
 									(Data_packet *) transmission_packet);
 			event_queue.push(receive_event);
 		}
@@ -169,10 +184,10 @@ Packet * Link::transmit_packet() {
 		Node * next_node = ((Router *) endpoint2)->get_routing_table().at(dest);
 		// Find the link associated with the next hop and transmit the packet
 		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
-		// Packet Receive event will allow the packet to go to the next router
+
 		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
-									PACKET_RECEIVE_EVENT_ID,
+									-1,
 									(Data_packet *) transmission_packet,
 									next_link,
 									endpoint2);
@@ -191,7 +206,7 @@ Packet * Link::transmit_packet() {
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
 			get_packet_delay(transmission_packet) + global_time - EPSILON,
-			LINK_FREE_EVENT_ID ,
+			LINK_FREE_ID,
 			this);
 	t_free = get_packet_delay(transmission_packet) + global_time;
 	event_queue.push(free_event);
@@ -203,13 +218,11 @@ Packet * Link::transmit_packet() {
  * dynamic component (flow rate).
  */
 double Link::calculate_cost() {
-	if (bytes_stored == 0) {
-		return delay;
-	}
-	else {
-		// Time to clear queue.
-		return bytes_sent / capacity + delay;
-	}	
+
+	// Time to clear queue.
+	//this->set_flowrate();
+	return delay + flowrate;
+	
 }
 
 

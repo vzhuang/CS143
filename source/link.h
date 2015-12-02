@@ -85,6 +85,7 @@ public:
 	vector<Node *> get_endpoints();
 	// Calculate the time (s) it would take to send an individual packet
 	double get_packet_delay(Packet * packet);
+	double get_bytes_stored();
 	// Add a packet to the link's data buffer. Return 0 on success. -1 on fail.
 	int add_to_buffer(Packet * packet, Node * source);
 	// Add a packet to the link's routing buffer. Return 0 on success. -1 on fail.
@@ -108,7 +109,6 @@ public:
 	bool is_free;	
 	// Routing routines disregard the data bool. Need their own lock.
 	bool is_free_r;	
-	// Total number of packets dropped
 	int packets_dropped;
 };
 

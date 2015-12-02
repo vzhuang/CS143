@@ -1,5 +1,3 @@
-delete('projmex.mexa64')
-
 mex main.cpp event.cpp flow.cpp link.cpp link_r.cpp ...
     packet.cpp parser.cpp node.cpp network.cpp graphing.cpp ... 
-    -output projmex
+    -output proj
