@@ -46,7 +46,7 @@ void Link::set_flowrate() {
 // Calculate the time (s) it would take to clear an individual packet from the buffer
 double Link::get_packet_delay(Packet * packet)
 {	
-	return delay + packet->packetSize() / capacity;
+	return packet->packetSize() / capacity;
 }
 
 // Calculate the time (s) it would take to clear out everything in the buffer
