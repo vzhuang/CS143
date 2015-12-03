@@ -22,20 +22,10 @@ double Link::get_queue_delay_r() {
 // Return the earliest time that the newly added packet can be popped from the routing buffer
 double Link::earliest_available_time_r() {
 		
-	// Direction of the packet to send
-	int direction = routing_directions.front();
-	if(direction == 1) {
-		if(!is_free_forward_r)
-			return t_free_forward_r + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
-		else
-			return global_time + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
-	}
-	else {
-		if(!is_free_reverse_r)
-			return t_free_reverse_r + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
-		else
-			return global_time + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
-	}
+	if(!is_free_forward_r)
+		return t_free_forward_r + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
+	else
+		return global_time + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
 }
 	
 /* Add a packet to the routing buffer and record its direction.
@@ -58,12 +48,10 @@ int Link::add_to_buffer_r(Packet * packet, Node * source) {
 	// Going from ep1 to ep2.
 	if(source == endpoint1) {
 		routing_directions.push(1);
-		forward_bytes_r+=packet->packetSize();
 	}
 	// Going from ep2 to ep1.
 	else if(source == endpoint2) {
 		routing_directions.push(-1);
-		reverse_bytes_r+=packet->packetSize();
 	}
 	// Something went wrong
 	else {
@@ -86,20 +74,10 @@ Packet * Link::transmit_packet_r() {
 	
 	int direction = routing_directions.front();
 	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(direction == 1)
+	if(is_free_r != 0)
 	{
-		if(is_free_forward_r != 0)
-		{
-			is_free_forward_r = 0;
-		}
+		is_free_r = 0;
 	}
-	else
-	{
-		if(is_free_reverse_r != 0)
-		{
-			is_free_reverse_r = 0;
-		}
-	}	
 	
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = routing_buffer.front();
@@ -152,16 +130,14 @@ Packet * Link::transmit_packet_r() {
 	// successfully transmits. We achieve this using epsilon.
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
-			get_packet_delay(transmission_packet) + global_time - EPSILON,
+			time_to_send + global_time - EPSILON,
 			RFREE_EVENT_ID,
 			this,
 			direction);
-	if(direction == 1) {
-		t_free_forward_r = get_packet_delay(transmission_packet) + global_time;
-	}
-	else {
-		t_free_reverse_r = get_packet_delay(transmission_packet) + global_time;
-	}
+
+	t_free_r = time_to_send + global_time;
+
+
 	routing_queue.push(free_event);
 	return transmission_packet;
 }

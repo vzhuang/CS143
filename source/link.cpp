@@ -18,10 +18,14 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	is_free_forward = 1;
 	is_free_reverse_r = 1;
 	is_free_reverse = 1;
+	is_free = 1;
+	is_free_r = 1;
 	bytes_stored = 0;
 	packets_stored = 0;
 	t_free_forward = 0.0;
 	t_free_reverse = 0.0;
+	t_free = 0;
+	t_free_r = 0;
 	t_free_forward_r = 0.0;
 	t_free_reverse_r = 0.0;
 	packets_dropped = 0;
@@ -55,16 +59,9 @@ double Link::get_packet_delay(Packet * packet)
 	return packet->packetSize() / capacity;
 }
 
-// Calculate the time (s) it would take to clear out everything in the buffer with respect to one direction
+// Calculate the time (s) it would take to clear out everything in the buffer 
 double Link::get_queue_delay() {
-	// Direction of the packet to send
-	int direction = data_directions.front();
-	if(direction == 1) {
-		return forward_bytes / capacity;
-	}
-	else {
-		return reverse_bytes / capacity;
-	}
+	return bytes_stored /capacity;
 }
 
 Node * Link::get_ep1() {
@@ -88,20 +85,11 @@ vector<Node *> Link::get_endpoints() {
 
 // Return the earliest time that the newly added packet can be popped from the buffer
 double Link::earliest_available_time() {
-	// Direction of the packet to send
-	int direction = data_directions.front();
-	if(direction == 1) {
-		if(!is_free_forward)
-			return t_free_forward + get_queue_delay() - get_packet_delay(data_buffer.front());
-		else
-			return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
-	}
-	else {
-		if(!is_free_reverse)
-			return t_free_reverse + get_queue_delay() - get_packet_delay(data_buffer.front());
-		else
-			return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
-	}
+	if(!is_free)
+		return t_free + get_queue_delay() - get_packet_delay(data_buffer.front());
+	else
+		return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
+
 }
 	
 	
@@ -124,12 +112,10 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	// Going from ep1 to ep2.
 	if(source == endpoint1) {
 		data_directions.push(1);
-		forward_bytes+=packet->packetSize();
 	}
 	// Going from ep2 to ep1.
 	else if(source == endpoint2) {
 		data_directions.push(-1);
-		reverse_bytes+=packet->packetSize();
 	}
 	// Something went wrong
 	else {
@@ -152,14 +138,11 @@ void Link::discard_packet() {
 	data_buffer.front()->getFlow()->sending.erase(
 		data_buffer.front()->getFlow()->sending.begin()); // should always be nonempty
 	bytes_stored -= data_buffer.front()->packetSize();
-	if(direction == 1){forward_bytes -= data_buffer.front()->packetSize();}
-	else{reverse_bytes -= data_buffer.front()->packetSize();}
 	data_buffer.pop();
 	data_directions.pop();	
 
 	packets_stored--;
-	if(direction == 1){is_free_forward = 1;}
-	else{is_free_reverse = 1;}
+	is_free = 1;
 }
 
 /* Transmit the first packet on this link's buffer, spawning an 
@@ -188,24 +171,16 @@ Packet * Link::transmit_packet() {
 	else { 
 		is_free = 0;
 	}*/
-	int direction = data_directions.front();
+
 	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(direction == 1)
+	if(is_free != 0)
 	{
-		if(is_free_forward != 0)
-		{
-			is_free_forward = 0;
-		}
+		is_free = 0;
 	}
-	else
-	{
-		if(is_free_reverse != 0)
-		{
-			is_free_reverse = 0;
-		}
-	}
+
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = data_buffer.front();
+	int direction = data_directions.front();
 	// Create some local variables for clarity
 	Node * dest = transmission_packet->getDest();
 	Node * endpoint1 = ep1->get_ip();
@@ -262,25 +237,20 @@ Packet * Link::transmit_packet() {
 	data_directions.pop();
 	bytes_stored -= transmission_packet->packetSize();
 	packets_stored--;
-	// Update number of bytes (directional)
-	if(direction == 1) {forward_bytes -= transmission_packet->packetSize();}
-	else {reverse_bytes -= transmission_packet->packetSize();}
+
 	// Increment number of packets sent across this link
 	bytes_sent += transmission_packet->packetSize();
 	// Create an event to free the link at the same time that the packet
 	// successfully transmits. We achieve this using epsilon.
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
-			get_packet_delay(transmission_packet) + global_time - EPSILON,
+			time_to_send + global_time - EPSILON,
 			LINK_FREE_ID,
 			this,
 			direction);
-	if(direction == 1) {
-		t_free_forward = get_packet_delay(transmission_packet) + global_time;
-	}
-	else {
-		t_free_reverse = get_packet_delay(transmission_packet) + global_time;
-	}
+
+	t_free = time_to_send + global_time;
+
 	event_queue.push(free_event);
 	return transmission_packet;
 }
