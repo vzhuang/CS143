@@ -42,7 +42,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	Update_Rtables_Event * event = new Update_Rtables_Event(0 - EPSILON, TCP_ID, &network);
 	event_queue.push(event);
 
-	init_graphs(&network, plhs);
+	init_graphs(&network, prhs);
 	// Push a "Flow_Start_Event" for every flow in the network
 	int num_flows = network.all_flows.size();	
 	for(int i = 0; i < num_flows; i++)
@@ -60,7 +60,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		double data_sampler = global_time - prev_time0;
 		if(data_sampler > SAMPLING_RATE) {
 			prev_time0 = global_time;
-			update_graphs(&network, plhs);
+			update_graphs(&network, prhs);
 		}
 		double refresh_sampler = global_time - prev_time1;
 		if(refresh_sampler > REFRESH_RATE) {
