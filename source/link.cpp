@@ -98,9 +98,9 @@ double Link::earliest_available_time() {
 int Link::add_to_buffer(Packet * packet, Node * source) {	
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
-		//printf("Packet %d dropped attempting to join the buffer on link: %s\n",
-		//	packet->get_index(),
-		//	link_to_english(&network, this).c_str() );
+		printf("Packet %d dropped attempting to join the buffer on link: %s\n",
+			packet->get_index(),
+			link_to_english(&network, this).c_str() );
 		packets_dropped++;
 		return -1;
 	}
