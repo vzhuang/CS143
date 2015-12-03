@@ -54,8 +54,8 @@ void Flow::print_sending(){
 vector<Data_packet *> Flow::send_packets() {
 	vector<Data_packet *> send_now;
 	printf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
-	print_sending();
-	printf("ss threshold: %d\n", ss_threshold);
+	//print_sending();
+	//printf("ss threshold: %d\n", ss_threshold);
 	while(sending.size() < (int) window_size and !done){
 		// if(sending.size() == 0){
 		// 	next_index = sent_packets.back() + 1;//last_ack_received;
@@ -81,7 +81,7 @@ vector<Data_packet *> Flow::send_packets() {
 		next_index++;
 	}
 	printf("after: sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
-	print_sending();
+	//print_sending();
 	return send_now;
 }
 
