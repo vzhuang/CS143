@@ -1,4 +1,4 @@
-/* Link routines for the data_buffer and link ititialization code */
+ /* Link routines for the data_buffer and link ititialization code */
 
 #include "link.h"
 #include "parser.h"
