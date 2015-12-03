@@ -146,11 +146,11 @@ void Link_Send_Event::handle_event() {
 			endpoint1 = endpoint2;
 			endpoint2 = temp;
 		} 
-		/* printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
+		printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
 		   link->data_buffer.front()->get_index(),
 		   ip_to_english(&network, endpoint1).c_str(),
 		   ip_to_english(&network, endpoint2).c_str(),
-		   link_to_english(&network, link).c_str(), global_time);*/
+		   link_to_english(&network, link).c_str(), global_time);
 		link->transmit_packet();
 	}
 	else{
@@ -454,8 +454,29 @@ void Time_Out_Event::handle_event() {
 	// 	printf("%d %d\n", index, flow->received[i]);
 	// }
 	if(!flow->received_packet(index)){
-		printf("Time out\n");
+		printf("Time out packet %d\n", index);
 		flow->handle_time_out(index);
-		flow->send_packets();
+		Host * source = flow->get_source();
+	    Link * link = source->get_first_link();
+		vector<Data_packet *> to_send = flow->send_packets(false);
+		if(flow->sending.size() <= flow->window_size){		
+			for(int i = 0; i < to_send.size(); i++) {
+				if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+					Link_Send_Event * event = 
+						new Link_Send_Event(
+							link->earliest_available_time(),
+							SEND_EVENT_ID,
+							link);
+					event_queue.push(event);
+				}
+				Time_Out_Event * timeout =
+					new Time_Out_Event(
+						link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+						TIMEOUT_EVENT_ID,
+						to_send[i]->getFlow(),
+						to_send[i]->get_index());
+				event_queue.push(timeout);		   
+			}
+		}
 	}
 }
