@@ -29,7 +29,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	fast_recovery = true;
 	last_time_out = global_time;
 
-	time_out = 2000;
+	time_out = 1000;
 	b = 0.25;
 	rtt_avg = 0;
 	rtt_dev = 0;
@@ -51,10 +51,16 @@ void Flow::print_sending(){
  * but not yet sent.
  */ 
 
-vector<Data_packet *> Flow::send_packets() {
+vector<Data_packet *> Flow::send_packets(bool duplicate) {
+	// duplicate: true if retransmitting one packet
 	vector<Data_packet *> send_now;
 	printf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
 	print_sending();
+	if(duplicate){
+		sending.push_back(last_ack_received);
+		Data_packet * retransmit = generate_packet(last_ack_received);
+		send_now.push_back(retransmit);
+	}
 	//printf("ss threshold: %d\n", ss_threshold);
 	while(sending.size() < (int) window_size and !done){
 		// if(sending.size() == 0){
@@ -98,11 +104,10 @@ void Flow::receive_data(Data_packet * packet) {
 			}
 		}
 		if(sending.size() > 0){
-			sending.erase(sending.begin());
+			sending.erase(remove(sending.begin(), sending.end(), packet->get_index()), sending.end());
 		}
 		//printf("sending: %d\n", (int) sending.size());
 		//printf("to_receive: %d\n", to_receive);
-		received.push_back(packet->get_index());
 		// update expected packet
 		if(packet->get_index() == to_receive){
 			to_receive++;
@@ -156,7 +161,19 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		if(fast_retransmit and fast_recovery){
 			printf("%d\n", num_duplicates);
 			if(num_duplicates == 3){
-				handle_time_out();
+				num_duplicates = 0;
+				send_packets(true);
+				slow_start = true;
+				ss_threshold = window_size / 2;
+				if(ss_threshold < 2){
+					ss_threshold = 2;
+				}
+				//window_start = to_receive;
+				window_size = 1;
+				last_time_out = global_time;
+				if(fast_recovery){
+					window_size = ss_threshold + 3;
+				}
 			}			
 		}
 	}	
@@ -171,34 +188,23 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			if(window_size == ss_threshold){
 				slow_start = false;
 			}
-			send_now = send_packets();
+			send_now = send_packets(false);
 		}
 		// congestion avoidance
 		else{
 			//window_start++;
 			window_size += 1 / window_size;
-			send_now = send_packets();
+			send_now = send_packets(false);
 		}		  
     }
 	last_ack_received = packet->get_index();
 	return send_now;
 }
 
-void Flow::handle_time_out(){
-	num_duplicates = 0;
-	next_index = last_ack_received;
-	slow_start = true;
-	ss_threshold = window_size / 2;
-	if(ss_threshold < 2){
-		ss_threshold = 2;
-	}
-	//window_start = to_receive;
-	window_size = 1;
-	send_packets();
-	last_time_out = global_time;
-	if(fast_recovery){
-		window_size = ss_threshold + 3;
-	}
+void Flow::handle_time_out(int n){
+	sending.erase(remove(sending.begin(), sending.end(), n), sending.end());
+	sent_packets.erase(remove(sent_packets.begin(), sent_packets.end(), n), sent_packets.end());
+	sent -= DATA_SIZE;
 }
 
 bool Flow::acked_packet(int num){

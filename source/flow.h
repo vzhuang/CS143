@@ -28,9 +28,9 @@ class Flow{
 	double start;
 	int size;
     int algorithm; // TCP algorithm 
-    vector<int> received; // received packets (by destination)    
+       
 
-    double window_size;
+    
     int window_start; 
     
     int num_duplicates; // keeps track of how many duplicate packets received
@@ -58,18 +58,20 @@ public:
     int to_receive; // next packet expected to receive
     int last_ack_received; // to check for duplicate acks
     vector<int> sending; // packets currently sent but not acked
+    vector<int> received; // received packets (by destination) 
     vector<int> sent_packets;
     vector<int> acked_packets;
     int sent;
     int next_index;
     int bytes_received;
+    double window_size;
 
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
 	double get_start();
 	Host * get_source();
 	Host * get_destination();
-	vector<Data_packet *> send_packets();
+	vector<Data_packet *> send_packets(bool duplicate);
 	void send_data();
 	Data_packet * generate_packet(int n);
     Ack_packet * generate_ack_packet();
@@ -78,7 +80,7 @@ public:
     bool sent_packet(int num);
     bool received_packet(int num);
     vector<Data_packet *> receive_ack(Ack_packet * packet);
-    void handle_time_out();
+    void handle_time_out(int n);
     void print_sending();
 };
 

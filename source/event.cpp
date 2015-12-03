@@ -88,7 +88,7 @@ void Flow_Start_Event::handle_event() {
 		 	ip_to_english(&network, source).c_str(),
 		 	ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
 		Link * link = flow->get_source()->get_first_link();
-		vector<Data_packet *> to_send = flow->send_packets();
+		vector<Data_packet *> to_send = flow->send_packets(false);
 		for(int i = 0; i < to_send.size(); i++) {
 			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
 				Link_Send_Event * event = 
@@ -118,10 +118,12 @@ Link_Drop_Event::Link_Drop_Event(double start_, int event_ID_, Link * link_, Flo
 }
 
 void Link_Drop_Event::handle_event() {
+	printf("Packet dropped from flow!\n");
 	flow->sending.pop_back(); // not exact but works
 	flow->sent_packets.pop_back();
 	flow->sent -= DATA_SIZE;
 	flow->next_index--;
+	flow->print_sending();
 }   
 
 
@@ -216,8 +218,8 @@ void Ack_Receive_Event::handle_event() {
 	 // send new packets
 	Host * source = ack->getFlow()->get_source();
 	Link * link = source->get_first_link();
-	if(ack->getFlow()->sending.size() >= 0){
-		vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
+	vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
+	if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){		
 		for(int i = 0; i < to_send.size(); i++) {
 			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
 				Link_Send_Event * event = 
@@ -225,25 +227,26 @@ void Ack_Receive_Event::handle_event() {
 						link->earliest_available_time(),
 						SEND_EVENT_ID,
 						link);
-				Time_Out_Event * timeout =
-					new Time_Out_Event(
-						link->earliest_available_time() + to_send[i]->getFlow()->time_out,
-						TIMEOUT_EVENT_ID,
-						to_send[i]->getFlow(),
-						to_send[i]->get_index());
+
 				event_queue.push(event);
-				event_queue.push(timeout);
 			}
-			else{
-				// packet was dropped so get rid of it after all acks arrive
-				Link_Drop_Event * event = 
-					new Link_Drop_Event(
-						link->earliest_available_time(),
-						DROP_EVENT_ID,
-						link,
-						to_send[i]->getFlow());
-			    event_queue.push(event);
-			}
+			Time_Out_Event * timeout =
+		   		new Time_Out_Event(
+	   				link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+					TIMEOUT_EVENT_ID,
+					to_send[i]->getFlow(),
+				   	to_send[i]->get_index());
+			event_queue.push(timeout);		   
+			// else{
+			// 	// packet was dropped so get rid of it after all acks arrive
+			// 	Link_Drop_Event * event = 
+			// 		new Link_Drop_Event(
+			// 			link->earliest_available_time(),
+			// 			DROP_EVENT_ID,
+			// 			link,
+			// 			to_send[i]->getFlow());
+			//     event_queue.push(event);
+			// }
 		}
 	}
 	delete ack;		
@@ -446,8 +449,13 @@ Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, int n
 }
 
 void Time_Out_Event::handle_event() {
+	// printf("time out fail\n");
+	// for(int i = 0; i < flow->received.size(); i++){
+	// 	printf("%d %d\n", index, flow->received[i]);
+	// }
 	if(!flow->received_packet(index)){
 		printf("Time out\n");
-		flow->handle_time_out();
+		flow->handle_time_out(index);
+		flow->send_packets();
 	}
 }
