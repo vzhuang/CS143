@@ -117,11 +117,11 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 }
 
 void Link_Send_Event::handle_event() {
+	global_time = this->get_start();
 	// only send packet if not yet acked
 	int ind = link->data_buffer.front()->get_index();
 	bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
 	if(is_ack || ind >= link->data_buffer.front()->getFlow()->last_ack_received){
-		global_time = this->get_start();
 		Node * endpoint1 = link->get_ep1();
 		Node * endpoint2 = link->get_ep2();
 		if (link->data_directions.front() == - 1) {

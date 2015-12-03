@@ -16,7 +16,7 @@
 #include "event.h"
 #include <limits>
 #include <vector>
-#define EPSILON .0000000001
+#define EPSILON .0000000000001
 
 class Event;
 class Node;
@@ -94,7 +94,7 @@ public:
 	// flow direction.
 	double calculate_cost();
 	// Time of most recently assigned data free event
-	double t_free_forward, t_free_reverse;
+	double t_free_forward, t_free_reverse, t_free, t_free_r;
 	// Time of most recently assigned routing free event
 	double t_free_forward_r, t_free_reverse_r;
     //Discards the packet at the front of the buffer
@@ -110,7 +110,7 @@ public:
 	// The duration of a packet transmission. Functions as a link lock. 
 	bool is_free_forward, is_free_reverse;	
 	// Routing routines disregard the data bool. Need their own lock.
-	bool is_free_forward_r, is_free_reverse_r;	
+	bool is_free_forward_r, is_free_reverse_r, is_free, is_free_r;	
 	int packets_dropped;
 	// Bytes stored that are moving in the forward/reverse directions
 	int forward_bytes, reverse_bytes;
