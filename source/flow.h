@@ -36,6 +36,8 @@ class Flow{
     int num_duplicates; // keeps track of how many duplicate packets received
     int ss_threshold; // W_0/2
 
+    bool done;
+    
     bool slow_start; // in slow start phase?    
     bool fast_retransmit; // use fast retransmit?
     bool fast_recovery; // use fast recovery?
@@ -60,6 +62,7 @@ public:
     vector<int> acked_packets;
     int sent;
     int next_index;
+    int bytes_received;
 
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
@@ -70,8 +73,6 @@ public:
 	void send_data();
 	Data_packet * generate_packet(int n);
     Ack_packet * generate_ack_packet();
-	//void send_data_packet(Data_packet * packet); 
-    void send_ack_packet(Ack_packet * packet);
     void receive_data(Data_packet * packet);
     bool acked_packet(int num);
     bool sent_packet(int num);

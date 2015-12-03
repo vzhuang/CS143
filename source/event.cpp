@@ -110,6 +110,20 @@ void Flow_Start_Event::handle_event() {
 }
 
 
+/////////////// Link_Drop_Event /////////////////
+Link_Drop_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
+           : Event(start_, event_ID_) {
+	link = link_;
+}
+
+void Link_Drop_Event::handle_event() {
+	to_send[i]->getFlow()->sending.pop_back(); // not exact but works
+	to_send[i]->getFlow()->sent_packets.pop_back();
+	to_send[i]->getFlow()->sent -= DATA_SIZE;
+	to_send[i]->getFlow()->next_index--;
+}   
+
+
 /////////////// Link_Send_Event /////////////////
 Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
            : Event(start_, event_ID_) {
@@ -220,11 +234,13 @@ void Ack_Receive_Event::handle_event() {
 				event_queue.push(timeout);
 			}
 			else{
-				// packet was dropped so get rid of it in sending
-				to_send[i]->getFlow()->sending.pop_back(); // not exact but works
-				to_send[i]->getFlow()->sent_packets.pop_back();
-				to_send[i]->getFlow()->sent -= DATA_SIZE;
-				to_send[i]->getFlow()->next_index--;
+				// packet was dropped so get rid of it after all acks arrive
+				Link_Drop_Event * event = 
+					new Link_Drop_Event(
+						link->earliest_available_time(),
+						DROP_EVENT_ID,
+						link);
+			    event_queue.push(event);
 			}
 		}
 	}

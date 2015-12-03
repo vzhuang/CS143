@@ -18,7 +18,10 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	num_duplicates = 0;
 	ss_threshold = 0;
 	sent = 0;
+	bytes_received = 0;
 	next_index = 1;
+
+	done = false;
 	
 	to_receive = 1;
 	slow_start = true;
@@ -53,7 +56,7 @@ vector<Data_packet *> Flow::send_packets() {
 	printf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
 	print_sending();
 	printf("ss threshold: %d\n", ss_threshold);
-	while(sending.size() < (int) window_size and sent <= size){
+	while(sending.size() < (int) window_size and !done){
 		// if(sending.size() == 0){
 		// 	next_index = sent_packets.back() + 1;//last_ack_received;
 		// }
@@ -82,23 +85,18 @@ vector<Data_packet *> Flow::send_packets() {
 	return send_now;
 }
 
-// void Flow::send_data_packet(Data_packet * packet) {
-// 	Link * link = source->get_first_link();
-// 	if(link->add_to_buffer(packet) == 0){
-// 		Link_Send_Event * event = new Link_Send_Event(start, SEND_EVENT_ID, link);
-// 		event_queue.push(event);
-// 	}		
-// }
-
-void Flow::send_ack_packet(Ack_packet * packet) {
-	
-}
-
 /**
  * Handles data packet receipt 
  */
 void Flow::receive_data(Data_packet * packet) {
 	if(packet->getSource() == source && packet->getDest() == destination){
+		if(!received_packet(packet->get_index())){
+			received.push_back(packet->get_index());
+			bytes_received += DATA_SIZE;
+			if(bytes_received > size){
+				done = true;
+			}
+		}
 		if(sending.size() > 0){
 			sending.erase(sending.begin());
 		}
