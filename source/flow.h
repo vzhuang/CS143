@@ -28,13 +28,11 @@ class Flow{
 	double start;
 	int size;
     int algorithm; // TCP algorithm 
-    vector<int> received; // received packets (by destination)
-    vector<int> sent_packets;
-    int sent;
+    vector<int> received; // received packets (by destination)    
 
     double window_size;
     int window_start; 
-    int last_ack_received; // to check for duplicate acks
+    
     int num_duplicates; // keeps track of how many duplicate packets received
     int ss_threshold; // W_0/2
 
@@ -43,7 +41,7 @@ class Flow{
     bool fast_recovery; // use fast recovery?
     double last_time_out;
     
-    vector<int> sending; // packets currently sent but not acked
+    
     vector<double> times;
     double a;
     double b;
@@ -55,7 +53,12 @@ class Flow{
 public:
     // variables
     double time_out;
-    int to_receive; // next packet expected to receive    
+    int to_receive; // next packet expected to receive
+    int last_ack_received; // to check for duplicate acks
+    vector<int> sending; // packets currently sent but not acked
+    vector<int> sent_packets;
+    int sent;
+    int next_index;
 
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);

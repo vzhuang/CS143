@@ -87,8 +87,9 @@ double Link::earliest_available_time() {
 int Link::add_to_buffer(Packet * packet, Node * source) {	
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
-		printf("Packet dropped attempting to join the buffer on link: %s\n",
-			link_to_english(&network, this).c_str() );
+		//printf("Packet %d dropped attempting to join the buffer on link: %s\n",
+		//	packet->get_index(),
+		//	link_to_english(&network, this).c_str() );
 		packets_dropped++;
 		return -1;
 	}
@@ -111,6 +112,24 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 		exit(-1);
 	}
 	return 0;
+}
+
+/**
+ * Discards the packet at the front of the buffer
+ */
+void Link::discard_packet() {
+	// Sanity check
+	if(data_buffer.empty()) {
+			printf("Attempted to pop an empty buffer. \n");
+			exit(-1);
+	}
+	data_buffer.front()->getFlow()->sending.erase(
+		data_buffer.front()->getFlow()->sending.begin()); // should always be nonempty
+	bytes_stored -= data_buffer.front()->packetSize();
+	data_buffer.pop();
+	data_directions.pop();	
+	packets_stored--;
+	is_free = 1; // don't use link free event since this packet was useless
 }
 
 /* Transmit the first packet on this link's buffer, spawning an 
