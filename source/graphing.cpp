@@ -1,13 +1,13 @@
 #include "graphing.h"
 #define VECTOR_SIZE 10000
 
-static double * time;
-static double * lr1, lr2, lr3;
-static double * bo1, bo2, bo3;
-static double * pl1, pl2, pl3;
-static double * fr1, fr2, fr3;
-static double * ws1, ws2, ws3;
-static double * pd1, pd2, pd3;
+static double * vector_time;
+static double * lr1, * lr2, * lr3;
+static double * bo1, * bo2, * bo3;
+static double * pl1, * pl2, * pl3;
+static double * fr1, * fr2, * fr3;
+static double * ws1, * ws2, * ws3;
+static double * pd1, * pd2, * pd3;
 static int vector_index;
 
 extern double global_time;
@@ -15,13 +15,13 @@ extern char * file_name;
 
 
 // Init components for all testcases
-void init_graphs(Network * network, mxArray **plhs) {
+void init_graphs(Network * network, const mxArray **prhs) {
 
     // Initialize counter
     vector_index = 0;
     // Init data pointers
     // Time
-    time = mxGetPr(prhs[0]);
+    vector_time = mxGetPr(prhs[0]);
     // Link rates
     lr1 = mxGetPr(prhs[1]);
     lr2 = mxGetPr(prhs[2]);
@@ -46,67 +46,142 @@ void init_graphs(Network * network, mxArray **plhs) {
     pd1 = mxGetPr(prhs[16]);
     pd2 = mxGetPr(prhs[17]);
     pd3 = mxGetPr(prhs[18]);
+    mexPrintf("Graph Init complete\n");
 }
 
-void update_graphs(Network * network, mxArray **plhs) {
+void update_graphs(Network * network, const mxArray **prhs) {
     // Increment time
     vector_index++;
-    time[vector_index] = global_time;
+    vector_time[vector_index] = global_time;
     // Boundary check
     if(vector_index >= VECTOR_SIZE) {
         mexPrintf("Max data points exceeded\n");
         return;
     }
     // Update flowrate
-    update_flow();
+    update_lrs(network);
     // Update buffer occupancy
-    update_bo();
+    update_bos(network);
+    // Update packet loss
+    update_pls(network);
+    // Update buffer flow rates
+    update_frs(network);
+    // Update window sizes
+    update_wss(network);
+    // Update packet delays
+    update_pds(network);
     // Flush graphs
     mexEvalString("pause(.00001)");
 }
 
-void update_flow()
-{
+void update_lrs(Network * network) {
     mexEvalString("figure = link_rates;");
     mexEvalString("axh = findobj( link_rates, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        flow1[i] = network->all_links[0]->get_flowrate()* 8.0 / 1000000.0;
-        mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
+        lr1[vector_index] = network->all_links[0]->get_flowrate()* 8.0 / 1000000.0;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', lr1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        flow2[i] = -1 * i;
+        lr1[vector_index] = network->all_links[1]->get_flowrate()* 8.0 / 1000000.0;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', lr1)");
+        lr2[vector_index] = network->all_links[2]->get_flowrate()* 8.0 / 1000000.0;
+        mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        flow1[i] = i;
+        lr1[vector_index] = network->all_links[0]->get_flowrate()* 8.0 / 1000000.0;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', lr1)");
+        lr2[vector_index] = network->all_links[1]->get_flowrate()* 8.0 / 1000000.0;
+        mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
+        lr3[vector_index] = network->all_links[2]->get_flowrate()* 8.0 / 1000000.0;
+        mexEvalString("set(axh(1), 'XData', time, 'YData', lr3)");
     }
-
-    mexEvalString("set(axh(3), 'XData', time, 'YData', lr1)");
-    mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
-    mexEvalString("set(axh(1), 'XData', time, 'YData', lr3)");
 }   
 
-void update_testcase1(Network * network, mxArray **plhs)
-{
-    vector_time[vector_index] = global_time;
-    vector_flow_rate1[vector_index] = network->all_links[1]->get_flowrate()* 8.0 / 1000000.0;
-    vector_flow_rate2[vector_index] = network->all_links[2]->get_flowrate()* 8.0 / 1000000.0;
-    vector_bo1[vector_index] = network->all_links[1]->packets_stored;
-    vector_bo2[vector_index] = network->all_links[2]->packets_stored;
-    // Refresh flow rate graph
-    mexEvalString("figure(fig1)");
-    inplot[0] = plhs[0]; // time
-    inplot[1] = plhs[1]; // set x axis to link1 flowrate
-    mexCallMATLAB(0, NULL, 3, inplot, "plot");
-    mexEvalString("hold on");
-    inplot[1] = plhs[2]; //set y axis to link2 flowrate
-    mexCallMATLAB(0, NULL, 3, inplot, "plot");
-    mexEvalString("hold off");
-    // Refresh buffer occupancy rate graph
-    mexEvalString("figure(fig2)");
-    inplot[1] = plhs[3]; // set y axis to link1 buffer occupancy
-    mexCallMATLAB(0, NULL, 2, inplot, "plot");
-    mexEvalString("hold on");
-    inplot[1] = plhs[4]; // set y axis to link2 buffer occupancy
-    mexCallMATLAB(0, NULL, 2, inplot, "plot");
-    mexEvalString("hold off");
+void update_bos(Network * network) {
+    mexEvalString("figure = buffer_occupancies;");
+    mexEvalString("axh = findobj( buffer_occupancies, 'Type', 'Line' );");  
+    if (!strcmp(file_name, "testcase0.txt")) {
+        bo1[vector_index] = (double) network->all_links[0]->get_packets_stored();
+        mexEvalString("set(axh(3), 'XData', time, 'YData', bo1)");
+    }
+    if (!strcmp(file_name, "testcase1.txt")) {
+        bo1[vector_index] = (double)network->all_links[1]->get_packets_stored();
+        mexEvalString("set(axh(3), 'XData', time, 'YData', bo1)");
+        bo2[vector_index] = (double)network->all_links[2]->get_packets_stored();
+        mexEvalString("set(axh(2), 'XData', time, 'YData', bo2)");
+    }
+    if (!strcmp(file_name, "testcase2.txt")) {
+        bo1[vector_index] = (double) network->all_links[0]->get_packets_stored();
+        mexEvalString("set(axh(3), 'XData', time, 'YData', bo1)");
+        bo2[vector_index] = (double) network->all_links[1]->get_packets_stored();
+        mexEvalString("set(axh(2), 'XData', time, 'YData', bo2)");
+        bo3[vector_index] = (double) network->all_links[2]->get_packets_stored();
+        mexEvalString("set(axh(1), 'XData', time, 'YData', bo3)");
+    }
+}   
+
+void update_pls(Network * network) {
+    mexEvalString("figure = packet_losses;");
+    mexEvalString("axh = findobj( packet_losses, 'Type', 'Line' );");  
+    if (!strcmp(file_name, "testcase0.txt")) {
+        pl1[vector_index] = (double) network->all_links[0]->packets_dropped;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', pl1)");
+    }
+    if (!strcmp(file_name, "testcase1.txt")) {
+        pl1[vector_index] = (double)network->all_links[1]->packets_dropped;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', pl1)");
+        pl2[vector_index] = (double)network->all_links[2]->packets_dropped;
+        mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
+    }
+    if (!strcmp(file_name, "testcase2.txt")) {
+        pl1[vector_index] = (double) network->all_links[0]->packets_dropped;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', pl1)");
+        pl2[vector_index] = (double) network->all_links[1]->packets_dropped;
+        mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
+        pl3[vector_index] = (double) network->all_links[2]->packets_dropped;
+        mexEvalString("set(axh(1), 'XData', time, 'YData', pl3)");
+    } 
+}
+void update_frs(Network * network) {
+    mexEvalString("figure = flow_rates;");
+    mexEvalString("axh = findobj( flow_rates, 'Type', 'Line' );");  
+    if (!strcmp(file_name, "testcase0.txt")) {
+        fr1[vector_index] = network->all_flows[0]->get_flowrate();
+        mexEvalString("set(axh(3), 'XData', time, 'YData', fr1)");
+    }
+    if (!strcmp(file_name, "testcase1.txt")) {
+        fr2[vector_index] = network->all_flows[0]->get_flowrate();
+        mexEvalString("set(axh(3), 'XData', time, 'YData', fr2)");
+    }
+    if (!strcmp(file_name, "testcase2.txt")) {
+        fr1[vector_index] = network->all_flows[0]->get_flowrate();
+        mexEvalString("set(axh(3), 'XData', time, 'YData', pl1)");
+        fr2[vector_index] = network->all_flows[1]->get_flowrate();
+        mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
+        fr3[vector_index] = network->all_flows[2]->get_flowrate();
+        mexEvalString("set(axh(1), 'XData', time, 'YData', pl3)");
+    } 
+}
+void update_wss(Network * network) {
+    mexEvalString("figure = window_sizes;");
+    mexEvalString("axh = findobj( window_sizes, 'Type', 'Line' );");  
+    if (!strcmp(file_name, "testcase0.txt")) {
+        ws1[vector_index] = network->all_flows[0]->window_size;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', ws1)");
+    }
+    if (!strcmp(file_name, "testcase1.txt")) {
+        ws2[vector_index] = network->all_flows[0]->window_size;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', ws2)");
+    }
+    if (!strcmp(file_name, "testcase2.txt")) {
+        ws1[vector_index] = network->all_flows[0]->window_size;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', ws1)");
+        ws2[vector_index] = network->all_flows[1]->window_size;
+        mexEvalString("set(axh(2), 'XData', time, 'YData', ws2)");
+        ws3[vector_index] = network->all_flows[2]->window_size;
+        mexEvalString("set(axh(1), 'XData', time, 'YData', ws3)");
+    } 
+}
+void update_pds(Network * network) {
+    
 }

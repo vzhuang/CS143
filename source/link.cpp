@@ -14,13 +14,23 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	ep2 = my_ep2;
 	delay = my_delay;
 	buffersize = my_buf;
+	is_free_forward_r = 1;
+	is_free_forward = 1;
+	is_free_reverse_r = 1;
+	is_free_reverse = 1;
 	is_free = 1;
 	is_free_r = 1;
 	bytes_stored = 0;
 	packets_stored = 0;
-	t_free = 0.0;
-	t_free_r = 0.0;
+	t_free_forward = 0.0;
+	t_free_reverse = 0.0;
+	t_free = 0;
+	t_free_r = 0;
+	t_free_forward_r = 0.0;
+	t_free_reverse_r = 0.0;
 	packets_dropped = 0;
+	forward_bytes = 0;
+	reverse_bytes = 0;
 }
 // Get the capacity of the link
 double Link::get_capacity() {
@@ -49,9 +59,13 @@ double Link::get_packet_delay(Packet * packet)
 	return packet->packetSize() / capacity;
 }
 
-// Calculate the time (s) it would take to clear out everything in the buffer
+// Calculate the time (s) it would take to clear out everything in the buffer 
 double Link::get_queue_delay() {
-	return bytes_stored / capacity;
+	return bytes_stored /capacity;
+}
+
+int Link::get_packets_stored() {
+	return packets_stored;
 }
 
 Node * Link::get_ep1() {
@@ -79,6 +93,7 @@ double Link::earliest_available_time() {
 		return t_free + get_queue_delay() - get_packet_delay(data_buffer.front());
 	else
 		return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
+
 }
 	
 	
@@ -87,7 +102,8 @@ double Link::earliest_available_time() {
 int Link::add_to_buffer(Packet * packet, Node * source) {	
 	// If the buffer is full, drop it.
 	if (bytes_stored + packet->packetSize() > buffersize) {
-		mexPrintf("Packet dropped attempting to join the buffer on link: %s\n",
+		mexPrintf("Packet %d dropped attempting to join the buffer on link: %s\n",
+			packet->get_index(),
 			link_to_english(&network, this).c_str() );
 		packets_dropped++;
 		return -1;
@@ -111,6 +127,26 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 		exit(-1);
 	}
 	return 0;
+}
+
+/**
+ * Discards the packet at the front of the buffer
+ */
+void Link::discard_packet() {
+	// Sanity check
+	if(data_buffer.empty()) {
+			mexPrintf("Attempted to pop an empty buffer. \n");
+			exit(-1);
+	}	
+	int direction = data_directions.front();
+	data_buffer.front()->getFlow()->sending.erase(
+		data_buffer.front()->getFlow()->sending.begin()); // should always be nonempty
+	bytes_stored -= data_buffer.front()->packetSize();
+	data_buffer.pop();
+	data_directions.pop();	
+
+	packets_stored--;
+	is_free = 1;
 }
 
 /* Transmit the first packet on this link's buffer, spawning an 
@@ -139,11 +175,13 @@ Packet * Link::transmit_packet() {
 	else { 
 		is_free = 0;
 	}*/
+
 	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
 	if(is_free != 0)
 	{
 		is_free = 0;
 	}
+
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = data_buffer.front();
 	int direction = data_directions.front();
@@ -203,16 +241,20 @@ Packet * Link::transmit_packet() {
 	data_directions.pop();
 	bytes_stored -= transmission_packet->packetSize();
 	packets_stored--;
+
 	// Increment number of packets sent across this link
 	bytes_sent += transmission_packet->packetSize();
 	// Create an event to free the link at the same time that the packet
 	// successfully transmits. We achieve this using epsilon.
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
-			get_packet_delay(transmission_packet) + global_time - EPSILON,
+			time_to_send + global_time - EPSILON,
 			LINK_FREE_ID,
-			this);
-	t_free = get_packet_delay(transmission_packet) + global_time;
+			this,
+			direction);
+
+	t_free = time_to_send + global_time;
+
 	event_queue.push(free_event);
 	return transmission_packet;
 }

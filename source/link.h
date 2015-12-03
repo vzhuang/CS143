@@ -16,7 +16,7 @@
 #include "event.h"
 #include <limits>
 #include <vector>
-#define EPSILON .0000000001
+#define EPSILON .0000000000001
 
 class Event;
 class Node;
@@ -47,11 +47,11 @@ class Link {
 	double bytes_stored;
 	// Bytes curretnly stored in the routing queue
 	double bytes_stored_r;
-public:
 	// Packets currently stored in the data queue
 	int packets_stored;
 	// Packets currently stored in the routing queue
 	int packets_stored_r;
+public:
 	// Queue of packets (non-routing) to be transmitted
 	std::queue <Packet *> data_buffer;
 	// Queue of routing packets to be transmitted
@@ -86,6 +86,8 @@ public:
 	// Calculate the time (s) it would take to send an individual packet
 	double get_packet_delay(Packet * packet);
 	double get_bytes_stored();
+	// i.e buffer occupancy
+	int get_packets_stored();
 	// Add a packet to the link's data buffer. Return 0 on success. -1 on fail.
 	int add_to_buffer(Packet * packet, Node * source);
 	// Add a packet to the link's routing buffer. Return 0 on success. -1 on fail.
@@ -94,9 +96,11 @@ public:
 	// flow direction.
 	double calculate_cost();
 	// Time of most recently assigned data free event
-	double t_free;
+	double t_free_forward, t_free_reverse, t_free, t_free_r;
 	// Time of most recently assigned routing free event
-	double t_free_r;
+	double t_free_forward_r, t_free_reverse_r;
+    //Discards the packet at the front of the buffer
+    void discard_packet();
 	//Move a data packet to the other side of the link
 	Packet * transmit_packet();
 	//Move a routing packet to the other side of the link
@@ -106,10 +110,14 @@ public:
 	// Set to 0 for the duration of a packet transmission. 
 	// Freed to 1 during a "free" event that cooresponds to
 	// The duration of a packet transmission. Functions as a link lock. 
-	bool is_free;	
+	bool is_free_forward, is_free_reverse;	
 	// Routing routines disregard the data bool. Need their own lock.
-	bool is_free_r;	
+	bool is_free_forward_r, is_free_reverse_r, is_free, is_free_r;	
 	int packets_dropped;
+	// Bytes stored that are moving in the forward/reverse directions
+	int forward_bytes, reverse_bytes;
+	int forward_bytes_r, reverse_bytes_r;
+	
 };
 
 #endif  /* LINK_H */

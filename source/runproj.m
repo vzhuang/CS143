@@ -35,7 +35,7 @@ plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
 xlabel('Time (s)');
 ylabel('Link Rate (Mbps)');
 
-buffer_occupanies = figure;
+buffer_occupancies = figure;
 set(gcf,'numbertitle','off','name','Buffer Occupancy vs Time');
 movegui('southwest');
 plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
@@ -72,6 +72,7 @@ ylabel('Packet Delay (ms)');
 
 proj( time, lr1, lr2, lr3, bo1, bo2, bo3, ...
             pl1, pl2, pl3, fr1, fr2, fr3, ...
-            ws1, ws2, ws3, pd1, pd2, pd3 );
+            ws1, ws2, ws3, pd1, pd2, pd3, ...
+            'testcase0.txt', 100, 1);
 
    

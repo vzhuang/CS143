@@ -1,5 +1,5 @@
 #include "network.h"
-
+#include "mex.h"
 // Network constructor
 Network::Network() {
 	

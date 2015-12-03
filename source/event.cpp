@@ -88,7 +88,7 @@ void Flow_Start_Event::handle_event() {
 		 	ip_to_english(&network, source).c_str(),
 		 	ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
 		Link * link = flow->get_source()->get_first_link();
-		vector<Data_packet *> to_send = flow->send_packets();
+		vector<Data_packet *> to_send = flow->send_packets(false);
 		for(int i = 0; i < to_send.size(); i++) {
 			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
 				Link_Send_Event * event = 
@@ -110,6 +110,23 @@ void Flow_Start_Event::handle_event() {
 }
 
 
+/////////////// Link_Drop_Event /////////////////
+Link_Drop_Event::Link_Drop_Event(double start_, int event_ID_, Link * link_, Flow * flow_)
+           : Event(start_, event_ID_) {
+	link = link_;
+	flow = flow_;
+}
+
+void Link_Drop_Event::handle_event() {
+	printf("Packet dropped from flow!\n");
+	flow->sending.pop_back(); // not exact but works
+	flow->sent_packets.pop_back();
+	flow->sent -= DATA_SIZE;
+	flow->next_index--;
+	flow->print_sending();
+}   
+
+
 /////////////// Link_Send_Event /////////////////
 Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
            : Event(start_, event_ID_) {
@@ -118,19 +135,27 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
 
 void Link_Send_Event::handle_event() {
 	global_time = this->get_start();
-	Node * endpoint1 = link->get_ep1();
-	Node * endpoint2 = link->get_ep2();
-	if (link->data_directions.front() == - 1) {
-		Node * temp = endpoint1;
-		endpoint1 = endpoint2;
-		endpoint2 = temp;
-	} 
-	/* printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
-	 	link->data_buffer.front()->get_index(),
-	 	ip_to_english(&network, endpoint1).c_str(),
-	 	ip_to_english(&network, endpoint2).c_str(),
-	 	link_to_english(&network, link).c_str(), global_time);*/
-	link->transmit_packet();
+	// only send packet if not yet acked
+	int ind = link->data_buffer.front()->get_index();
+	bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
+	if(is_ack || ind >= link->data_buffer.front()->getFlow()->last_ack_received){
+		Node * endpoint1 = link->get_ep1();
+		Node * endpoint2 = link->get_ep2();
+		if (link->data_directions.front() == - 1) {
+			Node * temp = endpoint1;
+			endpoint1 = endpoint2;
+			endpoint2 = temp;
+		} 
+		printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
+		   link->data_buffer.front()->get_index(),
+		   ip_to_english(&network, endpoint1).c_str(),
+		   ip_to_english(&network, endpoint2).c_str(),
+		   link_to_english(&network, link).c_str(), global_time);
+		link->transmit_packet();
+	}
+	else{
+		link->discard_packet();
+	}
 }
 
 /////////////// Link_Send_Routing_Event /////////////////
@@ -157,19 +182,24 @@ void Link_Send_Routing_Event::handle_event() {
 }										
 
 /////////////// Link_Free_Event /////////////////
-Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
+Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_, int direction_)
            : Event(start_, event_ID_) {
 	link = link_;
+	direction = direction_;
 }
 
 void Link_Free_Event::handle_event() {
 	global_time = this->get_start();
 	// Check if we are freeing for a routing send or a data send
-	if(get_ID() == RFREE_EVENT_ID)
-		link->is_free_r = 1;
-	else
-		link->is_free = 1;
-	printf("Packet cleared from buffer on Link %s. Link is available again. Time (ms): %f\n\n",
+	if(get_ID() == RFREE_EVENT_ID) {
+		if(direction == 1) {link->is_free_forward_r = 1;}
+		else {link->is_free_reverse_r = 1;}
+	}
+	else {
+		if(direction == 1) {link->is_free_forward = 1;}
+		else {link->is_free_reverse = 1;}
+	}
+	printf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
 		link_to_english(&network, link).c_str(), global_time * 1000.0);
 }
 
@@ -189,25 +219,37 @@ void Ack_Receive_Event::handle_event() {
 	Host * source = ack->getFlow()->get_source();
 	Link * link = source->get_first_link();
 	vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
-	for(int i = 0; i < to_send.size(); i++) {
-		if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
-			Link_Send_Event * event = 
-				new Link_Send_Event(
-					link->earliest_available_time(),
-					SEND_EVENT_ID,
-					link);
+	if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){		
+		for(int i = 0; i < to_send.size(); i++) {
+			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link);
+
+				event_queue.push(event);
+			}
 			Time_Out_Event * timeout =
-				new Time_Out_Event(
-					link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+		   		new Time_Out_Event(
+	   				link->earliest_available_time() + to_send[i]->getFlow()->time_out,
 					TIMEOUT_EVENT_ID,
 					to_send[i]->getFlow(),
-					to_send[i]->get_index());
-			event_queue.push(event);
-			event_queue.push(timeout);
+				   	to_send[i]->get_index());
+			event_queue.push(timeout);		   
+			// else{
+			// 	// packet was dropped so get rid of it after all acks arrive
+			// 	Link_Drop_Event * event = 
+			// 		new Link_Drop_Event(
+			// 			link->earliest_available_time(),
+			// 			DROP_EVENT_ID,
+			// 			link,
+			// 			to_send[i]->getFlow());
+			//     event_queue.push(event);
+			// }
 		}
 	}
-	delete ack;
-
+	delete ack;		
 }
 
 /////////////// Data_Receive_Event (data was recieved by the dest) /////////////////
@@ -251,9 +293,9 @@ Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Packet 
 
 void Packet_Receive_Event::handle_event() {
 	global_time = this->get_start();
-	printf(" Packet #%d received at the intended router at time (ms): %f\n\n", 
-	 		packet->get_index(),
-	 		global_time * 1000.0);
+	//printf(" Packet #%d received at the intended router at time (ms): %f\n\n", 
+	// 		packet->get_index(),
+	// 		global_time * 1000.0);
 	// A packet was received during a routing table update (so we want to use routing buffer)
 	if(get_ID() == RSEND_EVENT_ID) {
 		if (link->add_to_buffer_r(packet, src) == 0) {
@@ -407,8 +449,34 @@ Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, int n
 }
 
 void Time_Out_Event::handle_event() {
+	// printf("time out fail\n");
+	// for(int i = 0; i < flow->received.size(); i++){
+	// 	printf("%d %d\n", index, flow->received[i]);
+	// }
 	if(!flow->received_packet(index)){
-		printf("Time out\n");
-		flow->handle_time_out();
+		printf("Time out packet %d\n", index);
+		flow->handle_time_out(index);
+		Host * source = flow->get_source();
+	    Link * link = source->get_first_link();
+		vector<Data_packet *> to_send = flow->send_packets(false);
+		if(flow->sending.size() <= flow->window_size){		
+			for(int i = 0; i < to_send.size(); i++) {
+				if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+					Link_Send_Event * event = 
+						new Link_Send_Event(
+							link->earliest_available_time(),
+							SEND_EVENT_ID,
+							link);
+					event_queue.push(event);
+				}
+				Time_Out_Event * timeout =
+					new Time_Out_Event(
+						link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+						TIMEOUT_EVENT_ID,
+						to_send[i]->getFlow(),
+						to_send[i]->get_index());
+				event_queue.push(timeout);		   
+			}
+		}
 	}
 }
