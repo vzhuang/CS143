@@ -147,14 +147,19 @@ void Link::discard_packet() {
 	if(data_buffer.empty()) {
 			printf("Attempted to pop an empty buffer. \n");
 			exit(-1);
-	}
+	}	
+	int direction = data_directions.front();
 	data_buffer.front()->getFlow()->sending.erase(
 		data_buffer.front()->getFlow()->sending.begin()); // should always be nonempty
 	bytes_stored -= data_buffer.front()->packetSize();
+	if(direction == 1){forward_bytes -= data_buffer.front()->packetSize();}
+	else{reverse_bytes -= data_buffer.front()->packetSize();}
 	data_buffer.pop();
 	data_directions.pop();	
+
 	packets_stored--;
-	is_free = 1; // don't use link free event since this packet was useless
+	if(direction == 1){is_free_forward = 1;}
+	else{is_free_reverse = 1;}
 }
 
 /* Transmit the first packet on this link's buffer, spawning an 
