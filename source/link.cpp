@@ -64,6 +64,10 @@ double Link::get_queue_delay() {
 	return bytes_stored /capacity;
 }
 
+int Link::get_packets_stored() {
+	return packets_stored;
+}
+
 Node * Link::get_ep1() {
 	return ep1;
 }

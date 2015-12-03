@@ -63,13 +63,15 @@ public:
     vector<int> acked_packets;
     int sent;
     int next_index;
-    int bytes_received;
+    double bytes_received;
+    double last_bytes_received_query;
     double window_size;
-
+    double last_flow_rate_query; // Time the last flow rate was queried
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
 	double get_start();
 	Host * get_source();
+	double get_flowrate();
 	Host * get_destination();
 	vector<Data_packet *> send_packets(bool duplicate);
 	void send_data();

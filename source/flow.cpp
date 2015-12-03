@@ -19,8 +19,9 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	ss_threshold = 0;
 	sent = 0;
 	bytes_received = 0;
+	last_bytes_received_query = 0;
 	next_index = 1;
-
+	last_flow_rate_query = start;
 	done = false;
 	
 	to_receive = 1;
@@ -250,4 +251,16 @@ Host * Flow::get_destination()
 
 double Flow::get_start() {
 	return start;
+}
+
+double Flow::get_flowrate() {
+	double t0 = last_flow_rate_query;
+	double tf = global_time;
+	double bytes0 = last_bytes_received_query;
+	double bytesf = bytes_received;
+	double bytes = bytesf = bytes0;
+	last_flow_rate_query = global_time;
+	last_bytes_received_query = bytes_received;
+	return bytes / (tf - t0);
+	
 }

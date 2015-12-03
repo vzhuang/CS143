@@ -86,6 +86,8 @@ public:
 	// Calculate the time (s) it would take to send an individual packet
 	double get_packet_delay(Packet * packet);
 	double get_bytes_stored();
+	// i.e buffer occupancy
+	int get_packets_stored();
 	// Add a packet to the link's data buffer. Return 0 on success. -1 on fail.
 	int add_to_buffer(Packet * packet, Node * source);
 	// Add a packet to the link's routing buffer. Return 0 on success. -1 on fail.
