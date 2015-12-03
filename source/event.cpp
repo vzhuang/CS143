@@ -169,7 +169,7 @@ void Link_Free_Event::handle_event() {
 		link->is_free_r = 1;
 	else
 		link->is_free = 1;
-	printf("Packet cleared from buffer on Link %s. Link is available again. Time (ms): %f\n\n",
+	printf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
 		link_to_english(&network, link).c_str(), global_time * 1000.0);
 }
 

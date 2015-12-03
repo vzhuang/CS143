@@ -110,6 +110,9 @@ public:
 	// Routing routines disregard the data bool. Need their own lock.
 	bool is_free_r;	
 	int packets_dropped;
+	// Bytes stored that are moving in the forward/reverse directions
+	int forward_bytes, reverse_bytes;
+	
 };
 
 #endif  /* LINK_H */

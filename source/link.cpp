@@ -21,6 +21,8 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	t_free = 0.0;
 	t_free_r = 0.0;
 	packets_dropped = 0;
+	forward_bytes = 0;
+	reverse_bytes = 0;
 }
 // Get the capacity of the link
 double Link::get_capacity() {
@@ -49,9 +51,16 @@ double Link::get_packet_delay(Packet * packet)
 	return packet->packetSize() / capacity;
 }
 
-// Calculate the time (s) it would take to clear out everything in the buffer
+// Calculate the time (s) it would take to clear out everything in the buffer with respect to one direction
 double Link::get_queue_delay() {
-	return bytes_stored / capacity;
+	// Direction of the packet to send
+	int direction = data_directions.front();
+	if(direction == 1) {
+		return forward_bytes / capacity;
+	}
+	else {
+		return reverse_bytes / capacity;
+	}
 }
 
 Node * Link::get_ep1() {
@@ -100,10 +109,12 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	// Going from ep1 to ep2.
 	if(source == endpoint1) {
 		data_directions.push(1);
+		forward_bytes+=packet->packetSize();
 	}
 	// Going from ep2 to ep1.
 	else if(source == endpoint2) {
 		data_directions.push(-1);
+		reverse_bytes+=packet->packetSize();
 	}
 	// Something went wrong
 	else {
@@ -203,6 +214,9 @@ Packet * Link::transmit_packet() {
 	data_directions.pop();
 	bytes_stored -= transmission_packet->packetSize();
 	packets_stored--;
+	// Update number of bytes (directional)
+	if(direction == 1) {forward_bytes -= transmission_packet->packetSize();}
+	else {reverse_bytes -= transmission_packet->packetSize();}
 	// Increment number of packets sent across this link
 	bytes_sent += transmission_packet->packetSize();
 	// Create an event to free the link at the same time that the packet
