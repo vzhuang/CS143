@@ -97,6 +97,8 @@ public:
 	double t_free_forward, t_free_reverse;
 	// Time of most recently assigned routing free event
 	double t_free_forward_r, t_free_reverse_r;
+    //Discards the packet at the front of the buffer
+    void discard_packet();
 	//Move a data packet to the other side of the link
 	Packet * transmit_packet();
 	//Move a routing packet to the other side of the link
