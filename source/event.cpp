@@ -157,18 +157,23 @@ void Link_Send_Routing_Event::handle_event() {
 }										
 
 /////////////// Link_Free_Event /////////////////
-Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_)
+Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_, int direction_)
            : Event(start_, event_ID_) {
 	link = link_;
+	direction = direction_;
 }
 
 void Link_Free_Event::handle_event() {
 	global_time = this->get_start();
 	// Check if we are freeing for a routing send or a data send
-	if(get_ID() == RFREE_EVENT_ID)
-		link->is_free_r = 1;
-	else
-		link->is_free = 1;
+	if(get_ID() == RFREE_EVENT_ID) {
+		if(direction == 1) {link->is_free_forward_r = 1;}
+		else {link->is_free_reverse_r = 1;}
+	}
+	else {
+		if(direction == 1) {link->is_free_forward = 1;}
+		else {link->is_free_reverse = 1;}
+	}
 	printf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
 		link_to_english(&network, link).c_str(), global_time * 1000.0);
 }
@@ -251,9 +256,9 @@ Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Packet 
 
 void Packet_Receive_Event::handle_event() {
 	global_time = this->get_start();
-	printf(" Packet #%d received at the intended router at time (ms): %f\n\n", 
-	 		packet->get_index(),
-	 		global_time * 1000.0);
+	//printf(" Packet #%d received at the intended router at time (ms): %f\n\n", 
+	// 		packet->get_index(),
+	// 		global_time * 1000.0);
 	// A packet was received during a routing table update (so we want to use routing buffer)
 	if(get_ID() == RSEND_EVENT_ID) {
 		if (link->add_to_buffer_r(packet, src) == 0) {

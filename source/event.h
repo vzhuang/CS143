@@ -68,9 +68,9 @@ public:
 /////////////// Link_Free_Event /////////////////
 class Link_Free_Event : public Event {
 	Link * link;
-	
+	int direction;
 public:
-	Link_Free_Event(double start_, int event_ID_, Link * link_);
+	Link_Free_Event(double start_, int event_ID_, Link * link_, int direction_);
 	void handle_event();
 	
 };

@@ -14,12 +14,16 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	ep2 = my_ep2;
 	delay = my_delay;
 	buffersize = my_buf;
-	is_free = 1;
-	is_free_r = 1;
+	is_free_forward_r = 1;
+	is_free_forward = 1;
+	is_free_reverse_r = 1;
+	is_free_reverse = 1;
 	bytes_stored = 0;
 	packets_stored = 0;
-	t_free = 0.0;
-	t_free_r = 0.0;
+	t_free_forward = 0.0;
+	t_free_reverse = 0.0;
+	t_free_forward_r = 0.0;
+	t_free_reverse_r = 0.0;
 	packets_dropped = 0;
 	forward_bytes = 0;
 	reverse_bytes = 0;
@@ -84,10 +88,20 @@ vector<Node *> Link::get_endpoints() {
 
 // Return the earliest time that the newly added packet can be popped from the buffer
 double Link::earliest_available_time() {
-	if(!is_free)
-		return t_free + get_queue_delay() - get_packet_delay(data_buffer.front());
-	else
-		return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
+	// Direction of the packet to send
+	int direction = data_directions.front();
+	if(direction == 1) {
+		if(!is_free_forward)
+			return t_free_forward + get_queue_delay() - get_packet_delay(data_buffer.front());
+		else
+			return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
+	}
+	else {
+		if(!is_free_reverse)
+			return t_free_reverse + get_queue_delay() - get_packet_delay(data_buffer.front());
+		else
+			return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
+	}
 }
 	
 	
@@ -150,14 +164,24 @@ Packet * Link::transmit_packet() {
 	else { 
 		is_free = 0;
 	}*/
+	int direction = data_directions.front();
 	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(is_free != 0)
+	if(direction == 1)
 	{
-		is_free = 0;
+		if(is_free_forward != 0)
+		{
+			is_free_forward = 0;
+		}
+	}
+	else
+	{
+		if(is_free_reverse != 0)
+		{
+			is_free_reverse = 0;
+		}
 	}
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = data_buffer.front();
-	int direction = data_directions.front();
 	// Create some local variables for clarity
 	Node * dest = transmission_packet->getDest();
 	Node * endpoint1 = ep1->get_ip();
@@ -225,8 +249,14 @@ Packet * Link::transmit_packet() {
 		new Link_Free_Event(
 			get_packet_delay(transmission_packet) + global_time - EPSILON,
 			LINK_FREE_ID,
-			this);
-	t_free = get_packet_delay(transmission_packet) + global_time;
+			this,
+			direction);
+	if(direction == 1) {
+		t_free_forward = get_packet_delay(transmission_packet) + global_time;
+	}
+	else {
+		t_free_reverse = get_packet_delay(transmission_packet) + global_time;
+	}
 	event_queue.push(free_event);
 	return transmission_packet;
 }
