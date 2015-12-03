@@ -57,6 +57,7 @@ public:
     int last_ack_received; // to check for duplicate acks
     vector<int> sending; // packets currently sent but not acked
     vector<int> sent_packets;
+    vector<int> acked_packets;
     int sent;
     int next_index;
 
@@ -71,7 +72,8 @@ public:
     Ack_packet * generate_ack_packet();
 	//void send_data_packet(Data_packet * packet); 
     void send_ack_packet(Ack_packet * packet);
-    void receive_data(Data_packet * packet);    
+    void receive_data(Data_packet * packet);
+    bool acked_packet(int num);
     bool sent_packet(int num);
     bool received_packet(int num);
     vector<Data_packet *> receive_ack(Ack_packet * packet);

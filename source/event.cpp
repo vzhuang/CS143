@@ -224,6 +224,7 @@ void Ack_Receive_Event::handle_event() {
 				to_send[i]->getFlow()->sending.pop_back(); // not exact but works
 				to_send[i]->getFlow()->sent_packets.pop_back();
 				to_send[i]->getFlow()->sent -= DATA_SIZE;
+				to_send[i]->getFlow()->next_index--;
 			}
 		}
 	}
