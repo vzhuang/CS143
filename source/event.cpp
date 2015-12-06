@@ -5,6 +5,7 @@ extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 extern double end_time;
+extern int TCP_ID;
 extern Network network;
 /////////////////// Generic Event Superclass /////////////////////
 Event::Event(double start_, int event_ID_) {
@@ -48,38 +49,21 @@ void Flow_Start_Event::handle_event() {
 			ip_to_english(&network, source).c_str(),
 			ip_to_english(&network, destination).c_str() );
 		Link * link = flow->get_source()->get_first_link();
-		Data_packet * packet0 = new Data_packet(source, destination, 0, flow, global_time);
-		Data_packet * packet1 = new Data_packet(source, destination, 1, flow, global_time);
-		Data_packet * packet2 = new Data_packet(source, destination, 2, flow, global_time);
-		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet0, (Node *) source) == 0) { 
-			Link_Send_Event * event = 
-				new Link_Send_Event(
-					link->earliest_available_time(),
-					SEND_EVENT_ID,
-					link);
-			event_queue.push(event);
+		for(int i = 0; i < 50; i++)
+		{
+			Data_packet * packet = new Data_packet(source, destination, i, flow, global_time);
+			// Always push packet to buffer before spawning send event
+			if( link->add_to_buffer(packet, (Node *) source) == 0) { 
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link,
+						DATA_SIZE);
+				event_queue.push(event);
+			}
 		}
 
-		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet1, (Node *) source) == 0) { 
-			Link_Send_Event * event = 
-				new Link_Send_Event(
-					link->earliest_available_time(),
-					SEND_EVENT_ID,
-					link);
-			event_queue.push(event);
-		}
-
-		// Always push packet to buffer before spawning send event
-		if( link->add_to_buffer(packet2, (Node *) source) == 0) { 
-			Link_Send_Event * event = 
-				new Link_Send_Event(
-					link->earliest_available_time(),
-					SEND_EVENT_ID,
-					link);
-			event_queue.push(event);
-		}
 	}
 	else if(event_ID == TCP_RENO) {
 		Host * source = flow->get_source();
@@ -95,7 +79,8 @@ void Flow_Start_Event::handle_event() {
 					new Link_Send_Event(
 						link->earliest_available_time(),
 						SEND_EVENT_ID,
-						link);
+						link,
+						DATA_SIZE);
 				event_queue.push(event);
 			}
 		}
@@ -128,17 +113,50 @@ void Link_Drop_Event::handle_event() {
 
 
 /////////////// Link_Send_Event /////////////////
-Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_)
+Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_, double packetsize)
            : Event(start_, event_ID_) {
 	link = link_;
+	// Create an event to free the link at the same time that the packet
+	// successfully transmits. We achieve this using epsilon.
+	double time_to_send = packetsize / link->get_capacity();
+	Link_Free_Event * free_event = 
+		new Link_Free_Event(
+			start_ + time_to_send - EPSILON,
+			LINK_FREE_ID,
+			link_,
+			-1);
+	event_queue.push(free_event);
+	
 }
 
 void Link_Send_Event::handle_event() {
 	global_time = this->get_start();
-	// only send packet if not yet acked
-	int ind = link->data_buffer.front()->get_index();
-	bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
-	if(is_ack || ind >= link->data_buffer.front()->getFlow()->last_ack_received){
+	if(TCP_ID == TCP_RENO)
+	{
+		// only send packet if not yet acked
+		int ind = link->data_buffer.front()->get_index();
+		bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
+		if(is_ack || ind >= link->data_buffer.front()->getFlow()->last_ack_received){
+			Node * endpoint1 = link->get_ep1();
+			Node * endpoint2 = link->get_ep2();
+			if (link->data_directions.front() == - 1) {
+				Node * temp = endpoint1;
+				endpoint1 = endpoint2;
+				endpoint2 = temp;
+			} 
+			printf("Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
+			   link->data_buffer.front()->get_index(),
+			   ip_to_english(&network, endpoint1).c_str(),
+			   ip_to_english(&network, endpoint2).c_str(),
+			   link_to_english(&network, link).c_str(), global_time * 1000.0);
+			link->transmit_packet();
+		}
+		else{
+			link->discard_packet();
+		}
+	}
+	else if(TCP_ID == TCP_TAHOE)
+	{
 		Node * endpoint1 = link->get_ep1();
 		Node * endpoint2 = link->get_ep2();
 		if (link->data_directions.front() == - 1) {
@@ -146,15 +164,13 @@ void Link_Send_Event::handle_event() {
 			endpoint1 = endpoint2;
 			endpoint2 = temp;
 		} 
-		printf("Sending packet %d from %s to %s on link %s. Time: %.20f\n\n",
-		   link->data_buffer.front()->get_index(),
-		   ip_to_english(&network, endpoint1).c_str(),
-		   ip_to_english(&network, endpoint2).c_str(),
-		   link_to_english(&network, link).c_str(), global_time);
+		printf("Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
+			link->data_buffer.front()->get_index(),
+			ip_to_english(&network, endpoint1).c_str(),
+			ip_to_english(&network, endpoint2).c_str(),
+			link_to_english(&network, link).c_str(), global_time * 1000.0);
 		link->transmit_packet();
-	}
-	else{
-		link->discard_packet();
+
 	}
 }
 
@@ -192,12 +208,10 @@ void Link_Free_Event::handle_event() {
 	global_time = this->get_start();
 	// Check if we are freeing for a routing send or a data send
 	if(get_ID() == RFREE_EVENT_ID) {
-		if(direction == 1) {link->is_free_forward_r = 1;}
-		else {link->is_free_reverse_r = 1;}
+		link->is_free_r = 1;
 	}
 	else {
-		if(direction == 1) {link->is_free_forward = 1;}
-		else {link->is_free_reverse = 1;}
+		link->is_free = 1;
 	}
 	printf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
 		link_to_english(&network, link).c_str(), global_time * 1000.0);
@@ -215,40 +229,62 @@ void Ack_Receive_Event::handle_event() {
 	 	ack->get_index(),
 	 	ip_to_english(&network, ack->getDest()).c_str(),
 	 	global_time * 1000.0);
-	 // send new packets
-	Host * source = ack->getFlow()->get_source();
-	Link * link = source->get_first_link();
-	vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
-	if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){		
-		for(int i = 0; i < to_send.size(); i++) {
-			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
-				Link_Send_Event * event = 
-					new Link_Send_Event(
-						link->earliest_available_time(),
-						SEND_EVENT_ID,
-						link);
+	if(TCP_ID == TCP_RENO)
+	{
+		 // send new packets
+		Host * source = ack->getFlow()->get_source();
+		Link * link = source->get_first_link();
+		vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
+		if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){		
+			for(int i = 0; i < to_send.size(); i++) {
+				if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+					Link_Send_Event * event = 
+						new Link_Send_Event(
+							link->earliest_available_time(),
+							SEND_EVENT_ID,
+							link,
+							DATA_SIZE);
 
-				event_queue.push(event);
+					event_queue.push(event);
+				}
+				Time_Out_Event * timeout =
+					new Time_Out_Event(
+						link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+						TIMEOUT_EVENT_ID,
+						to_send[i]->getFlow(),
+						to_send[i]->get_index());
+				event_queue.push(timeout);		   
+				// else{
+				// 	// packet was dropped so get rid of it after all acks arrive
+				// 	Link_Drop_Event * event = 
+				// 		new Link_Drop_Event(
+				// 			link->earliest_available_time(),
+				// 			DROP_EVENT_ID,
+				// 			link,
+				// 			to_send[i]->getFlow());
+				//     event_queue.push(event);
+				// }
 			}
-			Time_Out_Event * timeout =
-		   		new Time_Out_Event(
-	   				link->earliest_available_time() + to_send[i]->getFlow()->time_out,
-					TIMEOUT_EVENT_ID,
-					to_send[i]->getFlow(),
-				   	to_send[i]->get_index());
-			event_queue.push(timeout);		   
-			// else{
-			// 	// packet was dropped so get rid of it after all acks arrive
-			// 	Link_Drop_Event * event = 
-			// 		new Link_Drop_Event(
-			// 			link->earliest_available_time(),
-			// 			DROP_EVENT_ID,
-			// 			link,
-			// 			to_send[i]->getFlow());
-			//     event_queue.push(event);
-			// }
 		}
 	}
+	else if(TCP_ID == TCP_TAHOE)
+	{
+		Host * source = ack->getFlow()->get_source();
+		Host * dest = ack->getFlow()->get_destination();
+		Link * link = source->get_first_link();
+		Data_packet * p = new Data_packet(source, dest, ack->get_index(), ack->getFlow(), global_time);
+				if(link->add_to_buffer(p, (Node *) source) == 0) { 
+					Link_Send_Event * event = 
+						new Link_Send_Event(
+							link->earliest_available_time(),
+							SEND_EVENT_ID,
+							link,
+							DATA_SIZE);
+
+					event_queue.push(event);
+				}
+	}
+	
 	delete ack;		
 }
 
@@ -264,22 +300,44 @@ void Data_Receive_Event::handle_event() {
 	 		data->get_index(),
 	 		ip_to_english(&network, data->getDest()).c_str(),
 	 		global_time * 1000.0);
-	data->getFlow()->receive_data(data);
-	 // Create ack packet to send back to source
-	Ack_packet * ack = new Ack_packet((Host *)data->getDest(),
-									(Host *)data->getSource(),
-									data->getFlow(),
-									data->getFlow()->to_receive,
-									data->get_time());
-	Link * link_to_send_ack = ack->getSource()->get_first_link();
-	// Always push packet to buffer before spawning send event
-	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
-		Link_Send_Event * event = new Link_Send_Event(
-									link_to_send_ack->earliest_available_time(),
-									SEND_EVENT_ID,
-									link_to_send_ack);
-		event_queue.push(event);
-	}	
+	if(TCP_ID == TCP_RENO)
+	{
+		data->getFlow()->receive_data(data);
+		 // Create ack packet to send back to source
+		Ack_packet * ack = new Ack_packet((Host *)data->getDest(),
+										(Host *)data->getSource(),
+										data->getFlow(),
+										data->getFlow()->to_receive,
+										data->get_time());
+		Link * link_to_send_ack = ack->getSource()->get_first_link();
+		// Always push packet to buffer before spawning send event
+		if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
+			Link_Send_Event * event = new Link_Send_Event(
+										link_to_send_ack->earliest_available_time(),
+										SEND_EVENT_ID,
+										link_to_send_ack,
+										ACK_SIZE);
+			event_queue.push(event);
+		}	
+	}
+	else if(TCP_ID == TCP_TAHOE)
+	{
+		Ack_packet * ack = new Ack_packet((Host *)data->getDest(),
+										(Host *)data->getSource(),
+										data->getFlow(),
+										data->get_index(),
+										data->get_time());
+		Link * link_to_send_ack = ack->getSource()->get_first_link();
+		// Always push packet to buffer before spawning send event
+		if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
+			Link_Send_Event * event = new Link_Send_Event(
+										link_to_send_ack->earliest_available_time(),
+										SEND_EVENT_ID,
+										link_to_send_ack,
+										ACK_SIZE);
+			event_queue.push(event);
+		}
+	}
 	delete data;
 }
 
@@ -314,7 +372,8 @@ void Packet_Receive_Event::handle_event() {
 			Link_Send_Event * send_event = new Link_Send_Event(
 									link->earliest_available_time(),
 									SEND_EVENT_ID,
-									link);
+									link,
+									packet->packetSize());
 			event_queue.push(send_event);
 		}
 	}
@@ -466,7 +525,8 @@ void Time_Out_Event::handle_event() {
 						new Link_Send_Event(
 							link->earliest_available_time(),
 							SEND_EVENT_ID,
-							link);
+							link,
+							to_send[i]->packetSize());
 					event_queue.push(event);
 				}
 				Time_Out_Event * timeout =

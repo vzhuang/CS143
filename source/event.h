@@ -61,9 +61,8 @@ public:
 /////////////// Link_Send_Event /////////////////
 class Link_Send_Event : public Event {
 	Link * link;
-	
 public:
-	Link_Send_Event(double start_, int event_ID_, Link * link_);
+	Link_Send_Event(double start_, int event_ID_, Link * link_, double packetsize_);
 	void handle_event();
 };
 
