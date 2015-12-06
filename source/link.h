@@ -52,6 +52,8 @@ class Link {
 	// Packets currently stored in the routing queue
 	int packets_stored_r;
 public:
+	// Last packet to be addded to the buffer
+	Packet * newly_added;
 	// Queue of packets (non-routing) to be transmitted
 	std::queue <Packet *> data_buffer;
 	// Queue of routing packets to be transmitted

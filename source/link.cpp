@@ -1,4 +1,4 @@
- /* Link routines for the data_buffer and link ititialization code */
+/* Link routines for the data_buffer and link ititialization code */
 
 #include "link.h"
 #include "parser.h"
@@ -31,6 +31,7 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	packets_dropped = 0;
 	forward_bytes = 0;
 	reverse_bytes = 0;
+	newly_added = NULL;
 }
 // Get the capacity of the link
 double Link::get_capacity() {
@@ -89,11 +90,8 @@ vector<Node *> Link::get_endpoints() {
 
 // Return the earliest time that the newly added packet can be popped from the buffer
 double Link::earliest_available_time() {
-	if(!is_free)
-		return t_free + get_queue_delay() - get_packet_delay(data_buffer.front());
-	else
-		return global_time + get_queue_delay() - get_packet_delay(data_buffer.front());
-
+		return max(t_free - get_packet_delay(newly_added),
+			global_time + get_queue_delay() - get_packet_delay(newly_added));
 }
 	
 	
@@ -109,6 +107,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 		return -1;
 	}
 	data_buffer.push(packet);
+	newly_added = packet;
 	bytes_stored += packet->packetSize();
 	packets_stored += 1;		
 	Node * endpoint1 = (ep1)->get_ip();
@@ -126,6 +125,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 		mexPrintf("Incoming packet did not come from a link endpoint\n");
 		exit(-1);
 	}
+	t_free = max(t_free + get_packet_delay(packet), global_time + get_queue_delay());
 	return 0;
 }
 
@@ -155,32 +155,25 @@ void Link::discard_packet() {
 Packet * Link::transmit_packet() {
 	// Sanity check
 	if(data_buffer.empty()) {
-			mexPrintf("Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
+			mexPrintf("Failure. Attempted to transmit a packet on a link with an empty buffer. Global Time: %f, t_free: %f\nExiting. \n",
+			global_time * 1000.0, t_free * 1000.0);
 			exit(-1);
 	}
-	// Check if the link is free
-	/*if(!is_free) {
-		//mexPrintf("Link %s was not free but a transmit was attempted. Retrying \n\n", 
-		//	link_to_english(&network, this).c_str() );
-		//exit(-1);
-		Link_Send_Event * send_event = new Link_Send_Event(
-											t_free,
-											SEND_EVENT_ID,
-											this);
-		event_queue.push(send_event);
-		
-		return NULL;		
-	}
-	// Set the link to occupied while we send a packet
-	else { 
-		is_free = 0;
-	}*/
 
-	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(is_free != 0)
-	{
-		is_free = 0;
+	if(is_free == false) {
+			mexPrintf("Failure. Link was not free but a transmit was attempted. Global Time: %f, t_free: %f\nExiting. \n",
+			global_time * 1000.0, t_free * 1000.0);
+			exit(-1);
 	}
+
+	if(global_time > t_free)
+	{
+			mexPrintf("Failure. Global Time: %f, t_free: %f\nExiting. \n",
+			global_time * 1000.0, t_free * 1000.0);
+			exit(-1);
+	}
+	// Set the link to occupied for the duration of this transmission
+	is_free = false;
 
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = data_buffer.front();
@@ -230,7 +223,7 @@ Packet * Link::transmit_packet() {
 		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
 									-1,
-									(Data_packet *) transmission_packet,
+									transmission_packet,
 									next_link,
 									endpoint2);
 		event_queue.push(pr_event);
@@ -244,18 +237,6 @@ Packet * Link::transmit_packet() {
 
 	// Increment number of packets sent across this link
 	bytes_sent += transmission_packet->packetSize();
-	// Create an event to free the link at the same time that the packet
-	// successfully transmits. We achieve this using epsilon.
-	Link_Free_Event * free_event = 
-		new Link_Free_Event(
-			time_to_send + global_time - EPSILON,
-			LINK_FREE_ID,
-			this,
-			direction);
-
-	t_free = time_to_send + global_time;
-
-	event_queue.push(free_event);
 	return transmission_packet;
 }
 
