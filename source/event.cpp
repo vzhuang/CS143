@@ -178,6 +178,16 @@ void Link_Send_Event::handle_event() {
 Link_Send_Routing_Event::Link_Send_Routing_Event(double start_, int event_ID_, Link * link_)
            : Event(start_, event_ID_) {
 	link = link_;
+	// Create an event to free the link at the same time that the packet
+	// successfully transmits. We achieve this using epsilon.
+	double time_to_send = ROUTING_SIZE / link_->get_capacity();
+	Link_Free_Event * free_event = 
+		new Link_Free_Event(
+			time_to_send + global_time - EPSILON,
+			RFREE_EVENT_ID,
+			link_,
+			-1);
+	routing_queue.push(free_event);
 }
 void Link_Send_Routing_Event::handle_event() {
 	global_time = this->get_start();
@@ -467,36 +477,9 @@ void Update_Rtables_Event::handle_event() {
 			to_handle->handle_event();
 			delete to_handle;
 		}
+	// Allows isntantaneous routing table updates.
+	global_time = t_0;
 
-	double t_f = global_time;
-	double elapsed_time = t_f - t_0;
-	// Increment the start times of all events in event_queue.
-	queue <Event *> temp_queue;
-	Event * temp_event;
-	int num_events = routing_queue.size();
-	for(int i = 0; i < num_events; i++)
-	{
-		temp_event = routing_queue.top();
-		routing_queue.pop();
-		double new_start = temp_event->get_start() + elapsed_time;
-		temp_event->change_start(new_start);
-		temp_queue.push(temp_event);
-	}
-	// Refill event queue with the updated events
-	for(int i = 0; i < num_events; i++)
-	{
-		temp_event = temp_queue.front();
-		temp_queue.pop();
-		routing_queue.push(temp_event);
-	}
-	// Done.
-	for (int i = 0; i < network->all_routers.size(); i++) {
-		Router * router_ = network->all_routers.at(i);
-
-		// Print out the updated routing table
-		//router_->print_distance_vector();
-		router_->print_routing_table();
-	}	
 	cout << "Done with Update Rtables Event" << "\n";
 }
 

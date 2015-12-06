@@ -8,24 +8,16 @@ using namespace std;
 
 // Calculate the time (s) it would take to clear out everything in the routing queue
 double Link::get_queue_delay_r() {
-	// Direction of the packet to send
-	int direction = routing_directions.front();
-	if(direction == 1) {
-		return forward_bytes_r / capacity;
-	}
-	else {
-		return reverse_bytes_r / capacity;
-	}
+
+	return bytes_stored_r / capacity;
 	
 }
 
 // Return the earliest time that the newly added packet can be popped from the routing buffer
 double Link::earliest_available_time_r() {
 		
-	if(!is_free_forward_r)
-		return t_free_forward_r + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
-	else
-		return global_time + get_queue_delay_r() - get_packet_delay(routing_buffer.front());
+		return max(t_free_r - ROUTING_SIZE / get_capacity(),
+			global_time + get_queue_delay_r() - ROUTING_SIZE / capacity);
 }
 	
 /* Add a packet to the routing buffer and record its direction.
@@ -58,6 +50,7 @@ int Link::add_to_buffer_r(Packet * packet, Node * source) {
 		printf("Routing: Incoming packet did not come from a link endpoint\n");
 		exit(-1);
 	}
+	t_free_r = max(t_free_r + ROUTING_SIZE / capacity, global_time + get_queue_delay_r());
 	return 0;
 	
 }
@@ -71,16 +64,26 @@ Packet * Link::transmit_packet_r() {
 			printf("Routing: Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
 			exit(-1);
 	}	
-	
-	int direction = routing_directions.front();
-	// Set the link to occupied for the transmission duration (Note that we disregard case that link is not free for now.)
-	if(is_free_r != 0)
-	{
-		is_free_r = 0;
+	if(is_free_r == false) {
+			printf("Routing: Failure. Link was not free but a transmit was attempted. Global Time: %f, t_free_r: %f\nExiting. \n",
+			global_time * 1000.0, t_free_r * 1000.0);
+			exit(-1);
 	}
+
+	if(global_time > t_free_r)
+	{
+			printf("Routing: Failure. Global Time: %f, t_free_r: %f\nExiting. \n",
+			global_time * 1000.0, t_free_r * 1000.0);
+			exit(-1);
+	}
+	
+
+	// Set the link to occupied for the duration of this transmission
+	is_free_r = false;
 	
 	// The packet at the front of the buffer is transmitted.
 	Packet * transmission_packet = routing_buffer.front();
+	int direction = routing_directions.front();
 	// Create some local variables for clarity
 	Node * dest = transmission_packet->getDest();
 	Node * endpoint1 = ep1->get_ip();
@@ -112,11 +115,12 @@ Packet * Link::transmit_packet_r() {
 		// Find the link associated with the next hop and transmit the packet
 		Link * next_link = ((Router *) endpoint2)->get_link(next_node);
 
-		Rout_Receive_Event * pr_event = new Rout_Receive_Event(
-									(Router *) endpoint2,
+		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
-									ROUT_RECEIVE_ID,
-									(Rout_packet *) transmission_packet);
+									RSEND_EVENT_ID,
+									transmission_packet,
+									next_link,
+									endpoint2);
 		routing_queue.push(pr_event);
 	}
 	// Packet succesfully sent. Remove transmitted packet from the buffer.
@@ -124,21 +128,7 @@ Packet * Link::transmit_packet_r() {
 	routing_directions.pop();
 	bytes_stored_r -= transmission_packet->packetSize();
 	packets_stored_r--;
-	// Increment number of packets sent across this link
-	bytes_sent += transmission_packet->packetSize();
-	// Create an event to free the link at the same time that the packet
-	// successfully transmits. We achieve this using epsilon.
-	Link_Free_Event * free_event = 
-		new Link_Free_Event(
-			time_to_send + global_time - EPSILON,
-			RFREE_EVENT_ID,
-			this,
-			direction);
 
-	t_free_r = time_to_send + global_time;
-
-
-	routing_queue.push(free_event);
 	return transmission_packet;
 }
 

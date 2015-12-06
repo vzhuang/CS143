@@ -223,7 +223,7 @@ Packet * Link::transmit_packet() {
 		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
 									-1,
-									(Data_packet *) transmission_packet,
+									transmission_packet,
 									next_link,
 									endpoint2);
 		event_queue.push(pr_event);
