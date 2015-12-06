@@ -183,7 +183,7 @@ Link_Send_Routing_Event::Link_Send_Routing_Event(double start_, int event_ID_, L
 	double time_to_send = ROUTING_SIZE / link_->get_capacity();
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
-			time_to_send + global_time - EPSILON,
+			time_to_send + start_ - EPSILON,
 			RFREE_EVENT_ID,
 			link_,
 			-1);
@@ -219,12 +219,15 @@ void Link_Free_Event::handle_event() {
 	// Check if we are freeing for a routing send or a data send
 	if(get_ID() == RFREE_EVENT_ID) {
 		link->is_free_r = 1;
+			printf("Routing: Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
+		link_to_english(&network, link).c_str(), global_time * 1000.0);
 	}
 	else {
 		link->is_free = 1;
-	}
-	printf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
+			printf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
 		link_to_english(&network, link).c_str(), global_time * 1000.0);
+	}
+
 }
 
 /////////////// Ack_Receive_Event (an ack was recieved by the source) /////////////////
