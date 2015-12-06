@@ -29,50 +29,57 @@ pd2 = zeros(1,VECTOR_SIZE);
 pd3 = zeros(1,VECTOR_SIZE);
 
 link_rates = figure;
+figure(link_rates);
 set(gcf,'numbertitle','off','name','Link Rate vs Time');
 movegui('northwest');
-plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
+plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
 xlabel('Time (s)');
 ylabel('Link Rate (Mbps)');
 
 buffer_occupancies = figure;
+figure(buffer_occupancies);
 set(gcf,'numbertitle','off','name','Buffer Occupancy vs Time');
 movegui('southwest');
-plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
+plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
 xlabel('Time (s)');
 ylabel('Buffer Occupancy (# packets)');
 
 packet_losses = figure;
+figure(packet_losses);
 set(gcf,'numbertitle','off','name','Packet Loss vs Time');
 movegui('north');
-plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
+plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
 xlabel('Time (s)');
 ylabel('Packet Loss (# packets)');
 
 flow_rates = figure;
+figure(flow_rates);
 set(gcf,'numbertitle','off','name','Flow Rate vs Time');
 movegui('south');
-plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
+plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
 xlabel('Time (s)');
 ylabel('Flow Rate (Mbps)');
 
 window_sizes = figure;
+figure(window_sizes);
 set(gcf,'numbertitle','off','name','Window Size vs Time');
 movegui('northeast');
-plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
+plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
 xlabel('Time (s)');
 ylabel('Window Size');
 
+
 packet_delays = figure;
+figure(packet_delays);
 set(gcf,'numbertitle','off','name','Packet Delay vs Time');
 movegui('southeast');
-plot([0], [0]); hold on; plot([0], [0]);plot([0], [0]);
+plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
 xlabel('Time (s)');
 ylabel('Packet Delay (ms)');
 
 proj( time, lr1, lr2, lr3, bo1, bo2, bo3, ...
             pl1, pl2, pl3, fr1, fr2, fr3, ...
             ws1, ws2, ws3, pd1, pd2, pd3, ...
-            'testcase1.txt', 100, 0);
-
+            'testcase1.txt', 100, 1);
+clear mex;
    

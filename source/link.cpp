@@ -22,6 +22,7 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	is_free_r = 1;
 	bytes_stored = 0;
 	packets_stored = 0;
+	packets_stored_r = 0;
 	t_free_forward = 0.0;
 	t_free_reverse = 0.0;
 	t_free = 0;

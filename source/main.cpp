@@ -85,7 +85,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 
 	}
-		mexPrintf("end time: %f, global_time: %f\n", end_time, global_time);
+    plot_final_points();
+	mexPrintf("end time: %f, global_time: %f\n", end_time, global_time);
 	mexPrintf("Exiting\n");
 	
 }

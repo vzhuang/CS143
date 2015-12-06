@@ -1,4 +1,3 @@
-
 // Link routines for the routing_buffer
 
 #include "link.h" 
@@ -16,7 +15,7 @@ double Link::get_queue_delay_r() {
 // Return the earliest time that the newly added packet can be popped from the routing buffer
 double Link::earliest_available_time_r() {
 		
-		return max(t_free_r - ROUTING_SIZE / get_capacity(),
+		return max(t_free_r - ROUTING_SIZE / capacity,
 			global_time + get_queue_delay_r() - ROUTING_SIZE / capacity);
 }
 	
@@ -28,7 +27,6 @@ int Link::add_to_buffer_r(Packet * packet, Node * source) {
 	if (bytes_stored_r + packet->packetSize() > buffersize) {
 		mexPrintf("Routing: Packet dropped attempting to join the buffer on link: %s\n",
 			link_to_english(&network, this).c_str() );
-		packets_dropped++;
 		return -1;
 	}
 	
@@ -76,7 +74,6 @@ Packet * Link::transmit_packet_r() {
 			global_time * 1000.0, t_free_r * 1000.0);
 			exit(-1);
 	}
-	
 
 	// Set the link to occupied for the duration of this transmission
 	is_free_r = false;
@@ -131,6 +128,3 @@ Packet * Link::transmit_packet_r() {
 
 	return transmission_packet;
 }
-
-
-
