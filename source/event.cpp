@@ -244,42 +244,42 @@ void Ack_Receive_Event::handle_event() {
 	 	global_time * 1000.0);
 	if(TCP_ID == TCP_RENO)
 	{
-		 // send new packets
+		// send new packets
 		Host * source = ack->getFlow()->get_source();
 		Link * link = source->get_first_link();
 		vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
-		if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){		
-			for(int i = 0; i < to_send.size(); i++) {
-				if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
-					Link_Send_Event * event = 
-						new Link_Send_Event(
-							link->earliest_available_time(),
-							SEND_EVENT_ID,
-							link,
-							DATA_SIZE);
+		//if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){		
+		for(int i = 0; i < to_send.size(); i++) {
+			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link,
+						DATA_SIZE);
 
-					event_queue.push(event);
-				}
-				Time_Out_Event * timeout =
-					new Time_Out_Event(
-						link->earliest_available_time() + to_send[i]->getFlow()->time_out,
-						TIMEOUT_EVENT_ID,
-						to_send[i]->getFlow(),
-						to_send[i]->get_index());
-				event_queue.push(timeout);		   
-				// else{
-				// 	// packet was dropped so get rid of it after all acks arrive
-				// 	Link_Drop_Event * event = 
-				// 		new Link_Drop_Event(
-				// 			link->earliest_available_time(),
-				// 			DROP_EVENT_ID,
-				// 			link,
-				// 			to_send[i]->getFlow());
-				//     event_queue.push(event);
-				// }
+				event_queue.push(event);
 			}
+			Time_Out_Event * timeout =
+				new Time_Out_Event(
+					link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+					TIMEOUT_EVENT_ID,
+					to_send[i]->getFlow(),
+					to_send[i]->get_index());
+			event_queue.push(timeout);		   
+			// else{
+			// 	// packet was dropped so get rid of it after all acks arrive
+			// 	Link_Drop_Event * event = 
+			// 		new Link_Drop_Event(
+			// 			link->earliest_available_time(),
+			// 			DROP_EVENT_ID,
+			// 			link,
+			// 			to_send[i]->getFlow());
+			//     event_queue.push(event);
+			// }
 		}
 	}
+	//}
 	else if(TCP_ID == TCP_TAHOE)
 	{
 		Host * source = ack->getFlow()->get_source();
@@ -525,4 +525,11 @@ void Time_Out_Event::handle_event() {
 			}
 		}
 	}
+	// else{
+	// 	printf("timeout for packet %d did not occur - already received\n", index);
+	// 	for(int i = 0; i < flow->received.size(); i++){
+	// 		printf("%d\n",flow->received[i]);
+	// 	}
+	// }
+	  
 }
