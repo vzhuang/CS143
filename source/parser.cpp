@@ -16,7 +16,7 @@ Node * parse_ip(string token, Network * network) {
 	}
 	else {
 		mexPrintf( "Invalid R/H# token. Unexpected token: %s. Exiting.\n", token.c_str());
-		exit(-1);
+		mexErrMsgTxt("");
 	}
 }
 	
@@ -32,13 +32,13 @@ void build_network(Network * network, char * network_file) {
 	myfile.open(network_file);
   	if(! myfile.is_open()) {
 		mexPrintf("Could not open file: %s. Exiting.\n", network_file);
-		exit(0);
+		mexErrMsgTxt("");
 	}
 	// Read the number of hosts
 	myfile >> token;
   	if(token.compare("Hosts:") != 0) {
 		mexPrintf("Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
-		exit(-1);
+		mexErrMsgTxt("");
 	}
 	myfile >> token;
 	num_hosts = stoi(token);
@@ -47,7 +47,7 @@ void build_network(Network * network, char * network_file) {
 	myfile >> token;
   	if(token.compare("Routers:") != 0) {
 		mexPrintf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
-		exit(-1);
+		mexErrMsgTxt("");
 	}
 	myfile >> token;
 	num_routers = stoi(token);
@@ -67,13 +67,13 @@ void build_network(Network * network, char * network_file) {
 	myfile >> token;
   	if(token.compare("Links:") != 0) {
 		mexPrintf( "Invalid file format. Unexpected token: %s. Exiting.\n", token.c_str());
-		exit(-1);
+		mexErrMsgTxt("");
 	}
 	myfile >> token;
 	while(token.compare("Flows:") != 0) {
 		if(myfile.eof()) {
 			mexPrintf( "Invalid file format. Exiting\n");
-			exit(-1);
+			mexErrMsgTxt("");
 		}
 		Node * ep1 = parse_ip(token, network);
 		myfile >> token;
@@ -132,7 +132,7 @@ string ip_to_english(Network * network, Node * node) {
 		}
 	}
 	mexPrintf("FATAL: ip: %lu not in this network\n", (long unsigned int) node);
-	exit(-1);
+	mexErrMsgTxt("");
 }
 
 // Returns link "L#" as specified by test case diagram
@@ -152,5 +152,5 @@ string link_to_english(Network * network, Link * link) {
 		}
 	}
 	mexPrintf("FATAL: link: %lu not in this network\n", (long unsigned int) link);
-	exit(-1);
+	mexErrMsgTxt("");
 }

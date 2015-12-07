@@ -46,7 +46,7 @@ int Link::add_to_buffer_r(Packet * packet, Node * source) {
 	// Something went wrong
 	else {
 		mexPrintf("Routing: Incoming packet did not come from a link endpoint\n");
-		exit(-1);
+		mexErrMsgTxt("");
 	}
 	t_free_r = max(t_free_r + ROUTING_SIZE / capacity, global_time + get_queue_delay_r());
 	return 0;
@@ -60,19 +60,19 @@ Packet * Link::transmit_packet_r() {
 	// Sanity check
 	if(routing_buffer.empty()) {
 			mexPrintf("Routing: Attempted to transmit a packet on a link with an empty buffer. Exiting. \n");
-			exit(-1);
+			mexErrMsgTxt("");
 	}	
 	if(is_free_r == false) {
 			mexPrintf("Routing: Failure. Link was not free but a transmit was attempted. Global Time: %f, t_free_r: %f\nExiting. \n",
 			global_time * 1000.0, t_free_r * 1000.0);
-			exit(-1);
+			mexErrMsgTxt("");
 	}
 
 	if(global_time > t_free_r)
 	{
 			mexPrintf("Routing: Failure. Global Time: %f, t_free_r: %f\nExiting. \n",
 			global_time * 1000.0, t_free_r * 1000.0);
-			exit(-1);
+			mexErrMsgTxt("");
 	}
 
 	// Set the link to occupied for the duration of this transmission
