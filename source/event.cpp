@@ -90,7 +90,7 @@ void Flow_Start_Event::handle_event() {
 	}
 	else {
 		mexPrintf("Invalid event_ID: %d\n", event_ID);
-		exit(-1);
+		mexErrMsgTxt("");
 	}
 }
 

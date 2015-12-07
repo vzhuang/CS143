@@ -124,7 +124,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	// Something went wrong
 	else {
 		mexPrintf("Incoming packet did not come from a link endpoint\n");
-		exit(-1);
+		mexErrMsgTxt("");
 	}
 	t_free = max(t_free + get_packet_delay(packet), global_time + get_queue_delay());
 	return 0;
@@ -137,7 +137,7 @@ void Link::discard_packet() {
 	// Sanity check
 	if(data_buffer.empty()) {
 			mexPrintf("Attempted to pop an empty buffer. \n");
-			exit(-1);
+			mexErrMsgTxt("");
 	}	
 	int direction = data_directions.front();
 	data_buffer.front()->getFlow()->sending.erase(
@@ -158,20 +158,20 @@ Packet * Link::transmit_packet() {
 	if(data_buffer.empty()) {
 			mexPrintf("Failure. Attempted to transmit a packet on a link with an empty buffer. Global Time: %f, t_free: %f\nExiting. \n",
 			global_time * 1000.0, t_free * 1000.0);
-			exit(-1);
+			mexErrMsgTxt("");
 	}
 
 	if(is_free == false) {
 			mexPrintf("Failure. Link was not free but a transmit was attempted. Global Time: %f, t_free: %f\nExiting. \n",
 			global_time * 1000.0, t_free * 1000.0);
-			exit(-1);
+			mexErrMsgTxt("");
 	}
 
 	if(global_time > t_free)
 	{
 			mexPrintf("Failure. Global Time: %f, t_free: %f\nExiting. \n",
 			global_time * 1000.0, t_free * 1000.0);
-			exit(-1);
+			mexErrMsgTxt("");
 	}
 	// Set the link to occupied for the duration of this transmission
 	is_free = false;
