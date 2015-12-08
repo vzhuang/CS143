@@ -112,6 +112,7 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_, dou
 }
 
 void Link_Send_Event::handle_event() {
+	mexPrintf("link send start\n");
 	global_time = this->get_start();
 	if(TCP_ID == TCP_RENO)
 	{
@@ -155,6 +156,7 @@ void Link_Send_Event::handle_event() {
 		link->transmit_packet();
 
 	}
+	mexPrintf("link send end\n");
 }
 
 /////////////// Link_Send_Routing_Event /////////////////
@@ -220,6 +222,7 @@ Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * 
 }
 
 void Ack_Receive_Event::handle_event() {
+   	mexPrintf("ack receive start\n");
 	global_time = this->get_start();
 	ack->getFlow()->last_ack_time = global_time;
     Time_Out_Event * timeout =
@@ -291,7 +294,7 @@ void Ack_Receive_Event::handle_event() {
 					event_queue.push(event);
 				}
 	}
-	
+   	mexPrintf("ack receive end\n");
 	delete ack;		
 }
 
@@ -302,6 +305,7 @@ Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet
 }
 
 void Data_Receive_Event::handle_event() {
+	mexPrintf("data receive start\n");
 	global_time = this->get_start();
 	mexPrintf(" $$$ Packet #%d received at host: %s at time (ms): %f\n\n", 
 	 		data->get_index(),
@@ -345,6 +349,7 @@ void Data_Receive_Event::handle_event() {
 			event_queue.push(event);
 		}
 	}
+	mexPrintf("data receive end\n");	
 	delete data;
 }
 
@@ -488,10 +493,26 @@ Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, doubl
 }
 
 void Time_Out_Event::handle_event() {
-	printf("Time out %f %f\n", flow->last_ack_received, lt);
-	global_time = this->get_start();
-	if(flow->last_ack_time == lt){
+	mexPrintf("Time out %f %f\n", flow->last_ack_received, lt);	
+	if(abs(flow->last_ack_time - lt) < numeric_limits<double>::epsilon()){
+		global_time = this->get_start();
+		mexPrintf("global_time %f\n", global_time);
 		printf("Flow timed out\n");
-		flow->handle_time_out();
-	}    	  
+		Host * source = flow->get_source();
+		Link * link = source->get_first_link();
+		vector<Data_packet *> to_send = flow->handle_time_out();
+		for(int i = 0; i < to_send.size(); i++) {
+			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) {
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link,
+						DATA_SIZE);
+					event_queue.push(event);
+			}
+		}
+		flow->print_sending();
+	}
+	mexPrintf("time out end\n");
 }

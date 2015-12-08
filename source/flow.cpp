@@ -32,7 +32,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	in_flight = 0;
 	last_ack_time = 0;
 
-	time_out = 1000;
+	time_out = 2;
 	b = 0.25;
 	rtt_avg = 0;
 	rtt_dev = 0;
@@ -41,11 +41,11 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 }
 
 void Flow::print_sending(){
-	mexPrintf("sending: ");
-	for(int i = 0; i < sending.size(); i++){
-		mexPrintf("%d ", sending[i]);
-	}
-	mexPrintf("\n");
+	// mexPrintf("sending: ");
+	// for(int i = 0; i < sending.size(); i++){
+	// 	mexPrintf("%d ", sending[i]);
+	// }
+	// mexPrintf("\n");
 	mexPrintf("received: ");
 	for(int i = 0; i < received.size(); i++){
 		mexPrintf("%d ", received[i]);
@@ -82,6 +82,7 @@ vector<Data_packet *> Flow::send_packets(bool duplicate) {
 			next_index++;
 		}
 	}
+	mexPrintf("window_size: %f\n", window_size);
 	//mexPrintf("ss threshold: %d\n", ss_threshold);
 	// while(sending.size() < (int) window_size and !done){
 	// 	// if(sending.size() == 0){
@@ -119,6 +120,7 @@ void Flow::receive_data(Data_packet * packet) {
 	if(packet->getSource() == source && packet->getDest() == destination){
 		if(!received_packet(packet->get_index())){
 			received.push_back(packet->get_index());
+			sort(received.begin(), received.end());
 			bytes_received += DATA_SIZE;
 			if(bytes_received > size){
 				done = true;
@@ -156,10 +158,11 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		rtt_avg = (1 - b) * rtt_avg + b * rtt;
 		rtt_dev = (1 - b) * rtt_dev + b * abs(rtt -  rtt_avg);
 		time_out = rtt_avg + 4 * rtt_dev;
-		if(time_out < 1000){
-			time_out = 1000; // avoids small time_out errors
+		if(time_out < 2){
+			time_out = 2; // avoids small time_out errors
 		}
 	}
+	time_out = 2; // FIX THIS LATER
 	// stop sending all unnecessary packets
 	// for(vector<int>::iterator iter = sending.begin(); iter != sending.end();){
 	//	if(*iter < packet->get_index()){
@@ -183,7 +186,6 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			if(ss_threshold < 2){
 				ss_threshold = 2;
 			}
-			window_size = 1;
 			last_time_out = global_time;						
 		}
 	}	
@@ -193,7 +195,6 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		num_duplicates = 0;
 		// slow start
 		if(slow_start){
-			//window_start++;
 			window_size++;
 			if(window_size == ss_threshold){
 				slow_start = false;
@@ -202,7 +203,6 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		}
 		// congestion avoidance
 		else{
-			//window_start++;
 			window_size += 1 / window_size;
 			send_now = send_packets(false);
 		}		  
@@ -211,11 +211,12 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	return send_now;
 }
 
-void Flow::handle_time_out(){
-
+vector<Data_packet *> Flow::handle_time_out(){
 	window_size = 1;
 	slow_start = true;
 	in_flight = 0;
+	next_index = last_ack_received;
+    return send_packets(false);
 	// auto iter = find(sending.begin(), sending.end(), n);
 	// if(iter != sending.end()){
 	// 	sending.erase(iter);

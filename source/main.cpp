@@ -80,10 +80,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 		Event * to_handle = event_queue.top();
 		event_queue.pop();
+		mexPrintf("new event! ID: %d\n", to_handle->get_ID());
 		to_handle->handle_event();
 		delete to_handle;
-
-
 	}
     plot_final_points();
 	mexPrintf("end time: %f, global_time: %f\n", end_time, global_time);
