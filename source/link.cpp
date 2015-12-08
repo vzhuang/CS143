@@ -111,10 +111,12 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 		packets_dropped++;
 		return -1;
 	}
+
 	data_buffer.push(packet);
 	newly_added = packet;
 	bytes_stored += packet->packetSize();
-    packets_stored += 1;		
+    if(packet->getId() == DATA_ID)
+        packets_stored += 1;		
 	Node * endpoint1 = (ep1)->get_ip();
 	Node * endpoint2 = (ep2)->get_ip();
 	// Going from ep1 to ep2.
@@ -238,7 +240,8 @@ Packet * Link::transmit_packet() {
 	data_buffer.pop();
 	data_directions.pop();
 	bytes_stored -= transmission_packet->packetSize();
-	packets_stored--;
+	if(transmission_packet->getId() == DATA_ID)
+        packets_stored--;
 
 	// Increment number of packets sent across this link
 	bytes_sent += transmission_packet->packetSize();
