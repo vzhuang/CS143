@@ -2,6 +2,7 @@
 #include "parser.h"
 extern Network network;
 extern double global_time;
+extern int TCP_ID;
 
 /**
  *  Basic flow class/TCP implementation
@@ -13,7 +14,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	size = data_size_;
 	start = start_;
 	algorithm = 1;
-	window_size = 1;
+	window_size = 2;
 	last_ack_received = 1;
 	num_duplicates = 0;
 	ss_threshold = 0;
@@ -155,14 +156,17 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	//}
 	//mexPrintf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
 	// If duplicate ack, go back n
-	if(packet->get_index() == last_ack_received){
+	if(TCP_ID == TCP_FAST){
+		send_now = send_packets(false);
+	}
+	else if(packet->get_index() == last_ack_received){
 		num_duplicates++;
 		// fast recovery
 		if(fast_retransmit && fast_recovery && num_duplicates == 3){
 			if(!lost_packet(packet->get_index() - 1)){
 				lost_packets.push_back(packet->get_index() - 1);	
 				slow_start = false;
-				ss_threshold = window_size / 2;			
+				ss_threshold = in_flight / 2;			
 				if(ss_threshold < 2){
 					ss_threshold = 2;
 				}

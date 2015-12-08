@@ -106,6 +106,12 @@ void Flow_Start_Event::handle_event() {
 				event_queue.push(event);
 			}
 		}
+	    Fast_Update_Event * fast_update =
+			new Fast_Update_Event(
+				1 + FAST_DELAY,
+			    FAST_UPDATE_ID,
+				flow);
+		event_queue.push(fast_update);
 	}
 	else {
 		mexPrintf("Invalid event_ID: %d\n", event_ID);
@@ -252,7 +258,7 @@ void Ack_Receive_Event::handle_event() {
 	 	ack->get_index(),
 	 	ip_to_english(&network, ack->getDest()).c_str(),
 	 	global_time * 1000.0);
-	if(TCP_ID == TCP_RENO)
+	if(TCP_ID == TCP_RENO || TCP_ID == TCP_FAST)
 	{
 		// send new packets
 		Host * source = ack->getFlow()->get_source();
@@ -272,24 +278,6 @@ void Ack_Receive_Event::handle_event() {
 
 				event_queue.push(event);
 			}
-			// Time_Out_Event * timeout =
-			// 	new Time_Out_Event(
-			// 		link->earliest_available_time() + to_send[i]->getFlow()->time_out,
-			// 		TIMEOUT_EVENT_ID,
-			// 		to_send[i]->getFlow(),
-			// 		to_send[i]->get_index());
-			// event_queue.push(timeout);
-			
-			// else{
-			// 	// packet was dropped so get rid of it after all acks arrive
-			// 	Link_Drop_Event * event = 
-			// 		new Link_Drop_Event(
-			// 			link->earliest_available_time(),
-			// 			DROP_EVENT_ID,
-			// 			link,
-			// 			to_send[i]->getFlow());
-			//     event_queue.push(event);
-			// }
 		}
 	}
 	//}
@@ -325,7 +313,7 @@ void Data_Receive_Event::handle_event() {
 	 		data->get_index(),
 	 		ip_to_english(&network, data->getDest()).c_str(),
 	 		global_time * 1000.0);
-	if(TCP_ID == TCP_RENO)
+	if(TCP_ID == TCP_RENO || TCP_ID == TCP_FAST)
 	{
 		data->getFlow()->receive_data(data);
 		 // Create ack packet to send back to source
@@ -537,12 +525,16 @@ Fast_Update_Event::Fast_Update_Event(double start_, int event_ID_, Flow * flow_)
 void Fast_Update_Event::handle_event() {
 	global_time = this->get_start();
 	if(!flow->done){
-		Fast_Update_Event fast_update =
+		Fast_Update_Event * fast_update =
 			new Fast_Update_Event(
 				global_time + FAST_DELAY,
 			    FAST_UPDATE_ID,
 				flow);
 		event_queue.push(fast_update);
 	}
-	
+	mexPrintf("Fast TCP window size updated to %f\n", flow->window_size);
+	// adjust window size
+	if(flow->rtt > 0){
+		flow->window_size = min(2 * flow->window_size, flow->rtt_min * flow->window_size / flow->rtt + flow->alpha);
+	}	
 }

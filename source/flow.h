@@ -18,9 +18,8 @@ class Ack_packet;
 
 #define TCP_TAHOE 0
 #define TCP_RENO 1
-#define TCP_VEGAS 2
-#define TCP_FAST 3
-#define FAST_DELAY = 0.02
+#define TCP_FAST 2
+#define FAST_DELAY 0.125
 
 using namespace std;
 
@@ -32,9 +31,7 @@ class Flow{
     int algorithm; // TCP algorithm 
               
     int num_duplicates; // keeps track of how many duplicate packets received
-    int ss_threshold; // W_0/2
-    bool done;        
-    
+    int ss_threshold; // W_0/2        
     vector<double> times;
     double a;
     double b;
@@ -66,6 +63,7 @@ public:
     double alpha;
     double beta;
 
+    bool done; 
     bool slow_start; // in slow start phase?    
     bool fast_retransmit; // use fast retransmit?
     bool fast_recovery; // use fast recovery?

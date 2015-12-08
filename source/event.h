@@ -141,7 +141,7 @@ class Fast_Update_Event : public Event {
 public:
     Fast_Update_Event(double start_, int event_ID_, Flow * flow_);
     void handle_event();
-}
+};
 
 // Allows priority queue to determine priority of an Event *
 struct CompareEvents {
