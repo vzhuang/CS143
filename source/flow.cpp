@@ -44,6 +44,11 @@ void Flow::print_sending(){
 		mexPrintf("%d ", sending[i]);
 	}
 	mexPrintf("\n");
+	mexPrintf("received: ");
+	for(int i = 0; i < received.size(); i++){
+		mexPrintf("%d ", received[i]);
+	}
+	mexPrintf("\n");
 }
 
 /**
@@ -58,8 +63,12 @@ vector<Data_packet *> Flow::send_packets(bool duplicate) {
 	mexPrintf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
 	print_sending();
 	if(duplicate){
-		sending.push_back(last_ack_received);
+		sending.push_back(last_ack_received);		
 		Data_packet * retransmit = generate_packet(last_ack_received);
+		if(!sent_packet(last_ack_received)){
+			sent_packets.push_back(last_ack_received);
+			sent += retransmit->packetSize();			
+		}
 		send_now.push_back(retransmit);
 	}
 	//mexPrintf("ss threshold: %d\n", ss_threshold);
@@ -123,10 +132,6 @@ void Flow::receive_data(Data_packet * packet) {
 	}
 }
 
-/**
- * TODO: create and push timeout events
- */ 
-
 vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	acked_packets.push_back(packet->get_index() - 1);
 	vector<Data_packet *> send_now;
@@ -145,7 +150,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			time_out = 2000; // avoids small time_out errors
 		}
 	}
-	// stop sending all unnecessary packetsn
+	// stop sending all unnecessary packets
 	// for(vector<int>::iterator iter = sending.begin(); iter != sending.end();){
 	//	if(*iter < packet->get_index()){
 	//		iter = sending.erase(iter);
@@ -162,8 +167,9 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		if(fast_retransmit and fast_recovery){
 			mexPrintf("%d\n", num_duplicates);
 			if(num_duplicates == 3){
+				handle_time_out(packet->get_index());
 				num_duplicates = 0;
-				send_packets(true);
+				send_now = send_packets(true);
 				slow_start = true;
 				ss_threshold = window_size / 2;
 				if(ss_threshold < 2){
@@ -203,8 +209,10 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 }
 
 void Flow::handle_time_out(int n){
-	sending.erase(remove(sending.begin(), sending.end(), n), sending.end());
-	sent_packets.erase(remove(sent_packets.begin(), sent_packets.end(), n), sent_packets.end());
+	auto iter = find(sending.begin(), sending.end(), n);
+	if(iter != sending.end()){
+		sending.erase(iter);
+	}
 	sent -= DATA_SIZE;
 }
 

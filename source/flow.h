@@ -18,7 +18,8 @@ class Ack_packet;
 
 #define TCP_TAHOE 0
 #define TCP_RENO 1
-#define TCP_FAST 2
+#define TCP_VEGAS 2
+#define TCP_FAST 3
 
 using namespace std;
 
@@ -28,9 +29,7 @@ class Flow{
 	double start;
 	int size;
     int algorithm; // TCP algorithm 
-       
-
-    
+           
     int window_start; 
     
     int num_duplicates; // keeps track of how many duplicate packets received
@@ -67,6 +66,8 @@ public:
     double last_bytes_received_query;
     double window_size;
     double last_flow_rate_query; // Time the last flow rate was queried
+    double rtt_min;
+    
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
 	double get_start();

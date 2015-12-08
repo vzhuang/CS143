@@ -136,24 +136,25 @@ void Link_Send_Event::handle_event() {
 		// only send packet if not yet acked
 		int ind = link->data_buffer.front()->get_index();
 		bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
-		if(is_ack || ind >= link->data_buffer.front()->getFlow()->last_ack_received){
-			Node * endpoint1 = link->get_ep1();
-			Node * endpoint2 = link->get_ep2();
-			if (link->data_directions.front() == - 1) {
-				Node * temp = endpoint1;
-				endpoint1 = endpoint2;
-				endpoint2 = temp;
-			} 
-			mexPrintf("Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
-			   link->data_buffer.front()->get_index(),
-			   ip_to_english(&network, endpoint1).c_str(),
-			   ip_to_english(&network, endpoint2).c_str(),
-			   link_to_english(&network, link).c_str(), global_time * 1000.0);
-			link->transmit_packet();
-		}
-		else{
-			link->discard_packet();
-		}
+		mexPrintf("Link sending %d %d\n", ind,  link->data_buffer.front()->getFlow()->last_ack_received);
+		//if(is_ack || ind >= link->data_buffer.front()->getFlow()->last_ack_received){
+		Node * endpoint1 = link->get_ep1();
+		Node * endpoint2 = link->get_ep2();
+		if (link->data_directions.front() == - 1) {
+			Node * temp = endpoint1;
+			endpoint1 = endpoint2;
+			endpoint2 = temp;
+		} 
+		mexPrintf("Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
+		   link->data_buffer.front()->get_index(),
+		   ip_to_english(&network, endpoint1).c_str(),
+		   ip_to_english(&network, endpoint2).c_str(),
+		   link_to_english(&network, link).c_str(), global_time * 1000.0);
+		link->transmit_packet();
+			//}
+			//else{
+			//link->discard_packet();
+			//}
 	}
 	else if(TCP_ID == TCP_TAHOE)
 	{
@@ -248,9 +249,11 @@ void Ack_Receive_Event::handle_event() {
 		Host * source = ack->getFlow()->get_source();
 		Link * link = source->get_first_link();
 		vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
-		//if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){		
+		//if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){
 		for(int i = 0; i < to_send.size(); i++) {
-			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+			//mexPrintf("Attempting to send packet %d\n", to_send[i]->get_index());
+			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) {
+				//mexPrintf("Packet %d will be sent\n", to_send[i]->get_index());
 				Link_Send_Event * event = 
 					new Link_Send_Event(
 						link->earliest_available_time(),
@@ -260,13 +263,14 @@ void Ack_Receive_Event::handle_event() {
 
 				event_queue.push(event);
 			}
-			Time_Out_Event * timeout =
-				new Time_Out_Event(
-					link->earliest_available_time() + to_send[i]->getFlow()->time_out,
-					TIMEOUT_EVENT_ID,
-					to_send[i]->getFlow(),
-					to_send[i]->get_index());
-			event_queue.push(timeout);		   
+			// Time_Out_Event * timeout =
+			// 	new Time_Out_Event(
+			// 		link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+			// 		TIMEOUT_EVENT_ID,
+			// 		to_send[i]->getFlow(),
+			// 		to_send[i]->get_index());
+			// event_queue.push(timeout);
+			
 			// else{
 			// 	// packet was dropped so get rid of it after all acks arrive
 			// 	Link_Drop_Event * event = 
@@ -494,6 +498,7 @@ Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, int n
 }
 
 void Time_Out_Event::handle_event() {
+	global_time = this->get_start();
 	// mexPrintf("time out fail\n");
 	// for(int i = 0; i < flow->received.size(); i++){
 	// 	mexPrintf("%d %d\n", index, flow->received[i]);
@@ -504,27 +509,27 @@ void Time_Out_Event::handle_event() {
 		Host * source = flow->get_source();
 	    Link * link = source->get_first_link();
 		vector<Data_packet *> to_send = flow->send_packets(false);
-		if(flow->sending.size() <= flow->window_size){		
-			for(int i = 0; i < to_send.size(); i++) {
-				if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
-					Link_Send_Event * event = 
-						new Link_Send_Event(
-							link->earliest_available_time(),
-							SEND_EVENT_ID,
-							link,
-							to_send[i]->packetSize());
-					event_queue.push(event);
-				}
-				Time_Out_Event * timeout =
-					new Time_Out_Event(
-						link->earliest_available_time() + to_send[i]->getFlow()->time_out,
-						TIMEOUT_EVENT_ID,
-						to_send[i]->getFlow(),
-						to_send[i]->get_index());
-				event_queue.push(timeout);		   
+		//if(flow->sending.size() <= flow->window_size){		
+		for(int i = 0; i < to_send.size(); i++) {
+			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link,
+						to_send[i]->packetSize());
+				event_queue.push(event);
 			}
+			Time_Out_Event * timeout =
+				new Time_Out_Event(
+					link->earliest_available_time() + to_send[i]->getFlow()->time_out,
+					TIMEOUT_EVENT_ID,
+					to_send[i]->getFlow(),
+					to_send[i]->get_index());
+			event_queue.push(timeout);		   
 		}
 	}
+    //}
 	// else{
 	// 	printf("timeout for packet %d did not occur - already received\n", index);
 	// 	for(int i = 0; i < flow->received.size(); i++){
