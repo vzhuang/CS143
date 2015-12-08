@@ -303,7 +303,7 @@ double Flow::get_flowrate() {
 	double tf = global_time;
 	double bytes0 = last_bytes_received_query;
 	double bytesf = bytes_received;
-	double bytes = bytesf = bytes0;
+	double bytes = bytesf - bytes0;
 	last_flow_rate_query = global_time;
 	last_bytes_received_query = bytes_received;
 	return bytes / (tf - t0);
