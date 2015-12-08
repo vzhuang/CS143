@@ -86,7 +86,26 @@ void Flow_Start_Event::handle_event() {
 		}
 	}
 	else if(event_ID == TCP_FAST) {
-		//TODO
+		flow->fast_retransmit = false;
+		flow->fast_recovery = false;
+	    Host * source = flow->get_source();
+		Host * destination = flow->get_destination();
+		 mexPrintf("This flow is going from %s to %s. Time (ms): %f\n\n",
+		 	ip_to_english(&network, source).c_str(),
+		 	ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
+		Link * link = flow->get_source()->get_first_link();
+		vector<Data_packet *> to_send = flow->send_packets(false);
+		for(int i = 0; i < to_send.size(); i++) {
+			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link,
+						DATA_SIZE);
+				event_queue.push(event);
+			}
+		}
 	}
 	else {
 		mexPrintf("Invalid event_ID: %d\n", event_ID);
@@ -113,7 +132,7 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_, dou
 
 void Link_Send_Event::handle_event() {
 	global_time = this->get_start();
-	if(TCP_ID == TCP_RENO)
+	if(TCP_ID == TCP_RENO || TCP_ID == TCP_FAST)
 	{
 		// only send packet if not yet acked
 		int ind = link->data_buffer.front()->get_index();
@@ -508,4 +527,22 @@ void Time_Out_Event::handle_event() {
 		}
 		flow->print_sending();
 	}	
+}
+
+Fast_Update_Event::Fast_Update_Event(double start_, int event_ID_, Flow * flow_)
+	    : Event(start_, event_ID_) {
+	flow = flow_;
+}
+
+void Fast_Update_Event::handle_event() {
+	global_time = this->get_start();
+	if(!flow->done){
+		Fast_Update_Event fast_update =
+			new Fast_Update_Event(
+				global_time + FAST_DELAY,
+			    FAST_UPDATE_ID,
+				flow);
+		event_queue.push(fast_update);
+	}
+	
 }

@@ -34,10 +34,13 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 
 	time_out = 1;
 	b = 0.25;
+	rtt_min = 1000000; 
 	rtt_avg = 0;
 	rtt_dev = 0;
 	rtt = 0;
 	sent_packets.push_back(0);
+	alpha = 50;
+	
 	//round_trip_times(size, 0);
 }
 
@@ -84,33 +87,7 @@ vector<Data_packet *> Flow::send_packets(bool duplicate) {
 		next_index++;
 	}
 	mexPrintf("window_size: %f\n", window_size);
-	//mexPrintf("ss threshold: %d\n", ss_threshold);
-	// while(sending.size() < (int) window_size and !done){
-	// 	// if(sending.size() == 0){
-	// 	// 	next_index = sent_packets.back() + 1;//last_ack_received;
-	// 	// }
-	// 	// else{
-	// 	// 	next_index = sending.back() + 1;
-	// 	// }
-	// 	// if(duplicate){
-	// 	// 	next_index = last_ack_received;
-	// 	// }
-	// 	// if(next_index >= size){
-	// 	// 	break;
-	// 	// }
-	// 	if(!acked_packet(next_index)){
-	// 		sending.push_back(next_index);
-	// 		Data_packet * new_packet = generate_packet(next_index);
-	// 		if(!sent_packet(next_index)){
-	// 			sent += new_packet->packetSize();
-	// 			sent_packets.push_back(next_index);
-	// 		}		
-	// 		send_now.push_back(new_packet);
-	// 	}		
-	// 	next_index++;
-	// }
-	// mexPrintf("after: sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
-	// print_sending();
+	//mexPrintf("ss threshold: %d\n", ss_threshold);    
 	return send_now;
 }
 
@@ -150,6 +127,9 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	vector<Data_packet *> send_now;
 	// recursively compute timeout value
 	rtt = global_time - packet->get_time();
+	if(rtt < rtt_min){
+		rtt_min = rtt; 
+	}
 	// initialize rtt;
 	if(last_ack_received == 0){
 		rtt_avg = rtt;

@@ -20,6 +20,7 @@ class Ack_packet;
 #define TCP_RENO 1
 #define TCP_VEGAS 2
 #define TCP_FAST 3
+#define FAST_DELAY = 0.02
 
 using namespace std;
 
@@ -32,13 +33,7 @@ class Flow{
               
     int num_duplicates; // keeps track of how many duplicate packets received
     int ss_threshold; // W_0/2
-
-    bool done;
-    
-    bool slow_start; // in slow start phase?    
-    bool fast_retransmit; // use fast retransmit?
-    bool fast_recovery; // use fast recovery?
-    double last_time_out;
+    bool done;        
     
     vector<double> times;
     double a;
@@ -68,6 +63,13 @@ public:
     int in_flight;
     double last_ack_time;
     double rtt;
+    double alpha;
+    double beta;
+
+    bool slow_start; // in slow start phase?    
+    bool fast_retransmit; // use fast retransmit?
+    bool fast_recovery; // use fast recovery?
+    double last_time_out;
     
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);

@@ -17,6 +17,7 @@
 #define RSEND_EVENT_ID 7
 #define RFREE_EVENT_ID 8
 #define REFRESH_RTABLES_ID 9
+#define FAST_UPDATE_ID 10
 class Ack_packet;
 class Data_packet;
 class Rout_packet;
@@ -132,6 +133,16 @@ public:
     Update_Rtables_Event(double start_, int event_ID_, Network * network_);
     void handle_event();
 };
+
+
+///////////// Fast_Update_Event /////////////
+class Fast_Update_Event : public Event {
+    Flow * flow;
+public:
+    Fast_Update_Event(double start_, int event_ID_, Flow * flow_);
+    void handle_event();
+}
+
 // Allows priority queue to determine priority of an Event *
 struct CompareEvents {
   bool operator() (Event * arg1, Event * arg2) {
