@@ -79,8 +79,8 @@ vector<Data_packet *> Flow::send_packets(bool duplicate) {
 			Data_packet * new_packet = generate_packet(next_index);
 			send_now.push_back(new_packet);
 			in_flight++;
-			next_index++;
 		}
+		next_index++;
 	}
 	mexPrintf("window_size: %f\n", window_size);
 	//mexPrintf("ss threshold: %d\n", ss_threshold);
@@ -225,24 +225,30 @@ vector<Data_packet *> Flow::handle_time_out(){
 }
 
 bool Flow::acked_packet(int num){
-	if(find(acked_packets.begin(), acked_packets.end(), num) == acked_packets.end()){
-		return false;
+	for(int i = 0; i < acked_packets.size(); i++){
+		if(acked_packets[i] == num){
+			return true;
+		}
 	}
-	return true;
+	return false;	
 }
 
 bool Flow::sent_packet(int num) {
-	if(find(sent_packets.begin(), sent_packets.end(), num) == sent_packets.end()){
-		return false;
+	for(int i = 0; i < sent_packets.size(); i++){
+		if(sent_packets[i] == num){
+			return true;
+		}
 	}
-	return true;
+	return false;
 }
 
 bool Flow::received_packet(int num) {
-	if(find(received.begin(), received.end(), num) == received.end()){
-		return false;
+	for(int i = 0; i < received.size(); i++){
+		if(received[i] == num){
+			return true;
+		}
 	}
-	return true;
+	return false;
 }
 
 Data_packet * Flow::generate_packet(int n) {
