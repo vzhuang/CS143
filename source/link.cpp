@@ -43,7 +43,10 @@ double Link::get_capacity() {
 double Link::get_flowrate() {
 	return flowrate;
 }
-
+int Link::get_packets_dropped() {
+    packets_dropped = 0;
+    return packets_dropped;
+}
 // Calculate the flowrate of the link
 void Link::set_flowrate() {
 	// Time elapsed since last update

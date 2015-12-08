@@ -97,6 +97,8 @@ public:
 	// Return a link cost dependent on transmission delay, flow rate, and
 	// flow direction.
 	double calculate_cost();
+    //Get number of packets dropped since last query
+    int get_packets_dropped();
 	// Time of most recently assigned data free event
 	double t_free_forward, t_free_reverse, t_free, t_free_r;
 	// Time of most recently assigned routing free event
