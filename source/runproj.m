@@ -1,7 +1,7 @@
 clear mex;
 close all;
 clear all;
-VECTOR_SIZE = 10000;
+VECTOR_SIZE = 100000;
 time = zeros(1,VECTOR_SIZE);
 % Link Rate
 lr1 = zeros(1,VECTOR_SIZE);
@@ -74,7 +74,7 @@ figure(packet_delays);
 set(gcf,'numbertitle','off','name','Packet Delay vs Time');
 movegui('southeast');
 plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
-xlabel('Time (s)');
+xlabel('Time(s)');
 ylabel('Packet Delay (ms)');
 
 proj( time, lr1, lr2, lr3, bo1, bo2, bo3, ...

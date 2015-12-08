@@ -9,7 +9,7 @@
 #include <vector>
 #include "mex.h"
 #define SAMPLING_RATE 0.1
-#define REFRESH_RATE 10.0
+#define REFRESH_RATE 5.0
 double global_time;
 double end_time;
 Network network;
@@ -80,7 +80,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 		Event * to_handle = event_queue.top();
 		event_queue.pop();
-		mexPrintf("new event! ID: %d\n", to_handle->get_ID());
 		to_handle->handle_event();
 		delete to_handle;
 	}

@@ -13,7 +13,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	size = data_size_;
 	start = start_;
 	algorithm = 1;
-	window_size = 2;
+	window_size = 1;
 	last_ack_received = 1;
 	num_duplicates = 0;
 	ss_threshold = 0;
@@ -179,23 +179,32 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		// fast recovery
 		if(fast_retransmit && fast_recovery && num_duplicates == 3){
 			if(!lost_packet(packet->get_index() - 1)){
-				lost_packets.push_back(packet->get_index() - 1);
-				num_duplicates = 0;
-				send_now = send_packets(true);
+				lost_packets.push_back(packet->get_index() - 1);	
 				slow_start = false;
-				window_size /= 2;
-				ss_threshold = window_size;
+				ss_threshold = window_size / 2;			
 				if(ss_threshold < 2){
 					ss_threshold = 2;
 				}
+				send_now = send_packets(true);
+				// window inflation
+				window_size = ss_threshold + 3;
 				last_time_out = global_time;
 			}									
+		}
+		else if(fast_retransmit && fast_recovery && num_duplicates > 3){
+			window_size += 1;
+			send_now = send_packets(false);
 		}
 	}	
 	// Handle normally 
 	else{		
 		last_ack_received = packet->get_index();
-		num_duplicates = 0;
+		// window deflation
+		if(fast_retransmit && fast_recovery && num_duplicates > 3){
+			num_duplicates = 0;
+			window_size = ss_threshold;
+		}
+
 		// slow start
 		if(slow_start){
 			window_size++;
@@ -206,7 +215,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		}
 		// congestion avoidance
 		else{
-			window_size += 1 / window_size;
+			window_size += 1 / (double)(int)window_size;
 			send_now = send_packets(false);
 		}		  
     }
@@ -215,6 +224,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 }
 
 vector<Data_packet *> Flow::handle_time_out(){
+	ss_threshold = window_size / 2;
 	window_size = 1;
 	slow_start = true;
 	in_flight = 0;
