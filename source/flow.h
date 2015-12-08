@@ -29,9 +29,7 @@ class Flow{
 	double start;
 	int size;
     int algorithm; // TCP algorithm 
-           
-    int window_start; 
-    
+              
     int num_duplicates; // keeps track of how many duplicate packets received
     int ss_threshold; // W_0/2
 
@@ -41,7 +39,6 @@ class Flow{
     bool fast_retransmit; // use fast retransmit?
     bool fast_recovery; // use fast recovery?
     double last_time_out;
-    
     
     vector<double> times;
     double a;
@@ -67,6 +64,8 @@ public:
     double window_size;
     double last_flow_rate_query; // Time the last flow rate was queried
     double rtt_min;
+    int in_flight;
+    double last_ack_time;
     
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
@@ -83,7 +82,7 @@ public:
     bool sent_packet(int num);
     bool received_packet(int num);
     vector<Data_packet *> receive_ack(Ack_packet * packet);
-    void handle_time_out(int n);
+    void handle_time_out();
     void print_sending();
 };
 

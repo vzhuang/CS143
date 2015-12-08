@@ -17,7 +17,6 @@
 #define RSEND_EVENT_ID 7
 #define RFREE_EVENT_ID 8
 #define REFRESH_RTABLES_ID 9
-#define DROP_EVENT_ID 10
 class Ack_packet;
 class Data_packet;
 class Rout_packet;
@@ -46,16 +45,6 @@ public:
 	Flow_Start_Event(double start_, int event_ID_, Flow * flow_);
 	void handle_event();
 	
-};
-
-/////////////// Link_Drop_Event /////////////////
-class Link_Drop_Event : public Event {
-	Link * link;
-    Flow * flow;
-	
-public:
-	Link_Drop_Event(double start_, int event_ID_, Link * link_, Flow * flow_);
-	void handle_event();
 };
 
 /////////////// Link_Send_Event /////////////////
@@ -88,6 +77,7 @@ public:
 /////////////// Ack_Receive_Event /////////////////
 class Ack_Receive_Event : public Event {
 	Ack_packet * ack;
+    double last_action_time;
 	
 public:
 	Ack_Receive_Event(double start_, int event_ID_, Ack_packet * ack_);
@@ -129,9 +119,10 @@ public:
 /////////////// Time_Out_Event //////////////////
 class Time_Out_Event : public Event {
     Flow * flow;
-    int index;
+    double lt;
+    
 public:
-    Time_Out_Event(double start_, int event_ID_, Flow * flow_, int n);
+    Time_Out_Event(double start_, int event_ID_, Flow * flow_, double lt_);
     void handle_event();
 };
 /////////////// Update_Rtables_Event //////////////////
