@@ -44,8 +44,9 @@ double Link::get_flowrate() {
 	return flowrate;
 }
 int Link::get_packets_dropped() {
+    int pd = packets_dropped;
     packets_dropped = 0;
-    return packets_dropped;
+    return pd;
 }
 // Calculate the flowrate of the link
 void Link::set_flowrate() {
@@ -113,7 +114,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	data_buffer.push(packet);
 	newly_added = packet;
 	bytes_stored += packet->packetSize();
-	packets_stored += 1;		
+    packets_stored += 1;		
 	Node * endpoint1 = (ep1)->get_ip();
 	Node * endpoint2 = (ep2)->get_ip();
 	// Going from ep1 to ep2.
