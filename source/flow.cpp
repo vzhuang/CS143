@@ -178,15 +178,18 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		num_duplicates++;
 		// fast recovery
 		if(fast_retransmit && fast_recovery && num_duplicates == 3){
-			num_duplicates = 0;
-			send_now = send_packets(true);
-			slow_start = false;
-			window_size /= 2;
-			ss_threshold = window_size;
-			if(ss_threshold < 2){
-				ss_threshold = 2;
-			}
-			last_time_out = global_time;						
+			if(!lost_packet(packet->get_index() - 1)){
+				lost_packets.push_back(packet->get_index() - 1);
+				num_duplicates = 0;
+				send_now = send_packets(true);
+				slow_start = false;
+				window_size /= 2;
+				ss_threshold = window_size;
+				if(ss_threshold < 2){
+					ss_threshold = 2;
+				}
+				last_time_out = global_time;
+			}									
 		}
 	}	
 	// Handle normally 
@@ -222,6 +225,15 @@ vector<Data_packet *> Flow::handle_time_out(){
 	// 	sending.erase(iter);
 	// }
 	// sent -= DATA_SIZE;
+}
+
+bool Flow::lost_packet(int num){
+	for(int i = 0; i < lost_packets.size(); i++){
+		if(lost_packets[i] == num){
+			return true;
+		}
+	}
+	return false;	
 }
 
 bool Flow::acked_packet(int num){

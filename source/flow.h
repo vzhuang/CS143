@@ -57,6 +57,7 @@ public:
     vector<int> received; // received packets (by destination) 
     vector<int> sent_packets;
     vector<int> acked_packets;
+    vector<int> lost_packets;
     int sent;
     int next_index;
     double bytes_received;
@@ -78,6 +79,8 @@ public:
 	Data_packet * generate_packet(int n);
     Ack_packet * generate_ack_packet();
     void receive_data(Data_packet * packet);
+    
+    bool lost_packet(int num);
     bool acked_packet(int num);
     bool sent_packet(int num);
     bool received_packet(int num);
