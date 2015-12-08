@@ -32,10 +32,11 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	in_flight = 0;
 	last_ack_time = 0;
 
-	time_out = 2;
+	time_out = 1;
 	b = 0.25;
 	rtt_avg = 0;
 	rtt_dev = 0;
+	rtt = 0;
 	sent_packets.push_back(0);
 	//round_trip_times(size, 0);
 }
@@ -148,7 +149,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	acked_packets.push_back(packet->get_index() - 1);
 	vector<Data_packet *> send_now;
 	// recursively compute timeout value
-	double rtt = global_time - packet->get_time();
+	rtt = global_time - packet->get_time();
 	// initialize rtt;
 	if(last_ack_received == 0){
 		rtt_avg = rtt;
@@ -158,8 +159,8 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 		rtt_avg = (1 - b) * rtt_avg + b * rtt;
 		rtt_dev = (1 - b) * rtt_dev + b * abs(rtt -  rtt_avg);
 		time_out = rtt_avg + 4 * rtt_dev;
-		if(time_out < 2){
-			time_out = 2; // avoids small time_out errors
+		if(time_out < 1){
+			time_out = 1; // avoids small time_out errors
 		}
 	}
 	time_out = 2; // FIX THIS LATER

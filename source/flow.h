@@ -67,6 +67,7 @@ public:
     double rtt_min;
     int in_flight;
     double last_ack_time;
+    double rtt;
     
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
