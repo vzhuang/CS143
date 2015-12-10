@@ -39,21 +39,16 @@ void Flow_Start_Event::handle_event() {
 	global_time = this->get_start();
 	int event_ID = this->get_ID();
 	if(event_ID == TCP_TAHOE) {
-		//TODO. Fake ass implementation. Will likely want to always
-		// have duplicate packets being sent until an ack is recieved
-		// and the flow object is modified appropriately in the 
-		// "Ack_Receieve_Event" handler.
+		flow->fast_recovery = false;
 		Host * source = flow->get_source();
 		Host * destination = flow->get_destination();
-		mexPrintf("This flow is going from %s to %s\n\n",
-			ip_to_english(&network, source).c_str(),
-			ip_to_english(&network, destination).c_str() );
+		 mexPrintf("This flow is going from %s to %s. Time (ms): %f\n\n",
+		 	ip_to_english(&network, source).c_str(),
+		 	ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
 		Link * link = flow->get_source()->get_first_link();
-		for(int i = 0; i < 50; i++)
-		{
-			Data_packet * packet = new Data_packet(source, destination, i, flow, global_time);
-			// Always push packet to buffer before spawning send event
-			if( link->add_to_buffer(packet, (Node *) source) == 0) { 
+		vector<Data_packet *> to_send = flow->send_packets(false);
+		for(int i = 0; i < to_send.size(); i++) {
+			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
 				Link_Send_Event * event = 
 					new Link_Send_Event(
 						link->earliest_available_time(),
