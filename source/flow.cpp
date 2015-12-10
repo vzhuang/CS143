@@ -4,9 +4,7 @@ extern Network network;
 extern double global_time;
 extern int TCP_ID;
 
-/**
- *  Basic flow class/TCP implementation
- */
+// Basic flow class/TCP implementation
 
 Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_) {
 	source = source_;
@@ -29,7 +27,6 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	slow_start = true;
 	fast_retransmit = true;
 	fast_recovery = true;
-	last_time_out = global_time;
 	in_flight = 0;
 	last_ack_time = 0;
 
@@ -41,24 +38,11 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	rtt = 0;
 	sent_packets.push_back(0);
 	alpha = 50;
-	
-	//round_trip_times(size, 0);
 }
 
-void Flow::print_received(){
-	mexPrintf("received: ");
-	for(int i = 0; i < received.size(); i++){
-		mexPrintf("%d ", received[i]);
-	}
-	mexPrintf("\n");
-}
-
-/**
- * TO DO: make sure packets are removed from sending in events
- * I.e. in general make sure sending contains list of packets pushed onto queue
- * but not yet sent.
- */ 
-
+// Sends packets
+// Called whenever flow needs to send new packets
+// E.g. ack receipt, flow time out, etc.
 vector<Data_packet *> Flow::send_packets(bool duplicate) {
 	// duplicate: true if retransmitting one packet
 	vector<Data_packet *> send_now;
@@ -85,9 +69,7 @@ vector<Data_packet *> Flow::send_packets(bool duplicate) {
 	return send_now;
 }
 
-/**
- * Handles data packet receipt 
- */
+// Handles data packet receipt 
 void Flow::receive_data(Data_packet * packet) {
 	if(packet->getSource() == source && packet->getDest() == destination){
 		if(!received_packet(packet->get_index())){
@@ -113,6 +95,7 @@ void Flow::receive_data(Data_packet * packet) {
 	}
 }
 
+// Handles ack packet receipt
 vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	acked_packets.push_back(packet->get_index() - 1);
 	vector<Data_packet *> send_now;
@@ -188,6 +171,7 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	return send_now;
 }
 
+// Handles flow time out
 vector<Data_packet *> Flow::handle_time_out(){
 	ss_threshold = window_size / 2;
 	window_size = 1;
@@ -197,51 +181,77 @@ vector<Data_packet *> Flow::handle_time_out(){
     return send_packets(false);
 }
 
-bool Flow::lost_packet(int num){
+// Check if packet was lost
+bool Flow::lost_packet(int n){
 	for(int i = 0; i < lost_packets.size(); i++){
-		if(lost_packets[i] == num){
+		if(lost_packets[i] == n){
 			return true;
 		}
 	}
 	return false;	
 }
 
-bool Flow::acked_packet(int num){
+// CHeck if packet has been acked
+bool Flow::acked_packet(int n){
 	for(int i = 0; i < acked_packets.size(); i++){
-		if(acked_packets[i] == num){
+		if(acked_packets[i] == n){
 			return true;
 		}
 	}
 	return false;	
 }
 
-bool Flow::sent_packet(int num) {
+// Check if packet has been sent
+bool Flow::sent_packet(int n) {
 	for(int i = 0; i < sent_packets.size(); i++){
-		if(sent_packets[i] == num){
+		if(sent_packets[i] == n){
 			return true;
 		}
 	}
 	return false;
 }
 
-bool Flow::received_packet(int num) {
+// Check if packet has been received
+bool Flow::received_packet(int n) {
 	for(int i = 0; i < received.size(); i++){
-		if(received[i] == num){
+		if(received[i] == n){
 			return true;
 		}
 	}
 	return false;
 }
 
+// Generates a data packet
 Data_packet * Flow::generate_packet(int n) {
 	Data_packet * packet = new Data_packet(source, destination, n, this, global_time);
 	return packet; 
 
 }
 
+// Generates an ack packet
 Ack_packet * Flow::generate_ack_packet() {
 	Ack_packet * packet = new Ack_packet(source, destination, this, to_receive, global_time);
 	return packet; 
+}
+
+double Flow::get_flowrate() {
+	double t0 = last_flow_rate_query;
+	double tf = global_time;
+	double bytes0 = last_bytes_received_query;
+	double bytesf = bytes_received;
+	double bytes = bytesf - bytes0;
+	last_flow_rate_query = global_time;
+	last_bytes_received_query = bytes_received;
+	return bytes / (tf - t0);
+	
+}
+
+void Flow::print_received(){
+	mexPrintf("received: ");
+	for(int i = 0; i < received.size(); i++){
+		mexPrintf("%d ", received[i]);
+	}
+	mexPrintf("\n");
 }
 
 Host * Flow::get_source() {
@@ -255,16 +265,4 @@ Host * Flow::get_destination()
 
 double Flow::get_start() {
 	return start;
-}
-
-double Flow::get_flowrate() {
-	double t0 = last_flow_rate_query;
-	double tf = global_time;
-	double bytes0 = last_bytes_received_query;
-	double bytesf = bytes_received;
-	double bytes = bytesf - bytes0;
-	last_flow_rate_query = global_time;
-	last_bytes_received_query = bytes_received;
-	return bytes / (tf - t0);
-	
 }

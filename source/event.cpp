@@ -7,7 +7,8 @@ extern priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 extern double end_time;
 extern int TCP_ID;
 extern Network network;
-/////////////////// Generic Event Superclass /////////////////////
+
+//////////////////////// GENERIC EVENT SUPERCLASS /////////////////////////
 Event::Event(double start_, int event_ID_) {
 	event_ID = event_ID_;
 	start = start_;
@@ -29,7 +30,9 @@ void Event::handle_event() {
 	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 }
 
-/////////////// Flow_Start_Event /////////////////
+/////////////////////////// FLOW EVENTS ///////////////////////////////
+
+// Flow start event
 Flow_Start_Event::Flow_Start_Event(double start_, int event_ID_, Flow * flow_)
            : Event(start_, event_ID_) {
 	flow = flow_;
@@ -39,68 +42,14 @@ void Flow_Start_Event::handle_event() {
 	global_time = this->get_start();
 	int event_ID = this->get_ID();
 	if(event_ID == TCP_TAHOE) {
-		flow->fast_recovery = false;
-		Host * source = flow->get_source();
-		Host * destination = flow->get_destination();
-		 mexPrintf("This flow is going from %s to %s. Time (ms): %f\n\n",
-		 	ip_to_english(&network, source).c_str(),
-		 	ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
-		Link * link = flow->get_source()->get_first_link();
-		vector<Data_packet *> to_send = flow->send_packets(false);
-		for(int i = 0; i < to_send.size(); i++) {
-			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
-				Link_Send_Event * event = 
-					new Link_Send_Event(
-						link->earliest_available_time(),
-						SEND_EVENT_ID,
-						link,
-						DATA_SIZE);
-				event_queue.push(event);
-			}
-		}
-
+		flow->fast_recovery = false;	   
 	}
 	else if(event_ID == TCP_RENO) {
-		Host * source = flow->get_source();
-		Host * destination = flow->get_destination();
-		 mexPrintf("This flow is going from %s to %s. Time (ms): %f\n\n",
-		 	ip_to_english(&network, source).c_str(),
-		 	ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
-		Link * link = flow->get_source()->get_first_link();
-		vector<Data_packet *> to_send = flow->send_packets(false);
-		for(int i = 0; i < to_send.size(); i++) {
-			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
-				Link_Send_Event * event = 
-					new Link_Send_Event(
-						link->earliest_available_time(),
-						SEND_EVENT_ID,
-						link,
-						DATA_SIZE);
-				event_queue.push(event);
-			}
-		}
+		flow->fast_recovery = true;
 	}
 	else if(event_ID == TCP_FAST) {
 		flow->fast_retransmit = false;
 		flow->fast_recovery = false;
-	    Host * source = flow->get_source();
-		Host * destination = flow->get_destination();
-		 mexPrintf("This flow is going from %s to %s. Time (ms): %f\n\n",
-		 	ip_to_english(&network, source).c_str(),
-		 	ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
-		Link * link = flow->get_source()->get_first_link();
-		vector<Data_packet *> to_send = flow->send_packets(false);
-		for(int i = 0; i < to_send.size(); i++) {
-			if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
-				Link_Send_Event * event = 
-					new Link_Send_Event(
-						link->earliest_available_time(),
-						SEND_EVENT_ID,
-						link,
-						DATA_SIZE);
-				event_queue.push(event);
-			}
-		}
 	    Fast_Update_Event * fast_update =
 			new Fast_Update_Event(
 				1 + FAST_DELAY,
@@ -112,128 +61,27 @@ void Flow_Start_Event::handle_event() {
 		mexPrintf("Invalid event_ID: %d\n", event_ID);
 		mexErrMsgTxt("");
 	}
-}
-
-/////////////// Link_Send_Event /////////////////
-Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_, double packetsize)
-           : Event(start_, event_ID_) {
-	link = link_;
-	// Create an event to free the link at the same time that the packet
-	// successfully transmits. We achieve this using epsilon.
-	double time_to_send = packetsize / link->get_capacity();
-	Link_Free_Event * free_event = 
-		new Link_Free_Event(
-			start_ + time_to_send - EPSILON,
-			LINK_FREE_ID,
-			link_,
-			-1);
-	event_queue.push(free_event);
-	
-}
-
-void Link_Send_Event::handle_event() {
-	global_time = this->get_start();
-	if(TCP_ID == TCP_RENO || TCP_ID == TCP_FAST)
-	{
-		// only send packet if not yet acked
-		int ind = link->data_buffer.front()->get_index();
-		bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
-		//mexPrintf("Link sending %d %d\n", ind,  link->data_buffer.front()->getFlow()->last_ack_received);
-		//if(is_ack || ind >= link->data_buffer.front()->getFlow()->last_ack_received){
-		Node * endpoint1 = link->get_ep1();
-		Node * endpoint2 = link->get_ep2();
-		if (link->data_directions.front() == - 1) {
-			Node * temp = endpoint1;
-			endpoint1 = endpoint2;
-			endpoint2 = temp;
-		} 
-		mexPrintf("Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
-		   link->data_buffer.front()->get_index(),
-		   ip_to_english(&network, endpoint1).c_str(),
-		   ip_to_english(&network, endpoint2).c_str(),
-		   link_to_english(&network, link).c_str(), global_time * 1000.0);
-		link->transmit_packet();
-			//}
-			//else{
-			//link->discard_packet();
-			//}
-	}
-	else if(TCP_ID == TCP_TAHOE)
-	{
-		Node * endpoint1 = link->get_ep1();
-		Node * endpoint2 = link->get_ep2();
-		if (link->data_directions.front() == - 1) {
-			Node * temp = endpoint1;
-			endpoint1 = endpoint2;
-			endpoint2 = temp;
-		} 
-		mexPrintf("Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
-			link->data_buffer.front()->get_index(),
-			ip_to_english(&network, endpoint1).c_str(),
-			ip_to_english(&network, endpoint2).c_str(),
-			link_to_english(&network, link).c_str(), global_time * 1000.0);
-		link->transmit_packet();
-
+	Host * source = flow->get_source();
+	Host * destination = flow->get_destination();
+	mexPrintf("This flow is going from %s to %s. Time (ms): %f\n\n",
+		ip_to_english(&network, source).c_str(),
+		ip_to_english(&network, destination).c_str(), get_start() * 1000.0);
+	Link * link = flow->get_source()->get_first_link();
+	vector<Data_packet *> to_send = flow->send_packets(false);
+	for(int i = 0; i < to_send.size(); i++) {
+		if( link->add_to_buffer(to_send[i], (Node *) source) == 0) { 
+			Link_Send_Event * event = 
+				new Link_Send_Event(
+					link->earliest_available_time(),
+					SEND_EVENT_ID,
+					link,
+					DATA_SIZE);
+			event_queue.push(event);
+		}
 	}
 }
 
-/////////////// Link_Send_Routing_Event /////////////////
-Link_Send_Routing_Event::Link_Send_Routing_Event(double start_, int event_ID_, Link * link_)
-           : Event(start_, event_ID_) {
-	link = link_;
-	// Create an event to free the link at the same time that the packet
-	// successfully transmits. We achieve this using epsilon.
-	double time_to_send = ROUTING_SIZE / link_->get_capacity();
-	Link_Free_Event * free_event = 
-		new Link_Free_Event(
-			time_to_send + start_ - EPSILON,
-			RFREE_EVENT_ID,
-			link_,
-			-1);
-	routing_queue.push(free_event);
-}
-void Link_Send_Routing_Event::handle_event() {
-	global_time = this->get_start();
-	Node * endpoint1 = link->get_ep1();
-	Node * endpoint2 = link->get_ep2();
-	if (link->routing_directions.front() == - 1) {
-		Node * temp = endpoint1;
-		endpoint1 = endpoint2;
-		endpoint2 = temp;
-	} 
-
-	mexPrintf("ROUTING: Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
-	 	link->routing_buffer.front()->get_index(),
-	 	ip_to_english(&network, endpoint1).c_str(),
-	 	ip_to_english(&network, endpoint2).c_str(),
-	 	link_to_english(&network, link).c_str(), global_time * 1000.0);
-	link->transmit_packet_r();
-}										
-
-/////////////// Link_Free_Event /////////////////
-Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_, int direction_)
-           : Event(start_, event_ID_) {
-	link = link_;
-	direction = direction_;
-}
-
-void Link_Free_Event::handle_event() {
-	global_time = this->get_start();
-	// Check if we are freeing for a routing send or a data send
-	if(get_ID() == RFREE_EVENT_ID) {
-		link->is_free_r = 1;
-			mexPrintf("Routing: Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
-		link_to_english(&network, link).c_str(), global_time * 1000.0);
-	}
-	else {
-		link->is_free = 1;
-			mexPrintf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
-		link_to_english(&network, link).c_str(), global_time * 1000.0);
-	}
-
-}
-
-/////////////// Ack_Receive_Event (an ack was recieved by the source) /////////////////
+// Ack receive event
 Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * ack_)
            : Event(start_, event_ID_) {
 	ack = ack_;
@@ -296,7 +144,7 @@ void Ack_Receive_Event::handle_event() {
 	delete ack;		
 }
 
-/////////////// Data_Receive_Event (data was recieved by the dest) /////////////////
+// Data receive event
 Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet * data_)
            : Event(start_, event_ID_) {
 	data = data_;
@@ -349,7 +197,8 @@ void Data_Receive_Event::handle_event() {
 	delete data;
 }
 
-/////////////// Packet_Receive_Event (packet was recieved by a router) /////////////////
+// Packet receive event
+// occurs when packet is received by a router
 Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Packet * packet_, Link * link_, Node * src_)
            : Event(start_, event_ID_) {
 	packet = packet_;
@@ -387,7 +236,162 @@ void Packet_Receive_Event::handle_event() {
 	}
 }
 
-/////////////// Rout_Receive_Event (a rout packet was recieved) /////////////////
+// Time out event
+// Occurs when no packet gets sent/received for time_out time
+Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, double lt_)
+           : Event(start_, event_ID_) {
+	flow = flow_;
+	lt = lt_;
+}
+
+void Time_Out_Event::handle_event() {
+	mexPrintf("Time out %f %f\n", flow->last_ack_received, lt);	
+	if(abs(flow->last_ack_time - lt) < numeric_limits<double>::epsilon()){
+		global_time = this->get_start();
+		mexPrintf("global_time %f\n", global_time);
+		printf("Flow timed out\n");
+		Host * source = flow->get_source();
+		Link * link = source->get_first_link();
+		vector<Data_packet *> to_send = flow->handle_time_out();
+		for(int i = 0; i < to_send.size(); i++) {
+			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) {
+				Link_Send_Event * event = 
+					new Link_Send_Event(
+						link->earliest_available_time(),
+						SEND_EVENT_ID,
+						link,
+						DATA_SIZE);
+					event_queue.push(event);
+			}
+		}
+		flow->print_received();
+	}	
+}
+
+// Fast update event
+// Updates window size for fast TCP
+Fast_Update_Event::Fast_Update_Event(double start_, int event_ID_, Flow * flow_)
+	    : Event(start_, event_ID_) {
+	flow = flow_;
+}
+
+void Fast_Update_Event::handle_event() {
+	global_time = this->get_start();
+	if(!flow->done){
+		Fast_Update_Event * fast_update =
+			new Fast_Update_Event(
+				global_time + FAST_DELAY,
+			    FAST_UPDATE_ID,
+				flow);
+		event_queue.push(fast_update);
+	}
+	mexPrintf("Fast TCP window size updated to %f\n", flow->window_size);
+	// adjust window size
+	if(flow->rtt > 0){
+		flow->window_size = min(2 * flow->window_size, flow->rtt_min * flow->window_size / flow->rtt + flow->alpha);
+	}	
+}
+
+////////////////////////////// LINK EVENTS ////////////////////////////////////
+
+// Link send event
+
+Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_, double packetsize)
+           : Event(start_, event_ID_) {
+	link = link_;
+	// Create an event to free the link at the same time that the packet
+	// successfully transmits. We achieve this using epsilon.
+	double time_to_send = packetsize / link->get_capacity();
+	Link_Free_Event * free_event = 
+		new Link_Free_Event(
+			start_ + time_to_send - EPSILON,
+			LINK_FREE_ID,
+			link_,
+			-1);
+	event_queue.push(free_event);
+	
+}
+
+void Link_Send_Event::handle_event() {
+	global_time = this->get_start();
+	int ind = link->data_buffer.front()->get_index();
+	bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
+	//mexPrintf("Link sending %d %d\n", ind,  link->data_buffer.front()->getFlow()->last_ack_received);
+	Node * endpoint1 = link->get_ep1();
+	Node * endpoint2 = link->get_ep2();
+	if (link->data_directions.front() == - 1) {
+		Node * temp = endpoint1;
+		endpoint1 = endpoint2;
+		endpoint2 = temp;
+	} 
+	mexPrintf("Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
+	   link->data_buffer.front()->get_index(),
+	   ip_to_english(&network, endpoint1).c_str(),
+	   ip_to_english(&network, endpoint2).c_str(),
+	   link_to_english(&network, link).c_str(), global_time * 1000.0);
+	link->transmit_packet();
+}
+
+// Link send routing event
+Link_Send_Routing_Event::Link_Send_Routing_Event(double start_, int event_ID_, Link * link_)
+           : Event(start_, event_ID_) {
+	link = link_;
+	// Create an event to free the link at the same time that the packet
+	// successfully transmits. We achieve this using epsilon.
+	double time_to_send = ROUTING_SIZE / link_->get_capacity();
+	Link_Free_Event * free_event = 
+		new Link_Free_Event(
+			time_to_send + start_ - EPSILON,
+			RFREE_EVENT_ID,
+			link_,
+			-1);
+	routing_queue.push(free_event);
+}
+void Link_Send_Routing_Event::handle_event() {
+	global_time = this->get_start();
+	Node * endpoint1 = link->get_ep1();
+	Node * endpoint2 = link->get_ep2();
+	if (link->routing_directions.front() == - 1) {
+		Node * temp = endpoint1;
+		endpoint1 = endpoint2;
+		endpoint2 = temp;
+	} 
+
+	mexPrintf("ROUTING: Sending packet %d from %s to %s on link %s. Time (ms): %f\n\n",
+	 	link->routing_buffer.front()->get_index(),
+	 	ip_to_english(&network, endpoint1).c_str(),
+	 	ip_to_english(&network, endpoint2).c_str(),
+	 	link_to_english(&network, link).c_str(), global_time * 1000.0);
+	link->transmit_packet_r();
+}										
+
+// Link free event
+Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_, int direction_)
+           : Event(start_, event_ID_) {
+	link = link_;
+	direction = direction_;
+}
+
+void Link_Free_Event::handle_event() {
+	global_time = this->get_start();
+	// Check if we are freeing for a routing send or a data send
+	if(get_ID() == RFREE_EVENT_ID) {
+		link->is_free_r = 1;
+			mexPrintf("Routing: Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
+		link_to_english(&network, link).c_str(), global_time * 1000.0);
+	}
+	else {
+		link->is_free = 1;
+			mexPrintf("Packet cleared from buffer on Link %s. Time (ms): %f\n\n",
+		link_to_english(&network, link).c_str(), global_time * 1000.0);
+	}
+
+}
+
+////////////////////////////// ROUTING EVENTS /////////////////////////////////
+
+// Rout receive event
+// Routing packet was received
 Rout_Receive_Event::Rout_Receive_Event(Router * router_, double start_, int event_ID_, Rout_packet * r_packet_)
            : Event(start_, event_ID_) {
 	r_packet = r_packet_;
@@ -404,7 +408,7 @@ void Rout_Receive_Event::handle_event() {
 	router->receive_routing_packet(r_packet);
 }
 
-/////////////// Update_Rtables_Event /////////////////
+// Update rtables event
 Update_Rtables_Event::Update_Rtables_Event(double start_, int event_ID_, Network * network_)
            : Event(start_, event_ID_) {
 	network = network_;
@@ -479,57 +483,4 @@ void Update_Rtables_Event::handle_event() {
 	global_time = t_0;
 
 	cout << "Done with Update Rtables Event" << "\n";
-}
-
-/////////////// Time out event (check if packet timed out) /////////////////
-Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, double lt_)
-           : Event(start_, event_ID_) {
-	flow = flow_;
-	lt = lt_;
-}
-
-void Time_Out_Event::handle_event() {
-	mexPrintf("Time out %f %f\n", flow->last_ack_received, lt);	
-	if(abs(flow->last_ack_time - lt) < numeric_limits<double>::epsilon()){
-		global_time = this->get_start();
-		mexPrintf("global_time %f\n", global_time);
-		printf("Flow timed out\n");
-		Host * source = flow->get_source();
-		Link * link = source->get_first_link();
-		vector<Data_packet *> to_send = flow->handle_time_out();
-		for(int i = 0; i < to_send.size(); i++) {
-			if(link->add_to_buffer(to_send[i], (Node *) source) == 0) {
-				Link_Send_Event * event = 
-					new Link_Send_Event(
-						link->earliest_available_time(),
-						SEND_EVENT_ID,
-						link,
-						DATA_SIZE);
-					event_queue.push(event);
-			}
-		}
-		flow->print_sending();
-	}	
-}
-
-Fast_Update_Event::Fast_Update_Event(double start_, int event_ID_, Flow * flow_)
-	    : Event(start_, event_ID_) {
-	flow = flow_;
-}
-
-void Fast_Update_Event::handle_event() {
-	global_time = this->get_start();
-	if(!flow->done){
-		Fast_Update_Event * fast_update =
-			new Fast_Update_Event(
-				global_time + FAST_DELAY,
-			    FAST_UPDATE_ID,
-				flow);
-		event_queue.push(fast_update);
-	}
-	mexPrintf("Fast TCP window size updated to %f\n", flow->window_size);
-	// adjust window size
-	if(flow->rtt > 0){
-		flow->window_size = min(2 * flow->window_size, flow->rtt_min * flow->window_size / flow->rtt + flow->alpha);
-	}	
 }
