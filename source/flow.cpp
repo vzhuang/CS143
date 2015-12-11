@@ -29,6 +29,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	in_flight = 0;
 	last_ack_time = 0;
 
+	ca_wnd = 0;
 	time_out = 1;
 	b = 0.25;
 	rtt_min = 1000000; 
@@ -37,6 +38,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	rtt = 0;
 	sent_packets.push_back(0);
 	alpha = 50;
+	first_ss = true;
 }
 
 // Sends packets
@@ -46,6 +48,17 @@ vector<Data_packet *> Flow::send_packets() {
 	// duplicate: true if retransmitting one packet
 	vector<Data_packet *> send_now;
 	// mexPrintf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
+	// always resend first packet
+	if(timed_out_packets.size() > 0){
+		int num = timed_out_packets.front();
+		mexPrintf("retransmitting %d\n", num);
+		timed_out_packets.pop_front();
+		if(!acked_packet(num)){
+			Data_packet * retransmit = generate_packet(num);
+		    in_flight++;
+		    send_now.push_back(retransmit);
+		}
+	}
 	// try to send timed out packets first
 	while(in_flight < window_size and timed_out_packets.size() > 0 and !done){
 		int num = timed_out_packets.front();
@@ -80,7 +93,7 @@ void Flow::receive_data(Data_packet * packet) {
 				done = true;
 			}
 		}
-		in_flight--;
+		//in_flight--;
 		// update expected packet
 		if(packet->get_index() == to_receive){
 			to_receive++;
@@ -97,6 +110,7 @@ void Flow::receive_data(Data_packet * packet) {
 
 // Handles ack packet receipt
 vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
+	in_flight--;
 	acked_packets.push_back(packet->get_index() - 1);
 	vector<Data_packet *> send_now;
 	// recursively compute timeout value
@@ -125,24 +139,32 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	else if(packet->get_index() == last_ack_received){
 		num_duplicates++;
 		// fast recovery
-		if(fast_retransmit && fast_recovery && num_duplicates == 3){
-			//if(!lost_packet(packet->get_index() - 1)){
-				//lost_packets.push_back(packet->get_index() - 1);	
-			slow_start = false;
-			ss_threshold = window_size / 2;			
-			if(ss_threshold < 2){
-				ss_threshold = 2;
+		// if already timed out forget about it
+		if(packet->get_index() <= next_index){
+			if(fast_retransmit && fast_recovery and num_duplicates == 3){
+				if(first_ss){
+					first_ss = false;
+					reset();
+					send_now = send_packets();
+				}
+				else{
+					slow_start = false;
+					ss_threshold = window_size / 2;			
+					if(ss_threshold < 2){
+						ss_threshold = 2;
+					}
+					timed_out_packets.push_back(packet->get_index());
+					// window inflation			
+					window_size = ss_threshold + 3;
+					send_now = send_packets();
+				}			
 			}
-			timed_out_packets.push_back(packet->get_index() - 1);
-			// window inflation			
-			window_size = ss_threshold + 3;
-			send_now = send_packets();
-				//}									
+			else if(fast_retransmit && fast_recovery and num_duplicates > 3){
+				window_size++;
+				send_now = send_packets();
+			}
 		}
-		else if(fast_retransmit && fast_recovery && num_duplicates > 3){
-			window_size++;
-			send_now = send_packets();
-		}
+		
 	}	
 	// Handle normally 
 	else{		
@@ -170,6 +192,15 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 	return send_now;
 }
 
+// resets flow after initial unbounded slow start
+void Flow::reset(){
+	next_index = last_ack_received;
+	ss_threshold = window_size / 4;
+	window_size = 1;
+	slow_start = true;
+	//in_flight = 0;
+}
+
 // Handles packet time out
 vector<Data_packet *> Flow::handle_time_out(int index){
 	timed_out_packets.push_back(index);
@@ -180,7 +211,6 @@ vector<Data_packet *> Flow::handle_time_out(int index){
 	window_size = 1;
 	slow_start = true;
 	in_flight -= 1;
-	next_index = index;
 	return send_packets();
 }
 

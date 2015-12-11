@@ -59,7 +59,9 @@ public:
     double rtt;
     double alpha;
     double beta;
+    double ca_wnd;
 
+    bool first_ss;
     bool done; 
     bool slow_start; // in slow start phase?    
     bool fast_retransmit; // use fast retransmit?
@@ -73,6 +75,7 @@ public:
 	Host * get_destination();
 	vector<Data_packet *> send_packets();
 	void send_data();
+    void reset();
 	Data_packet * generate_packet(int n);
     Ack_packet * generate_ack_packet();
     void receive_data(Data_packet * packet);
