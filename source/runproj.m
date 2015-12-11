@@ -1,7 +1,17 @@
 clear mex;
 close all;
 clear all;
+
+% File to parse to set up network
+NETWORK_DESCRIPTOR_FILE = 'testcase0.txt';
+% Maximum simulation time (s)
+MAX_SIM_TIME = 5;
+% 1 for Reno, 2 for Fast
+TCP_ID = 1;
+
+% Max sixe of data vector. 
 VECTOR_SIZE = 100000;
+% X data
 time = zeros(1,VECTOR_SIZE);
 % Link Rate
 lr1 = zeros(1,VECTOR_SIZE);
@@ -28,58 +38,10 @@ pd1 = zeros(1,VECTOR_SIZE);
 pd2 = zeros(1,VECTOR_SIZE);
 pd3 = zeros(1,VECTOR_SIZE);
 
-link_rates = figure;
-figure(link_rates);
-set(gcf,'numbertitle','off','name','Link Rate vs Time');
-movegui('northwest');
-plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
-xlabel('Time (s)');
-ylabel('Link Rate (Mbps)');
-
-buffer_occupancies = figure;
-figure(buffer_occupancies);
-set(gcf,'numbertitle','off','name','Buffer Occupancy vs Time');
-movegui('southwest');
-plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
-xlabel('Time (s)');
-ylabel('Buffer Occupancy (# packets)');
-
-packet_losses = figure;
-figure(packet_losses);
-set(gcf,'numbertitle','off','name','Packet Loss vs Time');
-movegui('north');
-plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
-xlabel('Time (s)');
-ylabel('Packet Loss (# packets)');
-
-flow_rates = figure;
-figure(flow_rates);
-set(gcf,'numbertitle','off','name','Flow Rate vs Time');
-movegui('south');
-plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
-xlabel('Time (s)');
-ylabel('Flow Rate (Mbps)');
-
-window_sizes = figure;
-figure(window_sizes);
-set(gcf,'numbertitle','off','name','Window Size vs Time');
-movegui('northeast');
-plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
-xlabel('Time (s)');
-ylabel('Window Size');
-
-
-packet_delays = figure;
-figure(packet_delays);
-set(gcf,'numbertitle','off','name','Packet Delay vs Time');
-movegui('southeast');
-plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');
-xlabel('Time(s)');
-ylabel('Packet Delay (ms)');
-
 proj( time, lr1, lr2, lr3, bo1, bo2, bo3, ...
             pl1, pl2, pl3, fr1, fr2, fr3, ...
             ws1, ws2, ws3, pd1, pd2, pd3, ...
-            'testcase0.txt', 20, 1);
+            NETWORK_DESCRIPTOR_FILE, ...
+            MAX_SIM_TIME, TCP_ID, VECTOR_SIZE);
 clear mex;
    
