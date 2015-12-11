@@ -233,7 +233,6 @@ Packet * Link::transmit_packet() {
 double Link::calculate_cost() {
 
 	// Time to clear queue.
-	//this->set_flowrate();
 	return delay + flowrate;
 	
 }
