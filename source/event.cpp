@@ -114,35 +114,20 @@ void Ack_Receive_Event::handle_event() {
 	   ip_to_english(&network, ack->getDest()).c_str(),
 	   global_time * 1000.0);
 	ack->getFlow()->receive_ack(ack);
-	Send_New_Packets_Event * send =
-		new Send_New_Packets_Event(
-			global_time + RESEND_TIME,
-			ack->getFlow());	
-	event_queue.push(send);
-	// // send new packets
-	// Host * source = ack->getFlow()->get_source();
-	// Link * link = source->get_first_link();
-	// vector<Data_packet *> to_send = ack->getFlow()->receive_ack(ack);
-	// //if(ack->getFlow()->sending.size() <= ack->getFlow()->window_size){
-	// for(int i = 0; i < to_send.size(); i++) {
-	// 	//mexPrintf("Attempting to send packet %d\n", to_send[i]->get_index());
-	// 	if(link->add_to_buffer(to_send[i], (Node *) source) == 0) {
-	// 		//mexPrintf("Packet %d will be sent\n", to_send[i]->get_index());
-	// 		Link_Send_Event * event = 
-	// 			new Link_Send_Event(
-	// 				link->earliest_available_time(),
-	// 				link,
-	// 				DATA_SIZE);
-
-	// 		event_queue.push(event);
-	// 	}		
-    //     Time_Out_Event * timeout =
-	//         new Time_Out_Event(
-	// 		    global_time + ack->getFlow()->time_out,
-	// 		    ack->getFlow(),
-	// 			to_send[i]->get_index());
-	//     event_queue.push(timeout);
-	// }
+	if(TCP_ID == TCP_RENO){
+		Send_New_Packets_Event * send =
+			new Send_New_Packets_Event(
+				global_time + RESEND_TIME,
+				ack->getFlow());	
+		event_queue.push(send); 
+	}
+	else if(TCP_ID == TCP_FAST){
+		Send_New_Packets_Event * send =
+		    new Send_New_Packets_Event(
+			    global_time + FAST_RESEND,
+			    ack->getFlow());	
+	    event_queue.push(send); 
+	}
 	delete ack;		
 }
 
@@ -296,8 +281,11 @@ void Fast_Update_Event::handle_event() {
 	mexPrintf("Fast TCP window size updated to %f\n", flow->window_size);
 	// adjust window size
 	if(flow->rtt > 0){
-		flow->window_size = min(2 * flow->window_size, flow->rtt_min * flow->window_size / flow->rtt + flow->alpha);
-	}	
+		flow->window_size = min(2 * flow->window_size, flow->new_fast_window());
+	}
+	else{
+		flow->window_size *= 2;
+	}
 }
 
 ////////////////////////////// LINK EVENTS ////////////////////////////////////
