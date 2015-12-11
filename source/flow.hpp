@@ -30,9 +30,7 @@ class Flow{
 	Host * source;
 	Host * destination;
 	double start;    
-	int size;
-	
-
+	int size;	
 	
 public:
     // variables
@@ -75,7 +73,7 @@ public:
 	Host * get_destination();
 	vector<Data_packet *> send_packets();
 	void send_data();
-	double new_fast_window();
+	void update_window();
     //void reset_flow();
 	Data_packet * generate_packet(int n);
     Ack_packet * generate_ack_packet();
@@ -86,7 +84,6 @@ public:
     bool received_packet(int num);
     void receive_ack(Ack_packet * packet);
     void handle_time_out(int index);
-    void print_received();
 };
 
 #endif

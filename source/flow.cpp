@@ -5,13 +5,13 @@ extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
 extern int TCP_ID;
 
-// Basic flow class/TCP implementation
-
+// Flow class/TCP implementation
 Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_) {
 	source = source_;
 	destination = destination_;
 	size = data_size_;
 	start = start_;
+	
 	window_size = 1;
 	last_ack_received = 1;
 	num_duplicates = 0;
@@ -47,7 +47,6 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 vector<Data_packet *> Flow::send_packets() {
 	// duplicate: true if retransmitting one packet
 	vector<Data_packet *> send_now;
-	// mexPrintf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
 	mexPrintf("before: cwnd: %f inflight: %d\n", window_size, in_flight);
 	while(sending.size() < window_size and !done){
 		if(!acked_packet(next_index)){
@@ -58,9 +57,7 @@ vector<Data_packet *> Flow::send_packets() {
 		}
 		next_index++;		
 	}
-	print_received();
 	mexPrintf("after: cwnd: %f inflight: %d\n", window_size, in_flight);
-	//mexPrintf("ss threshold: %d\n", ss_threshold);    
 	return send_now;
 }
 
@@ -137,8 +134,7 @@ void Flow::receive_ack(Ack_packet * packet) {
 		}
 		else if(fast_retransmit && fast_recovery and num_duplicates > 3){
 			window_size++;
-		}
-				
+		}				
 	}	
 	// Handle normally 
 	else{
@@ -146,28 +142,35 @@ void Flow::receive_ack(Ack_packet * packet) {
 			if(packet->get_index() > max_ack_received){
 		  		max_ack_received = packet->get_index();
 	   		}			
-			last_ack_received = packet->get_index();
 			// window deflation
-			if(fast_retransmit && fast_recovery && num_duplicates > 3){			
+			if(fast_retransmit && fast_recovery && num_duplicates > 3){		   
 				window_size = ss_threshold;
 			}
 			num_duplicates = 0;
-			// slow start
-			if(window_size <= ss_threshold){
-				window_size++;
-			}
-			// congestion avoidance
-			else{
-				window_size += 1 / window_size;
-			}
+			update_window();
 		}
 				  
     }
 	last_ack_received = packet->get_index();
 }
 
-double Flow::new_fast_window(){
-	return gamma * (rtt_min * window_size / rtt + alpha) + (1 - gamma) * window_size;
+// Updates window size
+void Flow::update_window(){
+	if(TCP_ID == TCP_FAST){
+		window_size = min(2 * window_size,
+						  gamma * (rtt_min * window_size / rtt + alpha) +
+						  (1 - gamma) * window_size);
+	}
+	if(TCP_ID == TCP_TAHOE or TCP_ID == TCP_RENO){
+		// slow start
+		if(window_size <= ss_threshold){
+			window_size++;
+		}
+		// congestion avoidance
+		else{
+			window_size += 1 / window_size;
+		}
+	}
 }
 
 // Handles packet time out
@@ -183,7 +186,7 @@ void Flow::handle_time_out(int index){
 	window_size = 1;
 }
 
-// CHeck if packet has been acked
+// Check if packet has been acked
 bool Flow::acked_packet(int n){
     if(max_ack_received > n){
 		return true;
@@ -201,7 +204,7 @@ bool Flow::sent_packet(int n) {
 	return false;
 }
 
-// Check if packet has been received
+// Check if packet has been already been received at destination
 bool Flow::received_packet(int n) {
 	for(int i = 0; i < received.size(); i++){
 		if(received[i] == n){
@@ -235,23 +238,18 @@ double Flow::get_flowrate() {
 	return bytes / (tf - t0);	
 }
 
-void Flow::print_received(){
-	mexPrintf("sending: ");
-	for(int i = 0; i < sending.size(); i++){
-		mexPrintf("%d ", sending[i]);
-	}
-	mexPrintf("\n");
-}
-
+// Getter for source
 Host * Flow::get_source() {
 	return source;
 }
 
+// Getter fpr destination
 Host * Flow::get_destination()
  {
 	return destination;
 }
 
+// Getter for start time
 double Flow::get_start() {
 	return start;
 }

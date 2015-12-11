@@ -231,6 +231,7 @@ Fast_Update_Event::Fast_Update_Event(double start_, Flow * flow_)
 
 void Fast_Update_Event::handle_event() {
 	global_time = this->get_start();
+	// push next update event
 	if(!flow->done){
 		Fast_Update_Event * fast_update =
 			new Fast_Update_Event(
@@ -238,14 +239,9 @@ void Fast_Update_Event::handle_event() {
 				flow);
 		event_queue.push(fast_update);
 	}
-	mexPrintf("Fast TCP window size updated to %f\n", flow->window_size);
 	// adjust window size
-	if(flow->rtt > 0){
-		flow->window_size = min(2 * flow->window_size, flow->new_fast_window());
-	}
-	else{
-		flow->window_size *= 2;
-	}
+	flow->update_window();
+	mexPrintf("Fast TCP window size updated to %f\n", flow->window_size);
 }
 
 ////////////////////////////// LINK EVENTS ////////////////////////////////////
