@@ -22,6 +22,7 @@ class Ack_packet;
 #define TCP_RENO 1
 #define TCP_FAST 2
 #define FAST_DELAY 0.125
+#define RESEND_TIME 0.01
 
 using namespace std;
 
@@ -45,7 +46,6 @@ public:
     int last_ack_received; // to check for duplicate acks
     vector<int> received; // received packets (by destination) 
     vector<int> sent_packets;
-    vector<int> acked_packets;
     vector<int> lost_packets;
     deque<int> timed_out_packets;
     int sent;
@@ -61,10 +61,11 @@ public:
     double alpha;
     double beta;
     double ca_wnd;
+	int max_ack_received;
+	vector<int> sending;
 
-    bool first_ss;
+    //bool first_ss;
     bool done; 
-    bool slow_start; // in slow start phase?    
     bool fast_retransmit; // use fast retransmit?
     bool fast_recovery; // use fast recovery?
     
@@ -76,17 +77,17 @@ public:
 	Host * get_destination();
 	vector<Data_packet *> send_packets();
 	void send_data();
-    void reset();
+    //void reset_flow();
 	Data_packet * generate_packet(int n);
     Ack_packet * generate_ack_packet();
     void receive_data(Data_packet * packet);
     
-    bool lost_packet(int num);
+    bool timed_out(int num);
     bool acked_packet(int num);
     bool sent_packet(int num);
     bool received_packet(int num);
-    vector<Data_packet *> receive_ack(Ack_packet * packet);
-    vector<Data_packet *> handle_time_out(int index);
+    void receive_ack(Ack_packet * packet);
+    void handle_time_out(int index);
     void print_received();
 };
 

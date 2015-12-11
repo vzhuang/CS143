@@ -18,6 +18,7 @@
 #define RFREE_EVENT_ID 8
 #define REFRESH_RTABLES_EVENT_ID 9
 #define FAST_UPDATE_EVENT_ID 10
+#define SEND_NEW_PACKETS_EVENT_ID 11
 class Ack_packet;
 class Data_packet;
 class Rout_packet;
@@ -47,6 +48,15 @@ public:
 	void handle_event();
 	
 };
+
+////////////// Send_New_Packets_Event ////////////////
+class Send_New_Packets_Event : public Event {
+	Flow * flow;
+public:
+    Send_New_Packets_Event(double start_, Flow * flow_);
+	void handle_event();
+};
+
 
 /////////////// Link_Send_Event /////////////////
 class Link_Send_Event : public Event {
