@@ -41,6 +41,7 @@ double Link::get_capacity() {
 
 // Get the flowrate of the link
 double Link::get_flowrate() {
+    set_flowrate();
 	return flowrate;
 }
 int Link::get_packets_dropped() {
