@@ -11,11 +11,10 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	destination = destination_;
 	size = data_size_;
 	start = start_;
-	algorithm = 1;
 	window_size = 2;
 	last_ack_received = 1;
 	num_duplicates = 0;
-	ss_threshold = 0;
+	ss_threshold = 1000000;
 	sent = 0;
 	bytes_received = 0;
 	last_bytes_received_query = 0;
@@ -43,27 +42,28 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 // Sends packets
 // Called whenever flow needs to send new packets
 // E.g. ack receipt, flow time out, etc.
-vector<Data_packet *> Flow::send_packets(bool duplicate) {
+vector<Data_packet *> Flow::send_packets() {
 	// duplicate: true if retransmitting one packet
 	vector<Data_packet *> send_now;
 	// mexPrintf("sending: %d window size: %f last_ack: %d\n", (int)sending.size(), window_size, last_ack_received);
-	// print_sending();
-	if(duplicate){
-		Data_packet * retransmit = generate_packet(last_ack_received);
-		in_flight++;
-		send_now.push_back(retransmit);
+	// try to send timed out packets first
+	while(in_flight < window_size and timed_out_packets.size() > 0 and !done){
+		int num = timed_out_packets.front();
+		timed_out_packets.pop_front();
+		if(!acked_packet(num)){
+			Data_packet * retransmit = generate_packet(num);
+		    in_flight++;
+		    send_now.push_back(retransmit);
+		}		
 	}
-	else{
-		while(in_flight < window_size and !done){
-			if(!acked_packet(next_index)){
-				Data_packet * new_packet = generate_packet(next_index);
-				send_now.push_back(new_packet);
-				in_flight++;
-			}
-			next_index++;
+	while(in_flight < window_size and !done){
+		if(!acked_packet(next_index)){
+			Data_packet * new_packet = generate_packet(next_index);
+			send_now.push_back(new_packet);
+			in_flight++;
 		}
-	}
-	
+		next_index++;
+	}	
 	mexPrintf("window_size: %f\n", window_size);
 	//mexPrintf("ss threshold: %d\n", ss_threshold);    
 	return send_now;
@@ -117,68 +117,71 @@ vector<Data_packet *> Flow::receive_ack(Ack_packet * packet) {
 			time_out = 1; // avoids small time_out errors
 		}
 	}
-	time_out = 2; // FIX THIS LATER
 	//mexPrintf("%f %f %f %f\n", rtt, rtt_avg, rtt_dev, time_out);
 	// If duplicate ack, go back n
 	if(TCP_ID == TCP_FAST){
-		send_now = send_packets(false);
+		send_now = send_packets();
 	}
 	else if(packet->get_index() == last_ack_received){
 		num_duplicates++;
 		// fast recovery
 		if(fast_retransmit && fast_recovery && num_duplicates == 3){
-			if(!lost_packet(packet->get_index() - 1)){
-				lost_packets.push_back(packet->get_index() - 1);	
-				slow_start = false;
-				ss_threshold = in_flight / 2;			
-				if(ss_threshold < 2){
-					ss_threshold = 2;
-				}				
-				// window inflation
-				send_now = send_packets(true);
-				window_size = ss_threshold + 3;				
-			}									
+			//if(!lost_packet(packet->get_index() - 1)){
+				//lost_packets.push_back(packet->get_index() - 1);	
+			slow_start = false;
+			ss_threshold = window_size / 2;			
+			if(ss_threshold < 2){
+				ss_threshold = 2;
+			}
+			timed_out_packets.push_back(packet->get_index() - 1);
+			// window inflation			
+			window_size = ss_threshold + 3;
+			send_now = send_packets();
+				//}									
 		}
 		else if(fast_retransmit && fast_recovery && num_duplicates > 3){
-			window_size += 1;
-			send_now = send_packets(false);
+			window_size++;
+			send_now = send_packets();
 		}
 	}	
 	// Handle normally 
 	else{		
 		last_ack_received = packet->get_index();
 		// window deflation
-		if(fast_retransmit && fast_recovery && num_duplicates > 3){
-			num_duplicates = 0;
+		if(fast_retransmit && fast_recovery && num_duplicates > 3){			
 			window_size = ss_threshold;
 		}
-
+		num_duplicates = 0;
 		// slow start
 		if(slow_start){
 			window_size++;
-			if(window_size == ss_threshold){
+			if(window_size >= ss_threshold){
 				slow_start = false;
 			}
-			send_now = send_packets(false);
+			send_now = send_packets();
 		}
 		// congestion avoidance
 		else{
-			window_size += 1 / (double)(int)window_size;
-			send_now = send_packets(false);
+			window_size += 1 / window_size;
+			send_now = send_packets();
 		}		  
     }
 	last_ack_received = packet->get_index();
 	return send_now;
 }
 
-// Handles flow time out
-vector<Data_packet *> Flow::handle_time_out(){
+// Handles packet time out
+vector<Data_packet *> Flow::handle_time_out(int index){
+	timed_out_packets.push_back(index);
 	ss_threshold = window_size / 2;
+	if(ss_threshold < 2){
+		ss_threshold = 2;
+	}
 	window_size = 1;
 	slow_start = true;
-	in_flight = 0;
-	next_index = last_ack_received;
-    return send_packets(false);
+	in_flight -= 1;
+	next_index = index;
+	return send_packets();
 }
 
 // Check if packet was lost

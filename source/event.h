@@ -120,10 +120,10 @@ public:
 /////////////// Time_Out_Event //////////////////
 class Time_Out_Event : public Event {
     Flow * flow;
-    double lt;
+    int index;
     
 public:
-    Time_Out_Event(double start_, int event_ID_, Flow * flow_, double lt_);
+    Time_Out_Event(double start_, int event_ID_, Flow * flow_, int index_);
     void handle_event();
 };
 /////////////// Update_Rtables_Event //////////////////

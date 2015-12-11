@@ -136,26 +136,6 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	return 0;
 }
 
-/**
- * Discards the packet at the front of the buffer
- */
-void Link::discard_packet() {
-	// Sanity check
-	if(data_buffer.empty()) {
-			mexPrintf("Attempted to pop an empty buffer. \n");
-			mexErrMsgTxt("");
-	}	
-	int direction = data_directions.front();
-	data_buffer.front()->getFlow()->sending.erase(
-		data_buffer.front()->getFlow()->sending.begin()); // should always be nonempty
-	bytes_stored -= data_buffer.front()->packetSize();
-	data_buffer.pop();
-	data_directions.pop();	
-
-	packets_stored--;
-	is_free = 1;
-}
-
 /* Transmit the first packet on this link's buffer, spawning an 
    appropriate event in response to the destination of the newly
    transmitted packet. */
