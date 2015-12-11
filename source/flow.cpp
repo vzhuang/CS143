@@ -1,5 +1,5 @@
-#include "flow.h"
-#include "parser.h"
+#include "flow.hpp"
+#include "parser.hpp"
 extern Network network;
 extern double global_time;
 extern int TCP_ID;

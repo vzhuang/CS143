@@ -1,5 +1,5 @@
-#include "event.h"
-#include "parser.h"
+#include "event.hpp"
+#include "parser.hpp"
 #include <assert.h>
 extern double global_time;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> event_queue;
@@ -33,34 +33,34 @@ void Event::handle_event() {
 /////////////////////////// FLOW EVENTS ///////////////////////////////
 
 // Flow start event
-Flow_Start_Event::Flow_Start_Event(double start_, int event_ID_, Flow * flow_)
-           : Event(start_, event_ID_) {
+Flow_Start_Event::Flow_Start_Event(double start_, int TCP_type_, Flow * flow_)
+           : Event(start_, FLOW_START_EVENT_ID) {
+	TCP_type = TCP_type_;		 
 	flow = flow_;
 }
 
 void Flow_Start_Event::handle_event() {
 	global_time = this->get_start();
-	int event_ID = this->get_ID();
-	if(event_ID == TCP_TAHOE) {
+
+	if(TCP_type == TCP_TAHOE) {
 		flow->fast_recovery = false;	   
 	}
-	else if(event_ID == TCP_RENO) {
+	else if(TCP_type == TCP_RENO) {
 		flow->fast_retransmit = true;
 		flow->fast_recovery = true;
 	}
-	else if(event_ID == TCP_FAST) {
+	else if(TCP_type == TCP_FAST) {
 		flow->fast_retransmit = false;
 		flow->fast_recovery = false;
 	    Fast_Update_Event * fast_update =
 			new Fast_Update_Event(
 				1 + FAST_DELAY,
-			    FAST_UPDATE_ID,
 				flow);
 		event_queue.push(fast_update);
 	}
 	else {
-		mexPrintf("Invalid event_ID: %d\n", event_ID);
-		mexErrMsgTxt("");
+		mexPrintf("Invalid TCP ID: %d\n", TCP_type);
+		mexErrMsgTxt("Exiting.\n");
 	}
 	Host * source = flow->get_source();
 	Host * destination = flow->get_destination();
@@ -74,7 +74,6 @@ void Flow_Start_Event::handle_event() {
 			Link_Send_Event * event = 
 				new Link_Send_Event(
 					link->earliest_available_time(),
-					SEND_EVENT_ID,
 					link,
 					DATA_SIZE);
 			event_queue.push(event);
@@ -83,8 +82,8 @@ void Flow_Start_Event::handle_event() {
 }
 
 // Ack receive event
-Ack_Receive_Event::Ack_Receive_Event(double start_, int event_ID_, Ack_packet * ack_)
-           : Event(start_, event_ID_) {
+Ack_Receive_Event::Ack_Receive_Event(double start_, Ack_packet * ack_)
+           : Event(start_, ACK_RECEIVE_EVENT_ID) {
 	ack = ack_;
 }
 
@@ -107,7 +106,6 @@ void Ack_Receive_Event::handle_event() {
 			Link_Send_Event * event = 
 				new Link_Send_Event(
 					link->earliest_available_time(),
-					SEND_EVENT_ID,
 					link,
 					DATA_SIZE);
 
@@ -116,7 +114,6 @@ void Ack_Receive_Event::handle_event() {
         Time_Out_Event * timeout =
 	        new Time_Out_Event(
 			    global_time + ack->getFlow()->time_out,
-			    TIMEOUT_EVENT_ID,
 			    ack->getFlow(),
 				to_send[i]->get_index());
 	    event_queue.push(timeout);
@@ -125,8 +122,8 @@ void Ack_Receive_Event::handle_event() {
 }
 
 // Data receive event
-Data_Receive_Event::Data_Receive_Event(double start_, int event_ID_, Data_packet * data_)
-           : Event(start_, event_ID_) {
+Data_Receive_Event::Data_Receive_Event(double start_, Data_packet * data_)
+           : Event(start_, DATA_RECEIVE_EVENT_ID) {
 	data = data_;
 }
 
@@ -147,7 +144,6 @@ void Data_Receive_Event::handle_event() {
 	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
 		Link_Send_Event * event = new Link_Send_Event(
 									link_to_send_ack->earliest_available_time(),
-									SEND_EVENT_ID,
 									link_to_send_ack,
 									ACK_SIZE);
 		event_queue.push(event);
@@ -175,7 +171,7 @@ void Packet_Receive_Event::handle_event() {
 			// If successfully added to buffer, create a routing send event (uses routing buffer)
 			Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
 								link->earliest_available_time_r(),
-								RSEND_EVENT_ID, link);
+								link);
 			routing_queue.push(send_event);
 		} 	
 	}
@@ -186,7 +182,6 @@ void Packet_Receive_Event::handle_event() {
 			// A packet was received during normal flow progression (so we want to use data buffer)
 			Link_Send_Event * send_event = new Link_Send_Event(
 									link->earliest_available_time(),
-									SEND_EVENT_ID,
 									link,
 									packet->packetSize());
 			event_queue.push(send_event);
@@ -196,8 +191,8 @@ void Packet_Receive_Event::handle_event() {
 
 // Time out event
 // Occurs when no packet gets sent/received for time_out time
-Time_Out_Event::Time_Out_Event(double start_, int event_ID_, Flow * flow_, int index_)
-           : Event(start_, event_ID_) {
+Time_Out_Event::Time_Out_Event(double start_, Flow * flow_, int index_)
+           : Event(start_, TIMEOUT_EVENT_ID) {
 	flow = flow_;
 	index = index_;
 }
@@ -216,7 +211,6 @@ void Time_Out_Event::handle_event() {
 				Link_Send_Event * event = 
 					new Link_Send_Event(
 						link->earliest_available_time(),
-						SEND_EVENT_ID,
 						link,
 						DATA_SIZE);
 				event_queue.push(event);
@@ -224,7 +218,6 @@ void Time_Out_Event::handle_event() {
 			Time_Out_Event * timeout =
 				new Time_Out_Event(
 					global_time + flow->time_out,
-					TIMEOUT_EVENT_ID,
 				    to_send[i]->getFlow(),
 					to_send[i]->get_index());
 			event_queue.push(timeout);
@@ -236,8 +229,8 @@ void Time_Out_Event::handle_event() {
 
 // Fast update event
 // Updates window size for fast TCP
-Fast_Update_Event::Fast_Update_Event(double start_, int event_ID_, Flow * flow_)
-	    : Event(start_, event_ID_) {
+Fast_Update_Event::Fast_Update_Event(double start_, Flow * flow_)
+	    : Event(start_, FAST_UPDATE_EVENT_ID) {
 	flow = flow_;
 }
 
@@ -247,7 +240,6 @@ void Fast_Update_Event::handle_event() {
 		Fast_Update_Event * fast_update =
 			new Fast_Update_Event(
 				global_time + FAST_DELAY,
-			    FAST_UPDATE_ID,
 				flow);
 		event_queue.push(fast_update);
 	}
@@ -262,8 +254,8 @@ void Fast_Update_Event::handle_event() {
 
 // Link send event
 
-Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_, double packetsize)
-           : Event(start_, event_ID_) {
+Link_Send_Event::Link_Send_Event(double start_, Link * link_, double packetsize)
+           : Event(start_, SEND_EVENT_ID) {
 	link = link_;
 	// Create an event to free the link at the same time that the packet
 	// successfully transmits. We achieve this using epsilon.
@@ -271,7 +263,7 @@ Link_Send_Event::Link_Send_Event(double start_, int event_ID_, Link * link_, dou
 	Link_Free_Event * free_event = 
 		new Link_Free_Event(
 			start_ + time_to_send - EPSILON,
-			LINK_FREE_ID,
+			LINK_FREE_EVENT_ID,
 			link_,
 			-1);
 	event_queue.push(free_event);
@@ -282,7 +274,6 @@ void Link_Send_Event::handle_event() {
 	global_time = this->get_start();
 	int ind = link->data_buffer.front()->get_index();
 	bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
-	//mexPrintf("Link sending %d %d\n", ind,  link->data_buffer.front()->getFlow()->last_ack_received);
 	Node * endpoint1 = link->get_ep1();
 	Node * endpoint2 = link->get_ep2();
 	if (link->data_directions.front() == - 1) {
@@ -299,8 +290,8 @@ void Link_Send_Event::handle_event() {
 }
 
 // Link send routing event
-Link_Send_Routing_Event::Link_Send_Routing_Event(double start_, int event_ID_, Link * link_)
-           : Event(start_, event_ID_) {
+Link_Send_Routing_Event::Link_Send_Routing_Event(double start_, Link * link_)
+           : Event(start_, RSEND_EVENT_ID) {
 	link = link_;
 	// Create an event to free the link at the same time that the packet
 	// successfully transmits. We achieve this using epsilon.
@@ -358,8 +349,8 @@ void Link_Free_Event::handle_event() {
 
 // Rout receive event
 // Routing packet was received
-Rout_Receive_Event::Rout_Receive_Event(Router * router_, double start_, int event_ID_, Rout_packet * r_packet_)
-           : Event(start_, event_ID_) {
+Rout_Receive_Event::Rout_Receive_Event(Router * router_, double start_, Rout_packet * r_packet_)
+           : Event(start_, ROUT_RECEIVE_EVENT_ID) {
 	r_packet = r_packet_;
 	router = router_;
 }
@@ -375,8 +366,8 @@ void Rout_Receive_Event::handle_event() {
 }
 
 // Update rtables event
-Update_Rtables_Event::Update_Rtables_Event(double start_, int event_ID_, Network * network_)
-           : Event(start_, event_ID_) {
+Update_Rtables_Event::Update_Rtables_Event(double start_, Network * network_)
+           : Event(start_, REFRESH_RTABLES_EVENT_ID) {
 	network = network_;
 }
 void Update_Rtables_Event::handle_event() {
@@ -421,7 +412,7 @@ void Update_Rtables_Event::handle_event() {
 						// If successfully added to buffer, create a send event
 						Link_Send_Routing_Event * send_event = new Link_Send_Routing_Event(
 											link_to_send_r_packet->earliest_available_time_r(),
-											RSEND_EVENT_ID, link_to_send_r_packet);
+											link_to_send_r_packet);
 						routing_queue.push(send_event);
 					} 
 				}

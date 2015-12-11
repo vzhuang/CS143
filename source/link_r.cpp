@@ -1,7 +1,7 @@
 // Link routines for the routing_buffer
 
-#include "link.h" 
-#include "parser.h"
+#include "link.hpp" 
+#include "parser.hpp"
 extern Network network;
 using namespace std;
 
@@ -101,7 +101,6 @@ Packet * Link::transmit_packet_r() {
 		Rout_Receive_Event * rr_event = new Rout_Receive_Event(
 									(Router *) endpoint2,
 									global_time + time_to_send + delay,
-									ROUT_RECEIVE_ID,
 									(Rout_packet *) transmission_packet);
 		routing_queue.push(rr_event);
 	}

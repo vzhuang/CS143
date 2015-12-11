@@ -1,4 +1,4 @@
-#include "graphing.h"
+#include "graphing.hpp"
 #define VECTOR_SIZE 10000
 
 static double * vector_time;
@@ -205,6 +205,28 @@ void update_pds(Network * network) {
 }
 // PLOT FINAL POINTS
 void plot_final_points() {
+    
+    mexEvalString("figure = link_rates;");
+    mexEvalString("axh = findobj( link_rates, 'Type', 'Line' );");  
+    if (!strcmp(file_name, "testcase0.txt")) {
+        lr1[vector_index] = 0;
+        mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
+    }
+    if (!strcmp(file_name, "testcase1.txt")) {
+        lr1[vector_index] = 0;
+        mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
+        lr2[vector_index] = 0;
+        mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
+    }
+    if (!strcmp(file_name, "testcase2.txt")) {
+        lr1[vector_index] = 0;
+        mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
+        lr2[vector_index] = 0;
+        mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
+        lr3[vector_index] = 0;
+        mexEvalString("set(axh(3), 'XData', time, 'YData', lr3)");
+    }
+    
     mexEvalString("figure = packet_delays;");
     mexEvalString("axh = findobj( packet_delays, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
@@ -300,7 +322,7 @@ void plot_final_points() {
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        ws2[vector_index] = 0;
+        ws1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {

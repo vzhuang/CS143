@@ -1,7 +1,7 @@
 /* Link routines for the data_buffer and link ititialization code */
 
-#include "link.h"
-#include "parser.h"
+#include "link.hpp"
+#include "parser.hpp"
 extern Network network;
 using namespace std;
 
@@ -129,8 +129,7 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 	}
 	// Something went wrong
 	else {
-		mexPrintf("Incoming packet did not come from a link endpoint\n");
-		mexErrMsgTxt("");
+		mexErrMsgTxt("Incoming packet did not come from a link endpoint\n");
 	}
 	t_free = max(t_free + get_packet_delay(packet), global_time + get_queue_delay());
 	return 0;
@@ -142,22 +141,22 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 Packet * Link::transmit_packet() {
 	// Sanity check
 	if(data_buffer.empty()) {
-			mexPrintf("Failure. Attempted to transmit a packet on a link with an empty buffer. Global Time: %f, t_free: %f\nExiting. \n",
+			mexPrintf("Failure. Attempted to transmit a packet on a link with an empty buffer. Global Time: %f, t_free: %f\n",
 			global_time * 1000.0, t_free * 1000.0);
-			mexErrMsgTxt("");
+			mexErrMsgTxt("Exiting. \n");
 	}
 
 	if(is_free == false) {
-			mexPrintf("Failure. Link was not free but a transmit was attempted. Global Time: %f, t_free: %f\nExiting. \n",
+			mexPrintf("Failure. Link was not free but a transmit was attempted. Global Time: %f, t_free: %f\n",
 			global_time * 1000.0, t_free * 1000.0);
-			mexErrMsgTxt("");
+			mexErrMsgTxt("Exiting. \n");
 	}
 
 	if(global_time > t_free)
 	{
-			mexPrintf("Failure. Global Time: %f, t_free: %f\nExiting. \n",
+			mexPrintf("Failure. Global Time: %f, t_free: %f\n",
 			global_time * 1000.0, t_free * 1000.0);
-			mexErrMsgTxt("");
+			mexErrMsgTxt("Exiting. \n");
 	}
 	// Set the link to occupied for the duration of this transmission
 	is_free = false;
@@ -187,7 +186,6 @@ Packet * Link::transmit_packet() {
 		{
 			Ack_Receive_Event * ack_event = new Ack_Receive_Event(
 									global_time + time_to_send + delay,
-									ACK_RECEIVE_ID,
 									(Ack_packet *) transmission_packet);
 			event_queue.push(ack_event);
 		}
@@ -195,7 +193,6 @@ Packet * Link::transmit_packet() {
 		else {
 			Data_Receive_Event * receive_event = new Data_Receive_Event(
 									global_time + time_to_send + delay,
-									DATA_RECEIVE_ID,
 									(Data_packet *) transmission_packet);
 			event_queue.push(receive_event);
 		}
@@ -209,7 +206,7 @@ Packet * Link::transmit_packet() {
 
 		Packet_Receive_Event * pr_event = new Packet_Receive_Event(
 									global_time + time_to_send + delay,
-									-1,
+									SEND_EVENT_ID,
 									transmission_packet,
 									next_link,
 									endpoint2);
