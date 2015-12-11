@@ -1,10 +1,10 @@
 
-#ifndef NODE_H
-#define NODE_H
+#ifndef NODE_HPP
+#define NODE_HPP
 
-#include "link.h"
-#include "packet.h"
-#include "flow.h"
+#include "link.hpp"
+#include "packet.hpp"
+#include "flow.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -89,4 +89,4 @@ public:
 	bool is_router();
 };
 
-#endif  /* NODE_H */
+#endif  /* NODE_HPP */

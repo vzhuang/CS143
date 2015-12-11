@@ -1,10 +1,10 @@
-#ifndef PACKET_H
-#define PACKET_H
+#ifndef PACKET_HPP
+#define PACKET_HPP
 
 #include <map>
-#include "node.h"
-#include "flow.h"
-#include "link.h"
+#include "node.hpp"
+#include "flow.hpp"
+#include "link.hpp"
 #include <vector>
 #include "mex.h"
 // Packet sizes in bytes
@@ -85,4 +85,4 @@ protected:
 	Flow * my_flow;
 	int index;
 };
-#endif
+#endif /* PACKET_HPP */
