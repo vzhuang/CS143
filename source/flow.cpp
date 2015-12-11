@@ -157,11 +157,16 @@ void Flow::receive_ack(Ack_packet * packet) {
 // Updates window size
 void Flow::update_window(){
 	if(TCP_ID == TCP_FAST){
-		window_size = min(2 * window_size,
-						  gamma * (rtt_min * window_size / rtt + alpha) +
-						  (1 - gamma) * window_size);
+		if(rtt > 0){
+			window_size = min(2 * window_size,
+						  gamma * (rtt_min * window_size / rtt + alpha) + (1 - gamma) * window_size);
+		}
+		else{
+			window_size *= 2;
+		}
+		
 	}
-	if(TCP_ID == TCP_TAHOE or TCP_ID == TCP_RENO){
+	else if(TCP_ID == TCP_TAHOE or TCP_ID == TCP_RENO){
 		// slow start
 		if(window_size <= ss_threshold){
 			window_size++;
