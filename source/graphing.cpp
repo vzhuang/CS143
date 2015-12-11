@@ -16,7 +16,13 @@ extern char * file_name;
 
 // Init components for all testcases
 void init_graphs(Network * network, const mxArray **prhs) {
-
+    
+    // Monitor link1 and flow1 as in the testcase0 case
+    // for network descriptor files that were not shown on the website. 
+    if ( (strcmp(file_name, "testcase1.txt") != 0) && 
+            (strcmp(file_name, "testcase2.txt") != 0) ) {
+        file_name = "testcase0.txt";
+    }
     // Initialize counter
     vector_index = 0;
     // Init data pointers
