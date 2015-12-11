@@ -56,9 +56,7 @@ vector<Data_packet *> Flow::send_packets() {
 			sending.push_back(next_index);
 			in_flight = sending.size();
 		}
-		//timed_out_packets.erase(remove(timed_out_packets.begin(), timed_out_packets.end(), next_index), timed_out_packets.end());
-		next_index++;
-		
+		next_index++;		
 	}
 	print_received();
 	mexPrintf("after: cwnd: %f inflight: %d\n", window_size, in_flight);
@@ -119,6 +117,9 @@ void Flow::receive_ack(Ack_packet * packet) {
 	// If duplicate ack, go back n
 	if(TCP_ID == TCP_FAST){
 		// assume loss after one duplicate ack
+		if(packet->get_index() > max_ack_received){
+			max_ack_received = packet->get_index();
+	   	}
 	}
 	else if(packet->get_index() == last_ack_received){
 		num_duplicates++;

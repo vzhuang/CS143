@@ -213,52 +213,12 @@ void Time_Out_Event::handle_event() {
 		global_time = this->get_start();
 		mexPrintf("global_time %f\n", global_time);
         mexPrintf("Packet %d timed out\n", index);
-		// flow->handle_time_out(index);
-		// Host * source = flow->get_source();
-		// Link * link = source->get_first_link();
-		// Data_packet * retransmit = flow->generate_packet(index);
-	    // if(link->add_to_buffer(retransmit, (Node *) source) == 0) {
-		// 	Link_Send_Event * event = 
-		// 		new Link_Send_Event(
-		// 			link->earliest_available_time(),
-		// 			link,
-		// 			DATA_SIZE);
-		// 	event_queue.push(event);
-		// 	Time_Out_Event * timeout =
-		// 		new Time_Out_Event(
-		// 			global_time + flow->time_out,
-		// 		    flow,
-		// 			retransmit->get_index());
-		// 	event_queue.push(timeout);
-		// }
-		
 		flow->handle_time_out(index);
 		Send_New_Packets_Event * send =
 			new Send_New_Packets_Event(
 				global_time + RESEND_TIME,
 				flow);	
 		event_queue.push(send);
-		// Host * source = flow->get_source();
-		// Link * link = source->get_first_link();
-		// vector<Data_packet *> to_send = flow->handle_time_out(index);
-		// for(int i = 0; i < to_send.size(); i++) {
-		// 	if(link->add_to_buffer(to_send[i], (Node *) source) == 0) {
-		// 		Link_Send_Event * event = 
-		// 			new Link_Send_Event(
-		// 				link->earliest_available_time(),
-		// 				link,
-		// 				DATA_SIZE);
-		// 		event_queue.push(event);
-		// 	}	   
-		// 	Time_Out_Event * timeout =
-		// 		new Time_Out_Event(
-		// 			global_time + flow->time_out,
-		// 		    to_send[i]->getFlow(),
-		// 			to_send[i]->get_index());
-		// 	event_queue.push(timeout);
-
-		// }
-		//flow->print_received();
 	}	
 }
 
