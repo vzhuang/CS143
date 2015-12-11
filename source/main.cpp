@@ -1,11 +1,11 @@
-#include "node.h"
-#include "packet.h"
-#include "flow.h"
-#include "link.h"
-#include "parser.h"
-#include "event.h"
-#include "network.h"
-#include "graphing.h"
+#include "node.hpp"
+#include "packet.hpp"
+#include "flow.hpp"
+#include "link.hpp"
+#include "parser.hpp"
+#include "event.hpp"
+#include "network.hpp"
+#include "graphing.hpp"
 #include <vector>
 #include "mex.h"
 #define SAMPLING_RATE 0.03
@@ -38,8 +38,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	// Build network by parsing the input network file
 	build_network(&network, network_file);
 
-	// Create an event to update the routing tables
-	Update_Rtables_Event * event = new Update_Rtables_Event(0 - EPSILON, TCP_ID, &network);
+	// Create an event to update the routing tables before any flows begin
+	Update_Rtables_Event * event = new Update_Rtables_Event(0 - EPSILON, &network);
 	event_queue.push(event);
 
 	init_graphs(&network, prhs);
@@ -52,20 +52,20 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		Flow_Start_Event * event = new Flow_Start_Event(start, TCP_ID, this_flow);
 		event_queue.push(event);
 	}
-	double prev_time0 = 0.0;
-	double prev_time1 = 0.0;
+    // Times of the last data plot/routing table update
+	double prev_data_query = 0.0;
+	double prev_routing_query = 0.0;
 	// Keep dequeuing events and handling them
 	while( (!event_queue.empty()) && (global_time <= end_time) )
 	{
-		double data_sampler = global_time - prev_time0;
+		double data_sampler = global_time - prev_data_query;
 		if(data_sampler > SAMPLING_RATE) {
-			prev_time0 = global_time;
+			prev_data_query = global_time;
 			update_graphs(&network, prhs);
 		}
-		double refresh_sampler = global_time - prev_time1;
+		double refresh_sampler = global_time - prev_routing_query;
 		if(refresh_sampler > REFRESH_RATE) {
 			// Set the distance vector to reflect the most recent link costs
-
 			cout << "Time: " << global_time << "\n";
 			for (int i = 0; i < network.all_links.size(); i++) {
 				Link * link = network.all_links.at(i);
@@ -73,8 +73,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
 				cout << "Cost for link " << link_to_english(&network, link) << ":  "<< link->calculate_cost() << "\n";
 			}
 
-			prev_time1 = global_time;
-			Update_Rtables_Event * event = new Update_Rtables_Event(global_time, TCP_ID, &network);
+			prev_routing_query = global_time;
+			Update_Rtables_Event * event = new Update_Rtables_Event(global_time, &network);
 			event_queue.push(event);
 		}
 
@@ -83,6 +83,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		to_handle->handle_event();
 		delete to_handle;
 	}
+	// Flush out the graphs
     plot_final_points();
 	mexPrintf("end time: %f, global_time: %f\n", end_time, global_time);
 	mexPrintf("Exiting\n");

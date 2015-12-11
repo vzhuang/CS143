@@ -45,10 +45,10 @@ network.
 
 #ifndef PARSER_H
 #define PARSER_H
-#include "flow.h"
-#include "link.h"
-#include "node.h"
-#include "network.h"
+#include "flow.hpp"
+#include "link.hpp"
+#include "node.hpp"
+#include "network.hpp"
 #include <fstream>
 #include <iostream>
 #include <string>

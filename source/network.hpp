@@ -1,8 +1,8 @@
 #ifndef NETWORK_H
 #define NETWORK_H
-#include "link.h"
-#include "node.h"
-#include "flow.h"
+#include "link.hpp"
+#include "node.hpp"
+#include "flow.hpp"
 
 using namespace std;
 

@@ -1,8 +1,8 @@
 
 #ifndef GRAPHING_H
 #define GRAPHING_H
-#include "network.h"
-#include "parser.h"
+#include "network.hpp"
+#include "parser.hpp"
 class Flow;
 class Link;
 

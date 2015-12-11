@@ -1,4 +1,4 @@
-#include "packet.h"
+#include "packet.hpp"
 /////////////////// Generic Packet Superclass /////////////////////
 Packet::Packet(Node * source_, 
 	           Node * dest_, 

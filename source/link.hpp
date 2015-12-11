@@ -1,19 +1,19 @@
 /*
- * FILE: linked_list.h
+ * FILE: link.hpp
  *
  */
 
-#ifndef LINK_H
-#define LINK_H
+#ifndef LINK_HPP
+#define LINK_HPP
 
-#include "flow.h"
+#include "flow.hpp"
 #include <iostream>
 #include <queue>
-#include "packet.h"
+#include "packet.hpp"
 #include <stdio.h>
 #include <cstdlib>
-#include "node.h"
-#include "event.h"
+#include "node.hpp"
+#include "event.hpp"
 #include <limits>
 #include <vector>
 #define EPSILON .0000000000001
@@ -122,4 +122,4 @@ public:
 	
 };
 
-#endif  /* LINK_H */
+#endif  /* LINK_HPP */

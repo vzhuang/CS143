@@ -1,23 +1,23 @@
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef EVENT_HPP
+#define EVENT_HPP
 
 #include <string>
-#include "node.h"
-#include "flow.h"
-#include "link.h"
-#include "packet.h"
+#include "node.hpp"
+#include "flow.hpp"
+#include "link.hpp"
+#include "packet.hpp"
 
-#define SEND_EVENT_ID 0
-#define FLOW_START_ID 1
-#define LINK_FREE_ID 2
-#define DATA_RECEIVE_ID 3
-#define ACK_RECEIVE_ID 4
-#define ROUT_RECEIVE_ID 5
+#define FLOW_START_EVENT_ID 0
+#define SEND_EVENT_ID 1
+#define LINK_FREE_EVENT_ID 2
+#define DATA_RECEIVE_EVENT_ID 3
+#define ACK_RECEIVE_EVENT_ID 4
+#define ROUT_RECEIVE_EVENT_ID 5
 #define TIMEOUT_EVENT_ID 6
 #define RSEND_EVENT_ID 7
 #define RFREE_EVENT_ID 8
-#define REFRESH_RTABLES_ID 9
-#define FAST_UPDATE_ID 10
+#define REFRESH_RTABLES_EVENT_ID 9
+#define FAST_UPDATE_EVENT_ID 10
 class Ack_packet;
 class Data_packet;
 class Rout_packet;
@@ -41,9 +41,9 @@ public:
 /////////////// Flow_Start_Event /////////////////
 class Flow_Start_Event : public Event {
 	Flow * flow;
-	
+	int TCP_type;
 public:
-	Flow_Start_Event(double start_, int event_ID_, Flow * flow_);
+	Flow_Start_Event(double start_, int TCP_type_, Flow * flow_);
 	void handle_event();
 	
 };
@@ -52,7 +52,7 @@ public:
 class Link_Send_Event : public Event {
 	Link * link;
 public:
-	Link_Send_Event(double start_, int event_ID_, Link * link_, double packetsize_);
+	Link_Send_Event(double start_, Link * link_, double packetsize_);
 	void handle_event();
 };
 
@@ -61,7 +61,7 @@ class Link_Send_Routing_Event : public Event {
 	Link * link;
 	
 public:
-	Link_Send_Routing_Event(double start_, int event_ID_, Link * link_);
+	Link_Send_Routing_Event(double start_, Link * link_);
 	void handle_event();
 };
 
@@ -81,7 +81,7 @@ class Ack_Receive_Event : public Event {
     double last_action_time;
 	
 public:
-	Ack_Receive_Event(double start_, int event_ID_, Ack_packet * ack_);
+	Ack_Receive_Event(double start_, Ack_packet * ack_);
 	void handle_event();
 	
 };
@@ -91,7 +91,7 @@ class Data_Receive_Event : public Event {
 	Data_packet * data;
 	
 public:
-	Data_Receive_Event(double start_, int event_ID_, Data_packet * data_);
+	Data_Receive_Event(double start_, Data_packet * data_);
 	void handle_event();
 	
 };
@@ -113,7 +113,7 @@ class Rout_Receive_Event : public Event {
 	Router * router;
 	
 public:
-	Rout_Receive_Event(Router * router_, double start_, int event_ID_, Rout_packet * r_packet_);
+	Rout_Receive_Event(Router * router_, double start_, Rout_packet * r_packet_);
 	void handle_event();
 	
 };
@@ -123,14 +123,14 @@ class Time_Out_Event : public Event {
     int index;
     
 public:
-    Time_Out_Event(double start_, int event_ID_, Flow * flow_, int index_);
+    Time_Out_Event(double start_, Flow * flow_, int index_);
     void handle_event();
 };
 /////////////// Update_Rtables_Event //////////////////
 class Update_Rtables_Event : public Event {
     Network * network;
 public:
-    Update_Rtables_Event(double start_, int event_ID_, Network * network_);
+    Update_Rtables_Event(double start_, Network * network_);
     void handle_event();
 };
 
@@ -139,7 +139,7 @@ public:
 class Fast_Update_Event : public Event {
     Flow * flow;
 public:
-    Fast_Update_Event(double start_, int event_ID_, Flow * flow_);
+    Fast_Update_Event(double start_, Flow * flow_);
     void handle_event();
 };
 

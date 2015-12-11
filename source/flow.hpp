@@ -1,15 +1,16 @@
-#ifndef FLOW_H
-#define FLOW_H
+#ifndef FLOW_HPP
+#define FLOW_HPP
 
-#include "link.h"
-#include "packet.h"
-#include "node.h"
-#include "flow.h"
+#include "link.hpp"
+#include "packet.hpp"
+#include "node.hpp"
+#include "flow.hpp"
 #include <iostream>
 #include <vector>
 #include <deque>
 #include <cmath>
 #include <algorithm>
+
 class Node;
 class Host;
 class Link;
