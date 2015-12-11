@@ -1,5 +1,8 @@
 #include "graphing.hpp"
+#define Mb_per_B 8.0 / 1000000.0
+#define ms_per_s 1000.0
 
+// Points to Matlab data arrays
 static double * vector_time;
 static double * lr1, * lr2, * lr3;
 static double * bo1, * bo2, * bo3;
@@ -12,6 +15,7 @@ static int VECTOR_SIZE;
 extern double global_time;
 extern char * file_name;
 
+// Create a Matlab plot legend appropriate for this testcase and data type
 void spawn_appropriate_legend(bool link_graph){
     mexEvalString("axh = findobj( gcf, 'Type', 'Line' );");  
     // If this is a link graph
@@ -43,7 +47,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
             (strcmp(file_name, "testcase2.txt") != 0) ) {
         file_name = (char *)"testcase0.txt";
     }
-   
+    // Create Link Rate graph
     mexEvalString("link_rates = figure;");
     mexEvalString("figure(link_rates);");
     mexEvalString("set(gcf,'numbertitle','off','name','Link Rate vs Time');");
@@ -52,7 +56,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Link Rate (Mbps)');");
     spawn_appropriate_legend(true);
-
+    // Create Buffer Occupancy graph
     mexEvalString("buffer_occupancies = figure;");
     mexEvalString("figure(buffer_occupancies);");
     mexEvalString("set(gcf,'numbertitle','off','name','Buffer Occupancy vs Time');");
@@ -61,7 +65,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Buffer Occupancy (# packets)');");
     spawn_appropriate_legend(true);
-    
+    // Create Packet Loss graph
     mexEvalString("packet_losses = figure;");
     mexEvalString("figure(packet_losses);");
     mexEvalString("set(gcf,'numbertitle','off','name','Packet Loss vs Time');");
@@ -70,7 +74,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Packet Loss (# packets)');");
     spawn_appropriate_legend(true);
-    
+    // Create Flow Rates graph
     mexEvalString("flow_rates = figure;");
     mexEvalString("figure(flow_rates);");
     mexEvalString("set(gcf,'numbertitle','off','name','Flow Rate vs Time');");
@@ -80,7 +84,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("ylabel('Flow Rate (Mbps)');");
     mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");
     spawn_appropriate_legend(false);
-    
+    // Create window sizes graph
     mexEvalString("window_sizes = figure;");
     mexEvalString("figure(window_sizes);");
     mexEvalString("set(gcf,'numbertitle','off','name','Window Size vs Time');");
@@ -90,7 +94,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("ylabel('Window Size');");
     mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");
     spawn_appropriate_legend(false);
-    
+    // Create Packet Delays graph
     mexEvalString("packet_delays = figure;");
     mexEvalString("figure(packet_delays);");
     mexEvalString("set(gcf,'numbertitle','off','name','Packet Delay vs Time');");
@@ -100,11 +104,9 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("ylabel('Packet Delay (ms)');");
     mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");    
     spawn_appropriate_legend(false);
-    
-    // Initialize counter
+    // Initialize counter to populate data arrays
     vector_index = 0;
     // Init data pointers
-    // Time
     vector_time = mxGetPr(prhs[0]);
     // Link rates
     lr1 = mxGetPr(prhs[1]);
@@ -130,11 +132,12 @@ void init_graphs(Network * network, const mxArray **prhs) {
     pd1 = mxGetPr(prhs[16]);
     pd2 = mxGetPr(prhs[17]);
     pd3 = mxGetPr(prhs[18]);
-    // Vector size
+    // Read vector size from Matlab side to prevent data overflow
     VECTOR_SIZE = (int) mxGetScalar(prhs[22]);
     mexPrintf("Graph Initilization complete\n");
 }
 
+// Increment the data counter and populate the next iteration of data
 void update_graphs(Network * network, const mxArray **prhs) {
     // Increment time
     vector_index++;
@@ -161,29 +164,30 @@ void update_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("pause(.00001)");
 }
 
+// Update Link Rates
 void update_lrs(Network * network) {
     mexEvalString("figure = link_rates;");
     mexEvalString("axh = findobj( link_rates, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        lr1[vector_index] = network->all_links[0]->get_flowrate()* 8.0 / 1000000.0;
+        lr1[vector_index] = network->all_links[0]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        lr1[vector_index] = network->all_links[1]->get_flowrate()* 8.0 / 1000000.0;
+        lr1[vector_index] = network->all_links[1]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
-        lr2[vector_index] = network->all_links[2]->get_flowrate()* 8.0 / 1000000.0;
+        lr2[vector_index] = network->all_links[2]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        lr1[vector_index] = network->all_links[0]->get_flowrate()* 8.0 / 1000000.0;
+        lr1[vector_index] = network->all_links[0]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
-        lr2[vector_index] = network->all_links[1]->get_flowrate()* 8.0 / 1000000.0;
+        lr2[vector_index] = network->all_links[1]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
-        lr3[vector_index] = network->all_links[2]->get_flowrate()* 8.0 / 1000000.0;
+        lr3[vector_index] = network->all_links[2]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(3), 'XData', time, 'YData', lr3)");
     }
 }   
-
+// Update Buffer Occupancies
 void update_bos(Network * network) {
     mexEvalString("figure = buffer_occupancies;");
     mexEvalString("axh = findobj( buffer_occupancies, 'Type', 'Line' );");  
@@ -206,7 +210,7 @@ void update_bos(Network * network) {
         mexEvalString("set(axh(3), 'XData', time, 'YData', bo3)");
     }
 }
-
+// Update Packet Delays
 void update_pls(Network * network) {
     mexEvalString("figure = packet_losses;");
     mexEvalString("axh = findobj( packet_losses, 'Type', 'Line' );");  
@@ -229,6 +233,7 @@ void update_pls(Network * network) {
         mexEvalString("set(axh(3), 'XData', time, 'YData', pl3)");
     } 
 }
+// Update Flow Rates
 void update_frs(Network * network) {
     mexEvalString("figure = flow_rates;");
     mexEvalString("axh = findobj( flow_rates, 'Type', 'Line' );");  
@@ -249,6 +254,7 @@ void update_frs(Network * network) {
         mexEvalString("set(axh(3), 'XData', time, 'YData', fr3)");
     } 
 }
+// Update Window Sizes
 void update_wss(Network * network) {
     mexEvalString("figure = window_sizes;");
     mexEvalString("axh = findobj( window_sizes, 'Type', 'Line' );");  
@@ -269,27 +275,28 @@ void update_wss(Network * network) {
         mexEvalString("set(axh(3), 'XData', time, 'YData', ws3)");
     } 
 }
+// Update Pakcet Delays
 void update_pds(Network * network) {
     mexEvalString("figure = packet_delays;");
     mexEvalString("axh = findobj( packet_delays, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        pd1[vector_index] = network->all_flows[0]->rtt * 1000.0;
+        pd1[vector_index] = network->all_flows[0]->rtt * ms_per_s;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        pd1[vector_index] = network->all_flows[0]->rtt * 1000.0;
+        pd1[vector_index] = network->all_flows[0]->rtt * ms_per_s;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        pd1[vector_index] = network->all_flows[0]->rtt * 1000.0;;
+        pd1[vector_index] = network->all_flows[0]->rtt * ms_per_s;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
-        pd2[vector_index] = network->all_flows[1]->rtt * 1000.0;;
+        pd2[vector_index] = network->all_flows[1]->rtt * ms_per_s;
         mexEvalString("set(axh(2), 'XData', time, 'YData', pd2)");
-        pd3[vector_index] = network->all_flows[2]->rtt * 1000.0;
+        pd3[vector_index] = network->all_flows[2]->rtt * ms_per_s;
         mexEvalString("set(axh(3), 'XData', time, 'YData', pd3)");
     } 
 }
-// PLOT FINAL POINTS
+// Write a zero to the last element of every data vector for asthetics
 void plot_final_points() {
     
     mexEvalString("figure = link_rates;");
@@ -334,8 +341,6 @@ void plot_final_points() {
         mexEvalString("set(axh(3), 'XData', time, 'YData', pd3)");
     }
 
-
-
     mexEvalString("figure = buffer_occupancies;");
     mexEvalString("axh = findobj( buffer_occupancies, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
@@ -357,8 +362,6 @@ void plot_final_points() {
         mexEvalString("set(axh(3), 'XData', time, 'YData', bo3)");
     }
 
-
-
     mexEvalString("figure = packet_losses;");
     mexEvalString("axh = findobj( packet_losses, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
@@ -379,8 +382,7 @@ void plot_final_points() {
         pl3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', pl3)");
     } 
-
-
+    
     mexEvalString("figure = flow_rates;");
     mexEvalString("axh = findobj( flow_rates, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
@@ -400,7 +402,6 @@ void plot_final_points() {
         mexEvalString("set(axh(3), 'XData', time, 'YData', fr3)");
     } 
 
-
     mexEvalString("figure = window_sizes;");
     mexEvalString("axh = findobj( window_sizes, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
@@ -419,7 +420,6 @@ void plot_final_points() {
         ws3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', ws3)");
     } 
-    
     
     // Flush graphs
     mexEvalString("pause(.00001)");

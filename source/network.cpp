@@ -7,7 +7,6 @@ Network::Network() {
 
 // Network destructor
 Network::~Network() {
-	mexPrintf("Network cleaned up\n");
 	int num_hosts = all_hosts.size();
 	int num_routers = all_routers.size();
 	int num_links = all_links.size();
@@ -24,4 +23,5 @@ Network::~Network() {
 	for(int i = 0; i < num_flows; i++) {
 			delete all_flows[i];
 	}
+	mexPrintf("Network cleaned up\n");
 }
