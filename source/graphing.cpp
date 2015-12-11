@@ -17,20 +17,20 @@ void spawn_appropriate_legend(bool link_graph){
     // If this is a link graph
     if(link_graph == true) {
         if(!strcmp(file_name, "testcase2.txt"))
-            mexEvalString("legend(axh, 'Link 1','Link 2', 'Link 3','Location','northwest');");
+            mexEvalString("legend(axh, 'Link 1','Link 2', 'Link 3','Location','Best');");
         else if(!strcmp(file_name, "testcase1.txt"))
-             mexEvalString("legend(axh(1:2), 'Link 1', 'Link 2','Location','northwest');");
+             mexEvalString("legend(axh(1:2), 'Link 1', 'Link 2','Location','Best');");
         else
-             mexEvalString("legend(axh(1), 'Link 1','Location','northwest');");
+             mexEvalString("legend(axh(1), 'Link 1','Location','Best');");
     }
     // Else this is a flow graph
     else {
         if(!strcmp(file_name, "testcase2.txt")){
-            mexEvalString("legend(axh, 'Flow 1', 'Flow 2', 'Flow 3','Location','northwest');");      }
+            mexEvalString("legend(axh, 'Flow 1', 'Flow 2', 'Flow 3','Location','Best');");      }
         else if(!strcmp(file_name, "testcase1.txt"))
-             mexEvalString("legend(axh(1),'Flow 1','Location','northwest');");
+             mexEvalString("legend(axh(1),'Flow 1','Location','Best');");
         else
-             mexEvalString("legend(axh(1),'Flow 1','Location','northwest');");
+             mexEvalString("legend(axh(1),'Flow 1','Location','Best');");
     }
         
 }

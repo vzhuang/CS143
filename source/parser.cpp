@@ -15,8 +15,8 @@ Node * parse_ip(string token, Network * network) {
 		return network->all_routers[node_number]->get_ip();
 	}
 	else {
-		mexPrintf( "Invalid R/H# token. Unexpected token: %s. Exiting.\n", token.c_str());
-		mexErrMsgTxt("");
+		mexPrintf( "Invalid R/H# token. Unexpected token: %s.\n", token.c_str());
+		mexErrMsgTxt("Exiting\n");
 	}
 }
 	

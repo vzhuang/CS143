@@ -3,9 +3,9 @@ close all;
 clear all;
 
 % File to parse to set up network
-NETWORK_DESCRIPTOR_FILE = 'testcase0.txt';
+NETWORK_DESCRIPTOR_FILE = 'testcase2.txt';
 % Maximum simulation time (s)
-MAX_SIM_TIME = 5;
+MAX_SIM_TIME = 100;
 % 1 for Reno, 2 for Fast
 TCP_ID = 1;
 
