@@ -101,15 +101,6 @@ void Node::print_distance_vector() {
 	}
 }
 
-void Node::set_distance_vector(map<Node *, double> distances) {
-	//
-	for (map<Node *, double>::iterator it = distances.begin(); it != distances.end(); it++) {
-		Node * node = it->first;
-		double distance = it->second;
-		distance_vector[node] = distance;
-	}
-}
-
 /*
 * Constructor for the host subclass
 */
