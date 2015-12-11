@@ -1,5 +1,4 @@
 #include "graphing.hpp"
-#define VECTOR_SIZE 10000
 
 static double * vector_time;
 static double * lr1, * lr2, * lr3;
@@ -9,11 +8,32 @@ static double * fr1, * fr2, * fr3;
 static double * ws1, * ws2, * ws3;
 static double * pd1, * pd2, * pd3;
 static int vector_index;
-
+static int VECTOR_SIZE;
 extern double global_time;
 extern char * file_name;
 
-
+void spawn_appropriate_legend(bool link_graph){
+    mexEvalString("axh = findobj( gcf, 'Type', 'Line' );");  
+    // If this is a link graph
+    if(link_graph == true) {
+        if(!strcmp(file_name, "testcase2.txt"))
+            mexEvalString("legend(axh, 'Link 1','Link 2', 'Link 3','Location','northwest');");
+        else if(!strcmp(file_name, "testcase1.txt"))
+             mexEvalString("legend(axh(1:2), 'Link 1', 'Link 2','Location','northwest');");
+        else
+             mexEvalString("legend(axh(1), 'Link 1','Location','northwest');");
+    }
+    // Else this is a flow graph
+    else {
+        if(!strcmp(file_name, "testcase2.txt")){
+            mexEvalString("legend(axh, 'Flow 1', 'Flow 2', 'Flow 3','Location','northwest');");      }
+        else if(!strcmp(file_name, "testcase1.txt"))
+             mexEvalString("legend(axh(1),'Flow 1','Location','northwest');");
+        else
+             mexEvalString("legend(axh(1),'Flow 1','Location','northwest');");
+    }
+        
+}
 // Init components for all testcases
 void init_graphs(Network * network, const mxArray **prhs) {
     
@@ -21,8 +41,66 @@ void init_graphs(Network * network, const mxArray **prhs) {
     // for network descriptor files that were not shown on the website. 
     if ( (strcmp(file_name, "testcase1.txt") != 0) && 
             (strcmp(file_name, "testcase2.txt") != 0) ) {
-        file_name = "testcase0.txt";
+        file_name = (char *)"testcase0.txt";
     }
+   
+    mexEvalString("link_rates = figure;");
+    mexEvalString("figure(link_rates);");
+    mexEvalString("set(gcf,'numbertitle','off','name','Link Rate vs Time');");
+    mexEvalString("movegui('northwest');");
+    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("xlabel('Time (s)');");
+    mexEvalString("ylabel('Link Rate (Mbps)');");
+    spawn_appropriate_legend(true);
+
+    mexEvalString("buffer_occupancies = figure;");
+    mexEvalString("figure(buffer_occupancies);");
+    mexEvalString("set(gcf,'numbertitle','off','name','Buffer Occupancy vs Time');");
+    mexEvalString("movegui('southwest');");
+    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("xlabel('Time (s)');");
+    mexEvalString("ylabel('Buffer Occupancy (# packets)');");
+    spawn_appropriate_legend(true);
+    
+    mexEvalString("packet_losses = figure;");
+    mexEvalString("figure(packet_losses);");
+    mexEvalString("set(gcf,'numbertitle','off','name','Packet Loss vs Time');");
+    mexEvalString("movegui('north');");
+    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("xlabel('Time (s)');");
+    mexEvalString("ylabel('Packet Loss (# packets)');");
+    spawn_appropriate_legend(true);
+    
+    mexEvalString("flow_rates = figure;");
+    mexEvalString("figure(flow_rates);");
+    mexEvalString("set(gcf,'numbertitle','off','name','Flow Rate vs Time');");
+    mexEvalString("movegui('south');");
+    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("xlabel('Time (s)');");
+    mexEvalString("ylabel('Flow Rate (Mbps)');");
+    mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");
+    spawn_appropriate_legend(false);
+    
+    mexEvalString("window_sizes = figure;");
+    mexEvalString("figure(window_sizes);");
+    mexEvalString("set(gcf,'numbertitle','off','name','Window Size vs Time');");
+    mexEvalString("movegui('northeast');");
+    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("xlabel('Time (s)');");
+    mexEvalString("ylabel('Window Size');");
+    mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");
+    spawn_appropriate_legend(false);
+    
+    mexEvalString("packet_delays = figure;");
+    mexEvalString("figure(packet_delays);");
+    mexEvalString("set(gcf,'numbertitle','off','name','Packet Delay vs Time');");
+    mexEvalString("movegui('southeast');");
+    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("xlabel('Time(s)');");
+    mexEvalString("ylabel('Packet Delay (ms)');");
+    mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");    
+    spawn_appropriate_legend(false);
+    
     // Initialize counter
     vector_index = 0;
     // Init data pointers
@@ -52,7 +130,9 @@ void init_graphs(Network * network, const mxArray **prhs) {
     pd1 = mxGetPr(prhs[16]);
     pd2 = mxGetPr(prhs[17]);
     pd3 = mxGetPr(prhs[18]);
-    mexPrintf("Graph Init complete\n");
+    // Vector size
+    VECTOR_SIZE = (int) mxGetScalar(prhs[22]);
+    mexPrintf("Graph Initilization complete\n");
 }
 
 void update_graphs(Network * network, const mxArray **prhs) {

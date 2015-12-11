@@ -26,10 +26,10 @@ priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, mxArray const *prhs[]) {
     printf("Inside\n");
-	if(nrhs != 21)
+	if(nrhs != 23)
 	{
         mexPrintf("nrhs: %d\n", nrhs);
-		mexPrintf("./proj {data arrays} [network.txt] [double simulation_time (s)] [TCP_ID]\n");
+        mexErrMsgTxt("./proj {data arrays} [network.txt] [double simulation_time (s)] [TCP_ID]\n");
 	}
 	char * network_file = mxArrayToString(prhs[19]);
 	end_time = (double) mxGetScalar(prhs[20]);
