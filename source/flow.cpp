@@ -45,7 +45,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	rtt_min = 1; 
 	rtt_avg = 0;
 	rtt_dev = 0;
-	rtt = 1;
+	rtt = RESEND_TIME; // initialize to arbitrary non-zero value
 	sent_packets.push_back(0);
 	alpha = 25;
 	gamma = 0.8;
