@@ -37,7 +37,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	rtt_dev = 0;
 	rtt = 1000;
 	sent_packets.push_back(0);
-	alpha = 30;
+	alpha = 25;
 	gamma = 0.8;
 }
 

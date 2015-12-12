@@ -41,7 +41,6 @@ Flow_Start_Event::Flow_Start_Event(double start_, int TCP_type_, Flow * flow_)
 
 void Flow_Start_Event::handle_event() {
 	global_time = this->get_start();
-
 	if(TCP_type == TCP_TAHOE) {
 		flow->fast_recovery = false;	   
 	}
@@ -54,7 +53,7 @@ void Flow_Start_Event::handle_event() {
 		flow->fast_recovery = false;
 	    Fast_Update_Event * fast_update =
 			new Fast_Update_Event(
-				1 + FAST_DELAY,
+				global_time + FAST_DELAY,
 				flow);
 		event_queue.push(fast_update);
 	}
