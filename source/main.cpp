@@ -8,7 +8,7 @@
 #include "graphing.hpp"
 #include <vector>
 #include "mex.h"
-#define SAMPLING_RATE 0.06
+#define SAMPLING_RATE 0.1
 #define REFRESH_RATE 5.0
 double global_time;
 double end_time;
