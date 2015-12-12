@@ -25,7 +25,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	window_size = 1;
 	last_ack_received = 1;
 	num_duplicates = 0;
-	ss_threshold = 10000;
+	ss_threshold = 1000;
 	sent = 0;
 	bytes_received = 0;
 	last_bytes_received_query = 0;
@@ -42,10 +42,10 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	
 	time_out = 1;
 	b = 0.25;
-	rtt_min = 1000; 
+	rtt_min = 1; 
 	rtt_avg = 0;
 	rtt_dev = 0;
-	rtt = 1000;
+	rtt = 1;
 	sent_packets.push_back(0);
 	alpha = 25;
 	gamma = 0.8;
@@ -103,7 +103,10 @@ void Flow::receive_ack(Ack_packet * packet) {
 		   	return x <= index; 
 	   	}), sending.end());
 	// recursively compute timeout value
-	rtt = global_time - packet->get_time();
+    if(global_time - packet->get_time() < time_out){
+		rtt = global_time - packet->get_time();
+	}
+	mexPrintf("new rtt: %f, rtt_avg: %f rtt_dev: %f\n", rtt, rtt_avg, rtt_dev);
 	if(rtt < rtt_min){
 		rtt_min = rtt; 
 	}
