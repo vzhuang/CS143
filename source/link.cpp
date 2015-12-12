@@ -1,5 +1,14 @@
-/* Link routines for the data_buffer and link ititialization code */
+/**
+    CS-143 Network Simulator
+    link.cpp
+    Purpose: Contains link routines that are used when a flow transmits
+    data and ack packets between 2 hosts. These routines use the 
+    data buffer of the link. They deal only with with data and ack 
+    packets. 
 
+    @author Jordan Bonilla, Vivian He
+    @version 1.0 12/11/15
+*/
 #include "link.hpp"
 #include "parser.hpp"
 extern Network network;

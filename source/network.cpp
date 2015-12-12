@@ -1,3 +1,12 @@
+/**
+    CS-143 Network Simulator
+    network.cpp
+    Purpose: Encapsulates all Link, Host, Router, and Flow obejcts
+    in a network for organizational purposes.
+
+    @author Vivian He, Jordan Bonilla, Vincent Zhuang
+    @version 1.0 12/11/15
+*/
 #include "network.hpp"
 
 // Network constructor

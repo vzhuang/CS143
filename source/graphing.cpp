@@ -1,3 +1,13 @@
+/**
+    CS-143 Network Simulator
+    graphing.cpp
+    Purpose: Populates Matlab-side data arrays with relevant data
+    from the network simulator so that MATLAB can create plots. 
+
+    @author Jordan Bonilla
+    @version 1.0 12/11/15
+*/
+
 #include "graphing.hpp"
 #define Mb_per_B 8.0 / 1000000.0
 #define ms_per_s 1000.0

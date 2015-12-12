@@ -1,6 +1,6 @@
-
-#ifndef GRAPHING_H
-#define GRAPHING_H
+/* GRAPHING_HPP */
+#ifndef GRAPHING_HPP
+#define GRAPHING_HPP
 #include "network.hpp"
 #include "parser.hpp"
 class Flow;
@@ -22,4 +22,4 @@ void update_wss(Network * network);
 void update_pds(Network * network);
 // Write a zero as the last data value to all graphs
 void plot_final_points();
-#endif  /* GRAPHING_H */
+#endif  /* GRAPHING_HPP */

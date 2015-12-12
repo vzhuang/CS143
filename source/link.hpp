@@ -1,7 +1,4 @@
-/*
- * FILE: link.hpp
- *
- */
+/* LINK_HPP */
 
 #ifndef LINK_HPP
 #define LINK_HPP
@@ -16,7 +13,9 @@
 #include "event.hpp"
 #include <limits>
 #include <vector>
-#define EPSILON .0000000000001
+// Small value used to ensure that link free events occur right before 
+// the link is expected to transmit its next packet.
+#define EPSILON .0000000000001 
 
 class Event;
 class Node;

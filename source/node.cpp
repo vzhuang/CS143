@@ -1,3 +1,13 @@
+/**
+    CS-143 Network Simulator
+    node.cpp
+    Purpose: Creates hosts which are the nodes that receive and transmit
+    packets in the network. Creates router objects which determine how
+    packets move between other routers and hosts. 
+
+    @author Vivian He
+    @version 1.0 12/11/15
+*/
 #include "node.hpp"
 #include "parser.hpp"
 #include "network.hpp"
@@ -154,7 +164,8 @@ void Router::update_routing_table(Rout_packet * r_packet_) {
 	// Distance from current node to router that sent packet
 	double dist_to_rsrc = distance_vector.at(rsrc);
 	// Iterate over nodes in the packet vector
-	for (map<Node *, double>::iterator it = packet_vector.begin(); it != packet_vector.end(); it++) {
+	for (map<Node *, double>::iterator it = packet_vector.begin();
+                    it != packet_vector.end(); it++) {
 		// Destination reachable from rnode and its distance
 		Node * dst = it->first;
 		double dist_from_rsrc = it->second;
@@ -179,7 +190,8 @@ void Router::update_routing_table(Rout_packet * r_packet_) {
 			// If a path of equal length has been found, update next hop to 
 			// the lower-indexed of the two routers
 			else if (dist_to_rsrc + dist_from_rsrc == prev_dist) {
-				if (ip_to_english(&network, routing_table.at(rsrc)) < ip_to_english(&network, routing_table.at(dst))) {
+				if (ip_to_english(&network, routing_table.at(rsrc)) < 
+                        ip_to_english(&network, routing_table.at(dst))) {
 					routing_table[dst] = routing_table.at(rsrc);
 				}
 			}

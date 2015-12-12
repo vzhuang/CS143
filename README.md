@@ -1,5 +1,5 @@
 # CS143
 
-Network simulator with implementations of various TCP congestion-control algorithms
+C++/MATLAB Network simulator with implementations of various TCP congestion-control algorithms
 
-Usage: compile using mex in MATLAB using the provided makefile. Requires a C++ compiler.
+Usage: Compile in MATLAB using the provided script "make.m" (Requires a C++ compiler). Execute "runproj.m" to launch simulation. 

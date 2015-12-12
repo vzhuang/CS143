@@ -1,3 +1,5 @@
+/* FLOW_HPP */
+
 #ifndef FLOW_HPP
 #define FLOW_HPP
 

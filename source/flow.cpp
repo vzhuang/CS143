@@ -1,3 +1,13 @@
+/**
+    CS-143 Network Simulator
+    flow.cpp
+    Purpose: Contains implementations of TCP RENO and FAST TCP for 
+    use in transmitting packets between 2 hosts in the network.
+
+    @author Vincent Zhuang
+    @version 1.0 12/11/15
+*/
+
 #include "flow.hpp"
 #include "parser.hpp"
 extern Network network;

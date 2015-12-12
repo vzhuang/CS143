@@ -1,4 +1,6 @@
-/*
+/* PARSER_HPP */
+
+/**
 Our network simulator takes data in the following form:
 
 Hosts:
@@ -67,5 +69,5 @@ string ip_to_english(Network * network, Node * node);
 // Returns link "L#" as specified by test case diagram
 string link_to_english(Network * network, Link * link);
 
-#endif  /* PARSER_H */
+#endif  /* PARSER_HPP */
 

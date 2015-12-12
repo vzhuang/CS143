@@ -1,5 +1,16 @@
+/**
+    CS-143 Network Simulator
+    packet.cpp
+    Purpose: Creates packet obejcts which are used to transmit data
+    across the network links.
+
+    @author Luciana Cendon, Jordan Bonilla, Vincent Zhuang
+    @version 1.0 12/11/15
+*/
+
+
 #include "packet.hpp"
-/////////////////// Generic Packet Superclass /////////////////////
+/////////////////// Generic Packet Superclass //////////////////////////
 Packet::Packet(Node * source_, 
 	           Node * dest_, 
 	           double size_,
@@ -27,18 +38,17 @@ double Packet::packetSize() {
 }
 
 int Packet::getId() {
-	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 	return -1;
 }
 
 int Packet::get_index() {
-	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 	return -1;
 }	
 
-/////////////// Data Packet /////////////////
+/////////////// Data Packet ////////////////////////////////////////////
 Data_packet::Data_packet(Host * source_, 
-						 Host * dest_, int the_index, Flow * flow_, double time_)
+						 Host * dest_, int the_index, 
+						 Flow * flow_, double time_)
            : Packet(source_, dest_, DATA_SIZE, flow_) {
 	flow = flow_;
 	index = the_index;
@@ -56,7 +66,7 @@ int Data_packet::getId() {
 int Data_packet::get_index() {
 	return index;
 }
-/////////////////// Routing Packet /////////////////////
+/////////////////// Routing Packet /////////////////////////////////////
 Rout_packet::Rout_packet(Node * source_, 
 	                   Node * dest_, 
 	                   map<Node *, double> distance_vector)
@@ -75,7 +85,7 @@ Node * Rout_packet::get_router_source() {
 map<Node *, double> Rout_packet::get_packet_vector() {
 	return packet_vector;
 }
-/////////////////// Ack Packet /////////////////////
+/////////////////// Ack Packet /////////////////////////////////////////
 Ack_packet::Ack_packet(Host * source_, 
 	                  Host * dest_, 
 	                  Flow * flow_,
