@@ -101,15 +101,6 @@ void Node::print_distance_vector() {
 	}
 }
 
-void Node::set_distance_vector(map<Node *, double> distances) {
-	//
-	for (map<Node *, double>::iterator it = distances.begin(); it != distances.end(); it++) {
-		Node * node = it->first;
-		double distance = it->second;
-		distance_vector[node] = distance;
-	}
-}
-
 /*
 * Constructor for the host subclass
 */
@@ -133,7 +124,6 @@ Router::Router()
 * Initialize the routing table without external knowledge of the network.
 */ 
 void Router::init_routing_table() {
-	//cout << "init routing table" << "\n";
 	routing_table.clear();
 	vector<Link *> adj_links = this->get_links();
 	// Initially the router only knows about adjacent nodes.
@@ -156,11 +146,9 @@ void Router::init_routing_table() {
 * Update a routing table dynamically when a routing packet is received.
 */
 void Router::update_routing_table(Rout_packet * r_packet_) {
-	//cout << "update_routing_table" << "\n";
 	Rout_packet * r_packet = r_packet_;
 	// Router and corresponding distance vector from packet
 	Node * rsrc = r_packet->getSource();
-	//cout << "Routing Table: Router " << ip_to_english(&network, this) << " received packet from " << ip_to_english(&network, rsrc) << "\n";
 	map<Node *, double> packet_vector = r_packet->get_packet_vector();
 
 	// Distance from current node to router that sent packet

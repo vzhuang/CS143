@@ -52,7 +52,6 @@ public:
 	void print_distance_vector();
 	// Get the distance vector of the node
 	map<Node *, double> get_distance_vector();
-	void set_distance_vector(map<Node*, double> distance_vector_);
 	// Returns true if the node is a router
 	virtual bool is_router();
 };
