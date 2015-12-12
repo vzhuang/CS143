@@ -385,7 +385,6 @@ void plot_final_points() {
     }
     if (!strcmp(file_name, "testcase1.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
-        mexEvalString("set(axh(2), 'XData', time, 'YData', pd2)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
