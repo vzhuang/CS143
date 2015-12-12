@@ -32,12 +32,12 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	
 	time_out = 1;
 	b = 0.25;
-	rtt_min = 10000; 
+	rtt_min = 1000; 
 	rtt_avg = 0;
 	rtt_dev = 0;
 	rtt = 1000;
 	sent_packets.push_back(0);
-	alpha = 25;
+	alpha = 30;
 	gamma = 0.8;
 }
 
@@ -148,8 +148,7 @@ void Flow::receive_ack(Ack_packet * packet) {
 			}
 			num_duplicates = 0;
 			update_window();
-		}
-				  
+		}				  
     }
 	last_ack_received = packet->get_index();
 }

@@ -20,7 +20,7 @@ class Ack_packet;
 #define TCP_TAHOE 0
 #define TCP_RENO 1
 #define TCP_FAST 2
-#define FAST_DELAY 0.02
+#define FAST_DELAY 0.05
 #define RESEND_TIME 0.01
 #define FAST_RESEND 0.001
 
