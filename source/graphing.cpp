@@ -147,7 +147,6 @@ void update_graphs(Network * network, const mxArray **prhs) {
         mexPrintf("Max data points exceeded\n");
         return;
     }
-
     // Update flowrate
     update_lrs(network);
     // Update buffer occupancy
@@ -296,9 +295,21 @@ void update_pds(Network * network) {
         mexEvalString("set(axh(3), 'XData', time, 'YData', pd3)");
     } 
 }
+
 // Write a zero to the last element of every data vector for asthetics
 void plot_final_points() {
-    
+	// Smooth data for final plot
+    mexEvalString(  "lr1 = smooth(lr1);"
+                    "lr2 = smooth(lr2);"
+                    "lr3 = smooth(lr3);" );
+    mexEvalString(  "bo1 = smooth(bo1);"
+                    "bo2 = smooth(bo2);"
+                    "bo3 = smooth(bo3);" );
+    mexEvalString(  "pd1 = smooth(pd1);"
+                    "pd2 = smooth(pd2);"
+                    "pd3 = smooth(pd3);" );
+                    
+    // Proceed to update graphs
     mexEvalString("figure = link_rates;");
     mexEvalString("axh = findobj( link_rates, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
