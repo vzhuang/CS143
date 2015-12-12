@@ -62,7 +62,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("figure(link_rates);");
     mexEvalString("set(gcf,'numbertitle','off','name','Link Rate vs Time');");
     mexEvalString("movegui('northwest');");
-    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("plot([0], [0], 'g'); hold on; plot([0], [0], 'r');plot([0], [0], 'b');");
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Link Rate (Mbps)');");
     spawn_appropriate_legend(true);
@@ -71,7 +71,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("figure(buffer_occupancies);");
     mexEvalString("set(gcf,'numbertitle','off','name','Buffer Occupancy vs Time');");
     mexEvalString("movegui('southwest');");
-    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("plot([0], [0], 'g'); hold on; plot([0], [0], 'r');plot([0], [0], 'b');");
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Buffer Occupancy (# packets)');");
     spawn_appropriate_legend(true);
@@ -80,7 +80,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("figure(packet_losses);");
     mexEvalString("set(gcf,'numbertitle','off','name','Packet Loss vs Time');");
     mexEvalString("movegui('north');");
-    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("plot([0], [0], 'g'); hold on; plot([0], [0], 'r');plot([0], [0], 'b');");
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Packet Loss (# packets)');");
     spawn_appropriate_legend(true);
@@ -89,7 +89,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("figure(flow_rates);");
     mexEvalString("set(gcf,'numbertitle','off','name','Flow Rate vs Time');");
     mexEvalString("movegui('south');");
-    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("plot([0], [0], 'g'); hold on; plot([0], [0], 'r');plot([0], [0], 'b');");
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Flow Rate (Mbps)');");
     mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");
@@ -99,7 +99,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("figure(window_sizes);");
     mexEvalString("set(gcf,'numbertitle','off','name','Window Size vs Time');");
     mexEvalString("movegui('northeast');");
-    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("plot([0], [0], 'g'); hold on; plot([0], [0], 'r');plot([0], [0], 'b');");
     mexEvalString("xlabel('Time (s)');");
     mexEvalString("ylabel('Window Size');");
     mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");
@@ -109,7 +109,7 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexEvalString("figure(packet_delays);");
     mexEvalString("set(gcf,'numbertitle','off','name','Packet Delay vs Time');");
     mexEvalString("movegui('southeast');");
-    mexEvalString("plot([0], [0], 'g-'); hold on; plot([0], [0], 'r-');plot([0], [0], 'k-');");
+    mexEvalString("plot([0], [0], 'g'); hold on; plot([0], [0], 'r');plot([0], [0], 'b');");
     mexEvalString("xlabel('Time(s)');");
     mexEvalString("ylabel('Packet Delay (ms)');");
     mexEvalString("legend('Flow 3','Flow 2', 'Flow 1','Location','northwest');");    
@@ -306,8 +306,51 @@ void update_pds(Network * network) {
     } 
 }
 
-// Write a zero to the last element of every data vector for asthetics
+// Cut out zeros and call smooth() on vectors for asthetics
 void plot_final_points() {
+
+    // Buffer to dynamically spawn mexEvalString calls
+    char command[50];
+    // Shorten each graph to the length that was actually populated
+    sprintf(command, "time = time(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "lr1 = lr1(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "lr2 = lr2(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "lr3 = lr3(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "pd1 = pd1(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "pd2 = pd2(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "pd3 = pd3(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "bo1 = bo1(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "bo2 = bo2(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "bo3 = bo3(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "pl1 = pl1(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "pl2 = pl2(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "pl3 = pl3(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "ws1 = ws1(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "ws2 = ws2(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "ws3 = ws3(1:%d);", vector_index); 
+    mexEvalString(command);    
+    sprintf(command, "fr1 = fr1(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "fr2 = fr2(1:%d);", vector_index); 
+    mexEvalString(command);
+    sprintf(command, "fr3 = fr3(1:%d);", vector_index); 
+    mexEvalString(command);
+    
 	// Smooth data for final plot
     mexEvalString(  "lr1 = smooth(lr1);"
                     "lr2 = smooth(lr2);"
@@ -323,122 +366,88 @@ void plot_final_points() {
     mexEvalString("figure = link_rates;");
     mexEvalString("axh = findobj( link_rates, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        lr1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        lr1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
-        lr2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        lr1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
-        lr2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
-        lr3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', lr3)");
     }
     
     mexEvalString("figure = packet_delays;");
     mexEvalString("axh = findobj( packet_delays, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        pd1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        pd1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
-        pd2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', pd2)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        pd1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
-        pd2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', pd2)");
-        pd3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', pd3)");
     }
 
     mexEvalString("figure = buffer_occupancies;");
     mexEvalString("axh = findobj( buffer_occupancies, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        bo1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        bo1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
-        bo2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', bo2)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        bo1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
-        bo2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', bo2)");
-        bo3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', bo3)");
     }
 
     mexEvalString("figure = packet_losses;");
     mexEvalString("axh = findobj( packet_losses, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        pl1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        pl1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
-        pl2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        pl1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
-        pl2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
-        pl3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', pl3)");
     } 
     
     mexEvalString("figure = flow_rates;");
     mexEvalString("axh = findobj( flow_rates, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        fr1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        fr1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        fr1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
-        fr2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', fr2)");
-        fr3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', fr3)");
     } 
 
     mexEvalString("figure = window_sizes;");
     mexEvalString("axh = findobj( window_sizes, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        ws1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        ws1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        ws1[vector_index] = 0;
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
-        ws2[vector_index] = 0;
         mexEvalString("set(axh(2), 'XData', time, 'YData', ws2)");
-        ws3[vector_index] = 0;
         mexEvalString("set(axh(3), 'XData', time, 'YData', ws3)");
     } 
     

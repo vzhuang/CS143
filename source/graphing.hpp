@@ -20,6 +20,6 @@ void update_frs(Network * network);
 void update_wss(Network * network);
 // Update packet delays
 void update_pds(Network * network);
-// Write a zero as the last data value to all graphs
+// Clean up final plots
 void plot_final_points();
 #endif  /* GRAPHING_HPP */
