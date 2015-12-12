@@ -1,5 +1,7 @@
-#ifndef NETWORK_H
-#define NETWORK_H
+/* NETWORK_HPP */
+
+#ifndef NETWORK_HPP
+#define NETWORK_HPP
 #include "link.hpp"
 #include "node.hpp"
 #include "flow.hpp"
@@ -16,4 +18,4 @@ public:
     ~Network();
 
 };
-#endif
+#endif /* NETWORK_HPP */

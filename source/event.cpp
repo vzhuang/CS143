@@ -1,3 +1,13 @@
+/**
+    CS-143 Network Simulator
+    event.cpp
+    Purpose: Specifies all events in the network simulation. Revolves
+    around the concept of event driven simulation where the start time
+    of the event is used as its priority in a queue of all events.
+
+    @author Jordan Bonilla, Vincent Zhuang, Vivian He
+    @version 1.0 12/11/15
+*/
 #include "event.hpp"
 #include "parser.hpp"
 #include <assert.h>
@@ -8,7 +18,7 @@ extern double end_time;
 extern int TCP_ID;
 extern Network network;
 
-//////////////////////// GENERIC EVENT SUPERCLASS /////////////////////////
+//////////////////////// GENERIC EVENT SUPERCLASS //////////////////////
 Event::Event(double start_, int event_ID_) {
 	event_ID = event_ID_;
 	start = start_;
@@ -30,7 +40,7 @@ void Event::handle_event() {
 	// VIRTUAL FUNCTION - NEVER CALLED. JUST A TEMPLATE.
 }
 
-/////////////////////////// FLOW EVENTS ///////////////////////////////
+/////////////////////////// FLOW EVENTS ////////////////////////////////
 
 // Flow start event
 Flow_Start_Event::Flow_Start_Event(double start_, int TCP_type_, Flow * flow_)
@@ -80,9 +90,7 @@ void Send_New_Packets_Event::handle_event() {
 	Link * link = source->get_first_link();
 	vector<Data_packet *> to_send = flow->send_packets();
 	for(int i = 0; i < to_send.size(); i++) {
-		//mexPrintf("Attempting to send packet %d\n", to_send[i]->get_index());
 		if(link->add_to_buffer(to_send[i], (Node *) source) == 0) {
-			//mexPrintf("Packet %d will be sent\n", to_send[i]->get_index());
 			Link_Send_Event * event = 
 				new Link_Send_Event(
 					link->earliest_available_time(),
@@ -163,7 +171,8 @@ void Data_Receive_Event::handle_event() {
 
 // Packet receive event
 // occurs when packet is received by a router
-Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Packet * packet_, Link * link_, Node * src_)
+Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_,
+							Packet * packet_, Link * link_, Node * src_)
            : Event(start_, event_ID_) {
 	packet = packet_;
 	link = link_;
@@ -172,10 +181,6 @@ Packet_Receive_Event::Packet_Receive_Event(double start_, int event_ID_, Packet 
 
 void Packet_Receive_Event::handle_event() {
 	global_time = this->get_start();
-	//mexPrintf(" Packet #%d received at the intended router at time (ms): %f\n\n", 
-	// 		packet->get_index(),
-	// 		global_time * 1000.0);
-	// A packet was received during a routing table update (so we want to use routing buffer)
 	if(get_ID() == RSEND_EVENT_ID) {
 		if (link->add_to_buffer_r(packet, src) == 0) {
 			// If successfully added to buffer, create a routing send event (uses routing buffer)
@@ -244,7 +249,7 @@ void Fast_Update_Event::handle_event() {
 	mexPrintf("Fast TCP window size updated to %f\n", flow->window_size);
 }
 
-////////////////////////////// LINK EVENTS ////////////////////////////////////
+////////////////////////////// LINK EVENTS /////////////////////////////
 
 // Link send event
 
@@ -317,7 +322,8 @@ void Link_Send_Routing_Event::handle_event() {
 }										
 
 // Link free event
-Link_Free_Event::Link_Free_Event(double start_, int event_ID_, Link * link_, int direction_)
+Link_Free_Event::Link_Free_Event(double start_, int event_ID_,
+									Link * link_, int direction_)
            : Event(start_, event_ID_) {
 	link = link_;
 	direction = direction_;

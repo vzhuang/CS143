@@ -1,3 +1,12 @@
+/**
+    CS-143 Network Simulator
+    main.cpp
+    Purpose: Mex Entry point for which Matlab can launch the network
+    simulatiuon. 
+
+    @author Vivian He, Jordan Bonilla, Vincent Zhuang
+    @version 1.0 12/11/15
+*/
 #include "node.hpp"
 #include "packet.hpp"
 #include "flow.hpp"
@@ -26,6 +35,7 @@ priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, mxArray const *prhs[]) {
     printf("Inside\n");
+    // This function expects 23 arguments
 	if(nrhs != 23)
 	{
         mexPrintf("nrhs: %d\n", nrhs);
@@ -66,11 +76,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		double refresh_sampler = global_time - prev_routing_query;
 		if(refresh_sampler > REFRESH_RATE) {
 			// Set the distance vector to reflect the most recent link costs
-			cout << "Time: " << global_time << "\n";
 			for (int i = 0; i < network.all_links.size(); i++) {
 				Link * link = network.all_links.at(i);
 				link->set_flowrate();
-				cout << "Cost for link " << link_to_english(&network, link) << ":  "<< link->calculate_cost() << "\n";
 			}
 
 			prev_routing_query = global_time;

@@ -1,4 +1,15 @@
-// Link routines for the routing_buffer
+/**
+    CS-143 Network Simulator
+    link_r.cpp
+    Purpose: Contains link routines that are used when the routing 
+    tables of the network are updated. This segregation from link.cpp
+    is for simplicity and clarity. These routines use the routing buffer
+    of the link rather than the data buffer. They deal only with
+    with routing packets. 
+
+    @author Jordan Bonilla, Vivian He
+    @version 1.0 12/11/15
+*/
 
 #include "link.hpp" 
 #include "parser.hpp"

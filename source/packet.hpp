@@ -1,3 +1,5 @@
+/* PACKET_HPP */
+
 #ifndef PACKET_HPP
 #define PACKET_HPP
 
@@ -24,7 +26,7 @@ class Host;
 
 using namespace std;
 
-/////////////// General Packet Superclass /////////////////
+/////////////// General Packet Superclass //////////////////////////////
 class Packet { 
     Node * source;
     Node * dest;
@@ -41,7 +43,7 @@ public:
 
 };
 
-/////////////// Data Packet /////////////////
+/////////////// Data Packet ////////////////////////////////////////////
 class Data_packet : public Packet {
 	int index;
 	Flow * flow;
@@ -54,7 +56,7 @@ public:
 	int get_index();
 };
 
-/////////////// Routing Packet /////////////////
+/////////////// Routing Packet /////////////////////////////////////////
 class Rout_packet : public Packet {
 	Node * rsrc;
 	map<Node *, double> packet_vector;
@@ -68,7 +70,7 @@ public:
 	
 };
 
-/////////////// Ack Packet /////////////////
+/////////////// Ack Packet /////////////////////////////////////////////
 class Ack_packet : public Packet {
     double time;
 public:

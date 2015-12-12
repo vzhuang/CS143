@@ -1,3 +1,13 @@
+/**
+    CS-143 Network Simulator
+    node.cpp
+    Purpose: Creates hosts which are the nodes that receive and transmit
+    packets in the network. Creates router objects which determine how
+    packets move between other routers and hosts. 
+
+    @author Vivian He
+    @version 1.0 12/11/15
+*/
 #include "node.hpp"
 #include "parser.hpp"
 #include "network.hpp"

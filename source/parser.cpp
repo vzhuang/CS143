@@ -1,3 +1,13 @@
+/**
+    CS-143 Network Simulator
+    parser.cpp
+    Purpose: Parses an input network description file as detailed in
+    parser.hpp.
+
+    @author Jordan Bonilla
+    @version 1.0 12/11/15
+*/
+
 #include "parser.hpp"
 
 char * file_name;
@@ -132,7 +142,7 @@ string ip_to_english(Network * network, Node * node) {
 		}
 	}
 	mexPrintf("FATAL: ip: %lu not in this network\n", (long unsigned int) node);
-	mexErrMsgTxt("");
+	mexErrMsgTxt("Exiting\n");
 }
 
 // Returns link "L#" as specified by test case diagram
@@ -152,5 +162,5 @@ string link_to_english(Network * network, Link * link) {
 		}
 	}
 	mexPrintf("FATAL: link: %lu not in this network\n", (long unsigned int) link);
-	mexErrMsgTxt("");
+	mexErrMsgTxt("Exiting\n.");
 }
