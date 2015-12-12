@@ -37,8 +37,6 @@ ws3 = zeros(1,VECTOR_SIZE);
 pd1 = zeros(1,VECTOR_SIZE);
 pd2 = zeros(1,VECTOR_SIZE);
 pd3 = zeros(1,VECTOR_SIZE);
-% Create buffer for smoothing y data
-sb = zeros(1,VECTOR_SIZE);
     
 proj( time, lr1, lr2, lr3, bo1, bo2, bo3, ...
             pl1, pl2, pl3, fr1, fr2, fr3, ...
