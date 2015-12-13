@@ -35,14 +35,14 @@ double Link::earliest_available_time_r() {
 int Link::add_to_buffer_r(Packet * packet, Node * source) {
 	
 	// If the buffer is full, drop it.
-	if (bytes_stored_r + packet->packetSize() > buffersize) {
+	if (bytes_stored_r + packet->packet_size() > buffersize) {
 		mexPrintf("Routing: Packet dropped attempting to join the buffer on link: %s\n",
 			link_to_english(&network, this).c_str() );
 		return -1;
 	}
 	
 	routing_buffer.push(packet);
-	bytes_stored_r += packet->packetSize();
+	bytes_stored_r += packet->packet_size();
 	packets_stored_r += 1;		
 	Node * endpoint1 = (ep1)->get_ip();
 	Node * endpoint2 = (ep2)->get_ip();
@@ -133,7 +133,7 @@ Packet * Link::transmit_packet_r() {
 	// Packet succesfully sent. Remove transmitted packet from the buffer.
 	routing_buffer.pop();
 	routing_directions.pop();
-	bytes_stored_r -= transmission_packet->packetSize();
+	bytes_stored_r -= transmission_packet->packet_size();
 	packets_stored_r--;
 
 	return transmission_packet;
