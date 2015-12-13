@@ -25,37 +25,37 @@ static int VECTOR_SIZE;
 extern double global_time;
 extern char * file_name;
 
-// Create a Matlab plot legend appropriate for this testcase and data type
+// Create a Matlab plot legend appropriate for this Testcases/testcase and data type
 void spawn_appropriate_legend(bool link_graph){
     mexEvalString("axh = findobj( gcf, 'Type', 'Line' );");  
     // If this is a link graph
     if(link_graph == true) {
-        if(!strcmp(file_name, "testcase2.txt"))
-            mexEvalString("legend(axh, 'Link 1','Link 2', 'Link 3','Location','Best');");
-        else if(!strcmp(file_name, "testcase1.txt"))
-             mexEvalString("legend(axh(1:2), 'Link 1', 'Link 2','Location','Best');");
+        if(!strcmp(file_name, "Testcases/testcase2.txt"))
+            mexEvalString("legend(axh, 'Link 1','Link 2', 'Link 3','Location','northeast');");
+        else if(!strcmp(file_name, "Testcases/testcase1.txt"))
+             mexEvalString("legend(axh(1:2), 'Link 1', 'Link 2','Location','northeast');");
         else
-             mexEvalString("legend(axh(1), 'Link 1','Location','Best');");
+             mexEvalString("legend(axh(1), 'Link 1','Location','northeast');");
     }
     // Else this is a flow graph
     else {
-        if(!strcmp(file_name, "testcase2.txt")){
-            mexEvalString("legend(axh, 'Flow 1', 'Flow 2', 'Flow 3','Location','Best');");      }
-        else if(!strcmp(file_name, "testcase1.txt"))
-             mexEvalString("legend(axh(1),'Flow 1','Location','Best');");
+        if(!strcmp(file_name, "Testcases/testcase2.txt")){
+            mexEvalString("legend(axh, 'Flow 1', 'Flow 2', 'Flow 3','Location','northeast');");      }
+        else if(!strcmp(file_name, "Testcases/testcase1.txt"))
+             mexEvalString("legend(axh(1),'Flow 1','Location','northeast');");
         else
-             mexEvalString("legend(axh(1),'Flow 1','Location','Best');");
+             mexEvalString("legend(axh(1),'Flow 1','Location','northeast');");
     }
         
 }
-// Init components for all testcases
+// Init components for all Testcases/testcases
 void init_graphs(Network * network, const mxArray **prhs) {
     
-    // Monitor link1 and flow1 as in the testcase0 case
+    // Monitor link1 and flow1 as in the Testcases/testcase0 case
     // for network descriptor files that were not shown on the website. 
-    if ( (strcmp(file_name, "testcase1.txt") != 0) && 
-            (strcmp(file_name, "testcase2.txt") != 0) ) {
-        file_name = (char *)"testcase0.txt";
+    if ( (strcmp(file_name, "Testcases/testcase1.txt") != 0) && 
+            (strcmp(file_name, "Testcases/testcase2.txt") != 0) ) {
+        file_name = (char *)"Testcases/testcase0.txt";
     }
     // Create Link Rate graph
     mexEvalString("link_rates = figure;");
@@ -180,17 +180,17 @@ void update_graphs(Network * network, const mxArray **prhs) {
 void update_lrs(Network * network) {
     mexEvalString("figure = link_rates;");
     mexEvalString("axh = findobj( link_rates, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         lr1[vector_index] = network->all_links[0]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         lr1[vector_index] = network->all_links[1]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
         lr2[vector_index] = network->all_links[2]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         lr1[vector_index] = network->all_links[0]->get_flowrate()* Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
         lr2[vector_index] = network->all_links[1]->get_flowrate()* Mb_per_B;
@@ -203,17 +203,17 @@ void update_lrs(Network * network) {
 void update_bos(Network * network) {
     mexEvalString("figure = buffer_occupancies;");
     mexEvalString("axh = findobj( buffer_occupancies, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         bo1[vector_index] = (double) network->all_links[0]->get_packets_stored();
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         bo1[vector_index] = (double)network->all_links[1]->get_packets_stored();
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
         bo2[vector_index] = (double)network->all_links[2]->get_packets_stored();
         mexEvalString("set(axh(2), 'XData', time, 'YData', bo2)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         bo1[vector_index] = (double) network->all_links[0]->get_packets_stored();
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
         bo2[vector_index] = (double) network->all_links[1]->get_packets_stored();
@@ -226,17 +226,17 @@ void update_bos(Network * network) {
 void update_pls(Network * network) {
     mexEvalString("figure = packet_losses;");
     mexEvalString("axh = findobj( packet_losses, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         pl1[vector_index] = (double) network->all_links[0]->get_packets_dropped();
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         pl1[vector_index] = (double)network->all_links[1]->get_packets_dropped();
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
         pl2[vector_index] = (double)network->all_links[2]->get_packets_dropped();
         mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         pl1[vector_index] = (double) network->all_links[0]->get_packets_dropped();
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
         pl2[vector_index] = (double) network->all_links[1]->get_packets_dropped();
@@ -249,15 +249,15 @@ void update_pls(Network * network) {
 void update_frs(Network * network) {
     mexEvalString("figure = flow_rates;");
     mexEvalString("axh = findobj( flow_rates, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         fr1[vector_index] = network->all_flows[0]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         fr1[vector_index] = network->all_flows[0]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         fr1[vector_index] = network->all_flows[0]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
         fr2[vector_index] = network->all_flows[1]->get_flowrate() * Mb_per_B;
@@ -270,15 +270,15 @@ void update_frs(Network * network) {
 void update_wss(Network * network) {
     mexEvalString("figure = window_sizes;");
     mexEvalString("axh = findobj( window_sizes, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         ws1[vector_index] = network->all_flows[0]->window_size;
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         ws1[vector_index] = network->all_flows[0]->window_size;
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         ws1[vector_index] = network->all_flows[0]->window_size;
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
         ws2[vector_index] = network->all_flows[1]->window_size;
@@ -291,15 +291,15 @@ void update_wss(Network * network) {
 void update_pds(Network * network) {
     mexEvalString("figure = packet_delays;");
     mexEvalString("axh = findobj( packet_delays, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         pd1[vector_index] = network->all_flows[0]->rtt * ms_per_s;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         pd1[vector_index] = network->all_flows[0]->rtt * ms_per_s;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         pd1[vector_index] = network->all_flows[0]->rtt * ms_per_s;
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
         pd2[vector_index] = network->all_flows[1]->rtt * ms_per_s;
@@ -368,14 +368,14 @@ void plot_final_points() {
     // Proceed to update graphs
     mexEvalString("figure = link_rates;");
     mexEvalString("axh = findobj( link_rates, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', lr1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', lr2)");
         mexEvalString("set(axh(3), 'XData', time, 'YData', lr3)");
@@ -383,13 +383,13 @@ void plot_final_points() {
     
     mexEvalString("figure = packet_delays;");
     mexEvalString("axh = findobj( packet_delays, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pd1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', pd2)");
         mexEvalString("set(axh(3), 'XData', time, 'YData', pd3)");
@@ -397,14 +397,14 @@ void plot_final_points() {
 
     mexEvalString("figure = buffer_occupancies;");
     mexEvalString("axh = findobj( buffer_occupancies, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', bo2)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', bo1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', bo2)");
         mexEvalString("set(axh(3), 'XData', time, 'YData', bo3)");
@@ -412,14 +412,14 @@ void plot_final_points() {
 
     mexEvalString("figure = packet_losses;");
     mexEvalString("axh = findobj( packet_losses, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', pl1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', pl2)");
         mexEvalString("set(axh(3), 'XData', time, 'YData', pl3)");
@@ -427,13 +427,13 @@ void plot_final_points() {
     
     mexEvalString("figure = flow_rates;");
     mexEvalString("axh = findobj( flow_rates, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', fr2)");
         mexEvalString("set(axh(3), 'XData', time, 'YData', fr3)");
@@ -441,13 +441,13 @@ void plot_final_points() {
 
     mexEvalString("figure = window_sizes;");
     mexEvalString("axh = findobj( window_sizes, 'Type', 'Line' );");  
-    if (!strcmp(file_name, "testcase0.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase0.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
-    if (!strcmp(file_name, "testcase1.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase1.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
     }
-    if (!strcmp(file_name, "testcase2.txt")) {
+    if (!strcmp(file_name, "Testcases/testcase2.txt")) {
         mexEvalString("set(axh(1), 'XData', time, 'YData', ws1)");
         mexEvalString("set(axh(2), 'XData', time, 'YData', ws2)");
         mexEvalString("set(axh(3), 'XData', time, 'YData', ws3)");

@@ -41,12 +41,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
         mexPrintf("nrhs: %d\n", nrhs);
         mexErrMsgTxt("./proj {data arrays} [network.txt] [double simulation_time (s)] [TCP_ID]\n");
 	}
-	char * network_file = mxArrayToString(prhs[19]);
+	
+	char * raw_network_file = mxArrayToString(prhs[19]);      
 	end_time = (double) mxGetScalar(prhs[20]);
 	TCP_ID = (int) mxGetScalar(prhs[21]);
 	
 	// Build network by parsing the input network file
-	build_network(&network, network_file);
+	build_network(&network, raw_network_file);
 
 	// Create an event to update the routing tables before any flows begin
 	Update_Rtables_Event * event = new Update_Rtables_Event(0 - EPSILON, &network);

@@ -250,11 +250,11 @@ Ack_packet * Flow::generate_ack_packet() {
 double Flow::get_flowrate() {
 	double t0 = last_flow_rate_query;
 	double tf = global_time;
-	double bytes0 = last_bytes_received_query;
-	double bytesf = bytes_received;
+	double bytes0 = last_bytes_sent_query;
+	double bytesf = bytes_sent;
 	double bytes = bytesf - bytes0;
 	last_flow_rate_query = global_time;
-	last_bytes_sent_query = bytes_received;
+	last_bytes_sent_query = bytes_sent;
 	return bytes / (tf - t0);	
 }
 
