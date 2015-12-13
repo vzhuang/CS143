@@ -147,7 +147,10 @@ void init_graphs(Network * network, const mxArray **prhs) {
     mexPrintf("Graph Initilization complete\n");
 }
 
-// Increment the data counter and populate the next iteration of data
+// Increment the data counter and populate the next iteration of data.
+// Note that mexEvalString() calls switch control back over to MATLAB and
+// executes the command enclosed in the braces. In this case, mexEvalString
+// calls are used exclusively to update the figure values. 
 void update_graphs(Network * network, const mxArray **prhs) {
     // Increment time
     vector_index++;
