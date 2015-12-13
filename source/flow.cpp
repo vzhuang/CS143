@@ -110,7 +110,7 @@ void Flow::receive_ack(Ack_packet * packet) {
 		   	return x <= index; 
 	   	}), sending.end());
 	// recursively compute timeout value
-    if(global_time - packet->get_time() < time_out){
+    if(global_time - packet->get_time() < time_out and !done){
 		rtt = global_time - packet->get_time();
 	}
 	mexPrintf("new rtt: %f, rtt_avg: %f rtt_dev: %f\n", rtt, rtt_avg, rtt_dev);
