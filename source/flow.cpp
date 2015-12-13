@@ -22,22 +22,20 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	size = data_size_;
 	start = start_;
 	
-	window_size = 1;
-	last_ack_received = 1;
-	num_duplicates = 0;
+	window_size = 1;		
 	ss_threshold = 1000;
-	sent = 0;
-	bytes_received = 0;
-	last_bytes_received_query = 0;
+	bytes_sent = 0;
+	last_bytes_sent_query = 0;
 	next_index = 1;
 	last_flow_rate_query = start;
 	done = false;
-	
+
+	num_duplicates = 0;
+	last_ack_received = 1;
 	to_receive = 1;
 	fast_retransmit = true;
 	fast_recovery = true;
 	in_flight = 0;
-	last_ack_time = 0;
 	max_ack_received = 0;
 	
 	time_out = 1;
@@ -45,8 +43,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	rtt_min = 1; 
 	rtt_avg = 0;
 	rtt_dev = 0;
-	rtt = RESEND_TIME; // initialize to arbitrary non-zero value
-	sent_packets.push_back(0);
+	rtt = 0; 
 	alpha = 25;
 	gamma = 0.8;
 }
@@ -64,8 +61,11 @@ vector<Data_packet *> Flow::send_packets() {
 			send_now.push_back(new_packet);
 			sending.push_back(next_index);
 			in_flight = sending.size();
+			bytes_sent += DATA_SIZE;
 		}
-		next_index++;		
+		if(next_index <= size / DATA_SIZE){
+			next_index++;
+		}		
 	}
 	mexPrintf("after: cwnd: %f inflight: %d\n", window_size, in_flight);
 	return send_now;
@@ -80,6 +80,7 @@ void Flow::receive_data(Data_packet * packet) {
 			bytes_received += DATA_SIZE;
 			if(bytes_received > size){
 				done = true;
+				end();
 			}
 		}	
 		// update expected packet
@@ -94,6 +95,12 @@ void Flow::receive_data(Data_packet * packet) {
 	else{
 		mexPrintf("Wrong packet received");
 	}
+}
+
+// resets variables when flow ends:
+void Flow::end() {
+	rtt = 0;
+	window_size = 0;
 }
 
 // Handles ack packet receipt
@@ -211,16 +218,6 @@ bool Flow::acked_packet(int n){
 	return false;	
 }
 
-// Check if packet has been sent
-bool Flow::sent_packet(int n) {
-	for(int i = 0; i < sent_packets.size(); i++){
-		if(sent_packets[i] == n){
-			return true;
-		}
-	}
-	return false;
-}
-
 // Check if packet has been already been received at destination
 bool Flow::received_packet(int n) {
 	for(int i = 0; i < received.size(); i++){
@@ -244,14 +241,15 @@ Ack_packet * Flow::generate_ack_packet() {
 	return packet; 
 }
 
+// computes flowrate by rate of amount of non-unique bytes being sent
 double Flow::get_flowrate() {
 	double t0 = last_flow_rate_query;
 	double tf = global_time;
-	double bytes0 = last_bytes_received_query;
-	double bytesf = bytes_received;
+	double bytes0 = last_bytes_sent_query;
+	double bytesf = bytes_sent;
 	double bytes = bytesf - bytes0;
 	last_flow_rate_query = global_time;
-	last_bytes_received_query = bytes_received;
+	last_bytes_sent_query = bytes_sent;
 	return bytes / (tf - t0);	
 }
 

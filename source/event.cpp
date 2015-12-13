@@ -115,7 +115,6 @@ Ack_Receive_Event::Ack_Receive_Event(double start_, Ack_packet * ack_)
 
 void Ack_Receive_Event::handle_event() {
 	global_time = this->get_start();
-	ack->getFlow()->last_ack_time = global_time;
 	mexPrintf(" ### Ack #%d received at host: %s at time (ms): %f\n\n", 
 	   ack->get_index(),
 	   ip_to_english(&network, ack->getDest()).c_str(),

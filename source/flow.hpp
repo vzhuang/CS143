@@ -40,22 +40,19 @@ public:
     int to_receive; // next packet expected to receive
     int last_ack_received; // to check for duplicate acks
     vector<int> received; // received packets (by destination) 
-    vector<int> sent_packets;
-    int sent; // amount of bytes sent
     int next_index; // next index to send
-    double bytes_received;
-    double last_bytes_received_query;
+    double bytes_received; // number of unique bytes received
+    double last_bytes_sent_query;
+	int bytes_sent; // total number of non-unique bytes sent
     double window_size; // cwnd
     double last_flow_rate_query; // Time the last flow rate was queried
     double rtt_min; // min RTT observed thus far
     int in_flight; // number of packets in flight
-    double last_ack_time;
     double rtt; // last RTT
     double alpha; // FAST TCP constant
 	double gamma; // FAST TCP constant
-    double beta;
 	int max_ack_received; 
-	vector<int> sending;
+	vector<int> sending; // list of packets currently in flight
 
     bool done; // all packets received?
     bool fast_retransmit; // use fast retransmit?
@@ -65,7 +62,7 @@ public:
     double ss_threshold; // slow start threshold
     double b; // time out calculation parameter
     double rtt_avg; // avg rtt
-    double rtt_dev; // std of rtt
+    double rtt_dev; // std dev of rtt
     
     // headers
 	Flow(Host * source_, Host * dest_, double data_size_, double start_);
@@ -76,13 +73,12 @@ public:
 	vector<Data_packet *> send_packets();
 	void send_data();
 	void update_window();
-    //void reset_flow();
+	void end();
 	Data_packet * generate_packet(int n);
     Ack_packet * generate_ack_packet();
     void receive_data(Data_packet * packet);
     
     bool acked_packet(int num);
-    bool sent_packet(int num);
     bool received_packet(int num);
     void receive_ack(Ack_packet * packet);
     void handle_time_out(int index);

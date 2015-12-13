@@ -7,7 +7,7 @@ NETWORK_DESCRIPTOR_FILE = 'testcase2.txt';
 % Maximum simulation time (s)
 MAX_SIM_TIME = 100;
 % 1 for Reno, 2 for Fast
-TCP_ID = 1;
+TCP_ID = 2;
 
 % Max sixe of data vector. 
 VECTOR_SIZE = 100000;
