@@ -26,6 +26,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	ss_threshold = 1000;
 	bytes_sent = 0;
 	last_bytes_sent_query = 0;
+	last_bytes_received_query = 0;
 	next_index = 1;
 	last_flow_rate_query = start;
 	done = false;
@@ -241,15 +242,15 @@ Ack_packet * Flow::generate_ack_packet() {
 	return packet; 
 }
 
-// computes flowrate by rate of amount of non-unique bytes being sent
+// computes flowrate by rate of amount of non-unique bytes being received
 double Flow::get_flowrate() {
 	double t0 = last_flow_rate_query;
 	double tf = global_time;
-	double bytes0 = last_bytes_sent_query;
-	double bytesf = bytes_sent;
+	double bytes0 = last_bytes_received_query;
+	double bytesf = bytes_received;
 	double bytes = bytesf - bytes0;
 	last_flow_rate_query = global_time;
-	last_bytes_sent_query = bytes_sent;
+	last_bytes_sent_query = bytes_received;
 	return bytes / (tf - t0);	
 }
 
