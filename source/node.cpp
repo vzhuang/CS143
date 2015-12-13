@@ -1,17 +1,8 @@
-/**
-    CS-143 Network Simulator
-    node.cpp
-    Purpose: Creates hosts which are the nodes that receive and transmit
-    packets in the network. Creates router objects which determine how
-    packets move between other routers and hosts. 
-
-    @author Vivian He
-    @version 1.0 12/11/15
-*/
-#include "node.hpp"
-#include "parser.hpp"
-#include "network.hpp"
-
+#include "node.h"
+#include <map>
+#include <vector>
+#include "parser.h"
+#include "network.h"
 extern Network network;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 
@@ -58,8 +49,6 @@ vector<Link *> Node::get_links() {
 */
 Link * Node::get_link(Node * endpoint_) {
 	vector<Link *> links = this->get_links();
-	// Scan adjacent links for the one that connects the node and the 
-	// desired endpoint
 	for (int i = 0; i < links.size(); i++) 
 	{
 		Link * link = links.at(i);
@@ -69,9 +58,9 @@ Link * Node::get_link(Node * endpoint_) {
 		}
 	}
 	
-	mexPrintf("FATAL: Router could not find link to requested endpoint: %s\n",
+	printf("FATAL: Router could not find link to requested endpoint: %s\n",
 		ip_to_english(&network, endpoint_).c_str() );
-	mexErrMsgTxt("");
+	exit(-1);
 }
 
 /**
@@ -103,17 +92,15 @@ map<Node *, double> Node::get_distance_vector() {
 	return distance_vector;
 }
 
-/*
-* USED FOR DEBUGGING: print the distance vector of the node
-*/
+// USED FOR DEBUGGING
 void Node::print_distance_vector() {
 	
 	cout << "Distance vector for source: " << ip_to_english(&network, this) << "\n";
 	for (map<Node *, double>::iterator it=distance_vector.begin(); it!=distance_vector.end(); ++it) {
-		//
 		cout <<"	"<< ip_to_english(&network, it->first) << " " << it->second << "\n";
 	}
 }
+
 
 /*
 * Constructor for the host subclass
@@ -138,6 +125,7 @@ Router::Router()
 * Initialize the routing table without external knowledge of the network.
 */ 
 void Router::init_routing_table() {
+	//cout << "init routing table" << "\n";
 	routing_table.clear();
 	vector<Link *> adj_links = this->get_links();
 	// Initially the router only knows about adjacent nodes.
@@ -156,20 +144,21 @@ void Router::init_routing_table() {
 	}
 }
 
-/**
+/*
 * Update a routing table dynamically when a routing packet is received.
 */
 void Router::update_routing_table(Rout_packet * r_packet_) {
+	//cout << "update_routing_table" << "\n";
 	Rout_packet * r_packet = r_packet_;
 	// Router and corresponding distance vector from packet
-	Node * rsrc = r_packet->getSource();
+	Node * rsrc = r_packet->get_source();
+	//cout << "Routing Table: Router " << ip_to_english(&network, this) << " received packet from " << ip_to_english(&network, rsrc) << "\n";
 	map<Node *, double> packet_vector = r_packet->get_packet_vector();
 
 	// Distance from current node to router that sent packet
 	double dist_to_rsrc = distance_vector.at(rsrc);
 	// Iterate over nodes in the packet vector
-	for (map<Node *, double>::iterator it = packet_vector.begin();
-                    it != packet_vector.end(); it++) {
+	for (map<Node *, double>::iterator it = packet_vector.begin(); it != packet_vector.end(); it++) {
 		// Destination reachable from rnode and its distance
 		Node * dst = it->first;
 		double dist_from_rsrc = it->second;
@@ -194,8 +183,7 @@ void Router::update_routing_table(Rout_packet * r_packet_) {
 			// If a path of equal length has been found, update next hop to 
 			// the lower-indexed of the two routers
 			else if (dist_to_rsrc + dist_from_rsrc == prev_dist) {
-				if (ip_to_english(&network, routing_table.at(rsrc)) < 
-                        ip_to_english(&network, routing_table.at(dst))) {
+				if (ip_to_english(&network, routing_table.at(rsrc)) < ip_to_english(&network, routing_table.at(dst))) {
 					routing_table[dst] = routing_table.at(rsrc);
 				}
 			}
@@ -209,9 +197,7 @@ map<Node *, Node *> Router::get_routing_table() {
 	return routing_table;
 }
 
-/**
-* USED FOR DEBUGGING: Prints the contents of the routing table
-*/
+//USED FOR DEBUGGING: Prints the contents of the routing table
 void Router::print_routing_table() {
 	map<Node *, Node *> rtable = this->get_routing_table();
 	cout << "Routing table for source: " << ip_to_english(&network, this) << "\n";
@@ -228,22 +214,6 @@ void Router::receive_routing_packet(Rout_packet * r_packet_) {
 	Rout_packet * r_packet = r_packet_;
 	// Update the distance vector and routing table
 	this->update_routing_table(r_packet);
-}
-
-/**
-* Used for routing: router sends its distance vector to all known nodes.
-*/
-void Router::send_distance_vector() {
-	// For every node in the routing table, send the distance vector
-	for (map<Node *, Node *>::iterator it=routing_table.begin(); it!=routing_table.end(); ++it) {
-		Node * dest = it->first;
-		Node * next_node = it->second;
-		map<Node *, double> d_vector = this->get_distance_vector();
-		// Create a routing packet with the distance vector
-		Rout_packet r_packet = Rout_packet(this, dest, d_vector);
-		// Find the link associated with the next hop and transmit the packet
-		Link * next_link = this->get_link(next_node);
-	}
 }
 
 /**

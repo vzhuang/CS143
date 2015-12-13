@@ -117,21 +117,21 @@ void Ack_Receive_Event::handle_event() {
 	global_time = this->get_start();
 	mexPrintf(" ### Ack #%d received at host: %s at time (ms): %f\n\n", 
 	   ack->get_index(),
-	   ip_to_english(&network, ack->getDest()).c_str(),
+	   ip_to_english(&network, ack->get_dest()).c_str(),
 	   global_time * 1000.0);
-	ack->getFlow()->receive_ack(ack);
+	ack->get_flow()->receive_ack(ack);
 	if(TCP_ID == TCP_RENO){
 		Send_New_Packets_Event * send =
 			new Send_New_Packets_Event(
 				global_time + RESEND_TIME,
-				ack->getFlow());	
+				ack->get_flow());	
 		event_queue.push(send); 
 	}
 	else if(TCP_ID == TCP_FAST){
 		Send_New_Packets_Event * send =
 		    new Send_New_Packets_Event(
 			    global_time + FAST_RESEND,
-			    ack->getFlow());	
+			    ack->get_flow());	
 	    event_queue.push(send); 
 	}
 	delete ack;		
@@ -147,17 +147,17 @@ void Data_Receive_Event::handle_event() {
 	global_time = this->get_start();
 	mexPrintf(" $$$ Packet #%d received at host: %s at time (ms): %f\n\n", 
 	 		data->get_index(),
-	 		ip_to_english(&network, data->getDest()).c_str(),
+	 		ip_to_english(&network, data->get_dest()).c_str(),
 	 		global_time * 1000.0);
-	data->getFlow()->receive_data(data);
+	data->get_flow()->receive_data(data);
 	 // Create ack packet to send back to source
-	Ack_packet * ack = new Ack_packet((Host *)data->getDest(),
-									(Host *)data->getSource(),
-									data->getFlow(),
-									data->getFlow()->to_receive,
+	Ack_packet * ack = new Ack_packet((Host *)data->get_dest(),
+									(Host *)data->get_source(),
+									data->get_flow(),
+									data->get_flow()->to_receive,
 									data->get_time());
-	Link * link_to_send_ack = ack->getSource()->get_first_link();
-	if(link_to_send_ack->add_to_buffer(ack, ack->getSource()) == 0) {
+	Link * link_to_send_ack = ack->get_source()->get_first_link();
+	if(link_to_send_ack->add_to_buffer(ack, ack->get_source()) == 0) {
 		Link_Send_Event * event = new Link_Send_Event(
 									link_to_send_ack->earliest_available_time(),
 									link_to_send_ack,
@@ -196,7 +196,7 @@ void Packet_Receive_Event::handle_event() {
 			Link_Send_Event * send_event = new Link_Send_Event(
 									link->earliest_available_time(),
 									link,
-									packet->packetSize());
+									packet->packet_size());
 			event_queue.push(send_event);
 		}
 	}
@@ -270,7 +270,7 @@ Link_Send_Event::Link_Send_Event(double start_, Link * link_, double packetsize)
 void Link_Send_Event::handle_event() {
 	global_time = this->get_start();
 	int ind = link->data_buffer.front()->get_index();
-	bool is_ack = (link->data_buffer.front()->getId() == ACK_ID);
+	bool is_ack = (link->data_buffer.front()->get_id() == ACK_ID);
 	Node * endpoint1 = link->get_ep1();
 	Node * endpoint2 = link->get_ep2();
 	if (link->data_directions.front() == - 1) {
@@ -357,7 +357,7 @@ void Rout_Receive_Event::handle_event() {
 	global_time = this->get_start();
 	 mexPrintf(" ROUTING: $$$ Packet #%d received at host: %s at time (ms): %f\n\n", 
 	 		r_packet->get_index(),
-	 		ip_to_english(&network, r_packet->getDest()).c_str(),
+	 		ip_to_english(&network, r_packet->get_dest()).c_str(),
 	 		global_time);
 	// Update the routers' distance vector and routing table
 	router->receive_routing_packet(r_packet);

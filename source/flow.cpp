@@ -78,7 +78,7 @@ vector<Data_packet *> Flow::send_packets() {
 
 // Handles data packet receipt 
 void Flow::receive_data(Data_packet * packet) {
-	if(packet->getSource() == source && packet->getDest() == destination){
+	if(packet->get_source() == source && packet->get_dest() == destination){
 		if(!received_packet(packet->get_index())){
 			received.push_back(packet->get_index());
 			sort(received.begin(), received.end());

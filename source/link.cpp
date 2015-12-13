@@ -72,7 +72,7 @@ void Link::set_flowrate() {
 // Calculate the time (s) it would take to clear an individual packet from the buffer
 double Link::get_packet_delay(Packet * packet)
 {	
-	return packet->packetSize() / capacity;
+	return packet->packet_size() / capacity;
 }
 
 // Calculate the time (s) it would take to clear out everything in the buffer 
@@ -107,7 +107,7 @@ double Link::earliest_available_time() {
    and -1 on failure. */
 int Link::add_to_buffer(Packet * packet, Node * source) {	
 	// If the buffer is full, drop it.
-	if (bytes_stored + packet->packetSize() > buffersize) {
+	if (bytes_stored + packet->packet_size() > buffersize) {
 		mexPrintf("Packet %d dropped attempting to join the buffer on link: %s\n",
 			packet->get_index(),
 			link_to_english(&network, this).c_str() );
@@ -117,8 +117,8 @@ int Link::add_to_buffer(Packet * packet, Node * source) {
 
 	data_buffer.push(packet);
 	newly_added = packet;
-	bytes_stored += packet->packetSize();
-    if(packet->getId() == DATA_ID)
+	bytes_stored += packet->packet_size();
+    if(packet->get_id() == DATA_ID)
         packets_stored += 1;		
 	Node * endpoint1 = (ep1)->get_ip();
 	Node * endpoint2 = (ep2)->get_ip();
@@ -168,7 +168,7 @@ Packet * Link::transmit_packet() {
 	Packet * transmission_packet = data_buffer.front();
 	int direction = data_directions.front();
 	// Create some local variables for clarity
-	Node * dest = transmission_packet->getDest();
+	Node * dest = transmission_packet->get_dest();
 	Node * endpoint1 = ep1->get_ip();
 	Node * endpoint2 = ep2->get_ip();
 	// Determine how long it will take to transmit this packet in seconds.
@@ -183,7 +183,7 @@ Packet * Link::transmit_packet() {
 	
 	// Check if destination is the endpoint of this link
 	if(endpoint2 == dest) {
-		int packet_ID = transmission_packet->getId();
+		int packet_ID = transmission_packet->get_id();
 		// Check if this is an ack packet so that that an Ack_Receive_Event is made
 		if( packet_ID == ACK_ID )
 		{
@@ -219,12 +219,12 @@ Packet * Link::transmit_packet() {
 	// Packet succesfully sent. Remove transmitted packet from the buffer.
 	data_buffer.pop();
 	data_directions.pop();
-	bytes_stored -= transmission_packet->packetSize();
-	if(transmission_packet->getId() == DATA_ID)
+	bytes_stored -= transmission_packet->packet_size();
+	if(transmission_packet->get_id() == DATA_ID)
         packets_stored--;
 
 	// Increment number of packets sent across this link
-	bytes_sent += transmission_packet->packetSize();
+	bytes_sent += transmission_packet->packet_size();
 	return transmission_packet;
 }
 

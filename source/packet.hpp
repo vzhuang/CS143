@@ -34,11 +34,11 @@ class Packet {
     Flow * flow;
 public:
     Packet(Node * source_, Node * dest_, double the_size, Flow * flow_);
-    Node * getDest();
-    Node * getSource();
-    Flow * getFlow();
-    double packetSize();
-    virtual int getId();
+    Node * get_dest();
+    Node * get_source();
+    Flow * get_flow();
+    double packet_size();
+    virtual int get_id();
     virtual int get_index();
 
 };
@@ -52,7 +52,7 @@ public:
 	Data_packet(Host * source_, 
                 Host * dest_, int index_, Flow * flow_, double time_);
     double get_time();
-	int getId();
+	int get_id();
 	int get_index();
 };
 
@@ -64,7 +64,7 @@ public:
 	Rout_packet(Node * source_, 
 		       Node * dest_, 
 		       map<Node *, double> distance_vector);
-	int getId();
+	int get_id();
 	Node * get_router_source();
 	map<Node *, double> get_packet_vector();
 	
@@ -81,7 +81,7 @@ public:
               double time_);
     double get_time();
 	int get_index();
-	int getId();
+	int get_id();
 		
 protected:
 	Flow * my_flow;

@@ -4,7 +4,7 @@
     Purpose: Creates packet obejcts which are used to transmit data
     across the network links.
 
-    @author Luciana Cendon, Jordan Bonilla, Vincent Zhuang
+    @author Luciana Cendon, Jordan Bonilla, Vivian He, Vincent Zhuang
     @version 1.0 12/11/15
 */
 
@@ -21,15 +21,15 @@ Packet::Packet(Node * source_,
 	flow = flow_;
 }
 
-Node * Packet::getDest() {
+Node * Packet::get_dest() {
 	return dest;
 }
 
-Node * Packet::getSource() {
+Node * Packet::get_source() {
 	return source;
 }
 
-Flow * Packet::getFlow() {
+Flow * Packet::get_flow() {
 	return flow;
 }
 
@@ -37,7 +37,7 @@ double Packet::packetSize() {
 	return size;
 }
 
-int Packet::getId() {
+int Packet::get_id() {
 	return -1;
 }
 
@@ -59,7 +59,7 @@ double Data_packet::get_time() {
 	return time;
 }
 
-int Data_packet::getId() {
+int Data_packet::get_id() {
 	return DATA_ID;
 }
 
@@ -74,7 +74,7 @@ Rout_packet::Rout_packet(Node * source_,
 	packet_vector = distance_vector;
 }
 
-int Rout_packet::getId() {
+int Rout_packet::get_id() {
 	return ROUT_ID;
 }
 
@@ -106,6 +106,6 @@ int Ack_packet::get_index() {
 	return index;
 }
 
-int Ack_packet::getId() {
+int Ack_packet::get_id() {
 	return ACK_ID;
 }
