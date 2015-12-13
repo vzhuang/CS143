@@ -25,6 +25,7 @@ Flow::Flow(Host * source_, Host * destination_, double data_size_, double start_
 	window_size = 1;		
 	ss_threshold = 1000;
 	bytes_sent = 0;
+	max_sent = 0;
 	last_bytes_sent_query = 0;
 	last_bytes_received_query = 0;
 	next_index = 1;
@@ -62,7 +63,10 @@ vector<Data_packet *> Flow::send_packets() {
 			send_now.push_back(new_packet);
 			sending.push_back(next_index);
 			in_flight = sending.size();
-			bytes_sent += DATA_SIZE;
+			if(next_index > max_sent){
+				bytes_sent += DATA_SIZE;
+				max_sent = next_index;
+			}			
 		}
 		if(next_index <= size / DATA_SIZE){
 			next_index++;

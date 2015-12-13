@@ -45,6 +45,7 @@ public:
     double last_bytes_sent_query;
 	double last_bytes_received_query;
 	int bytes_sent; // total number of non-unique bytes sent
+	int max_sent;
     double window_size; // cwnd
     double last_flow_rate_query; // Time the last flow rate was queried
     double rtt_min; // min RTT observed thus far
