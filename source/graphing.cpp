@@ -250,19 +250,19 @@ void update_frs(Network * network) {
     mexEvalString("figure = flow_rates;");
     mexEvalString("axh = findobj( flow_rates, 'Type', 'Line' );");  
     if (!strcmp(file_name, "testcase0.txt")) {
-        fr1[vector_index] = network->all_flows[0]->get_flowrate();
+        fr1[vector_index] = network->all_flows[0]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
     if (!strcmp(file_name, "testcase1.txt")) {
-        fr1[vector_index] = network->all_flows[0]->get_flowrate();
+        fr1[vector_index] = network->all_flows[0]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
     }
     if (!strcmp(file_name, "testcase2.txt")) {
-        fr1[vector_index] = network->all_flows[0]->get_flowrate();
+        fr1[vector_index] = network->all_flows[0]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(1), 'XData', time, 'YData', fr1)");
-        fr2[vector_index] = network->all_flows[1]->get_flowrate();
+        fr2[vector_index] = network->all_flows[1]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(2), 'XData', time, 'YData', fr2)");
-        fr3[vector_index] = network->all_flows[2]->get_flowrate();
+        fr3[vector_index] = network->all_flows[2]->get_flowrate() * Mb_per_B;
         mexEvalString("set(axh(3), 'XData', time, 'YData', fr3)");
     } 
 }
