@@ -24,7 +24,6 @@ class Node {
 	// List of links adjacent to Node
 	vector<Link *> links;
 	// Distance vector
-	//map<Node *, double> distance_vector;
 	
 public:
 	map<Node *, double> distance_vector;
@@ -52,7 +51,7 @@ public:
 	void print_distance_vector();
 	// Get the distance vector of the node
 	map<Node *, double> get_distance_vector();
-	// Returns true if the node is a router
+	// Returns true if the node is a router; false otherwise
 	virtual bool is_router();
 };
 
@@ -85,6 +84,7 @@ public:
 	void receive_routing_packet(Rout_packet * r_packet_);
 	// Sends distance vector to all known nodes
 	void send_distance_vector();
+	// Returns true if the node is a router
 	bool is_router();
 };
 

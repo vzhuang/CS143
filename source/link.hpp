@@ -82,8 +82,6 @@ public:
 	// Get the endpoints of the link;
 	Node * get_ep1();
 	Node * get_ep2();
-	// Get vector of both node endpoints of the link
-	vector<Node *> get_endpoints();
 	// Calculate the time (s) it would take to send an individual packet
 	double get_packet_delay(Packet * packet);
 	double get_bytes_stored();

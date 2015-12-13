@@ -96,13 +96,6 @@ double Link::get_bytes_stored() {
 	return bytes_stored;
 }
 
-vector<Node *> Link::get_endpoints() {
-	vector <Node *> endpoints;
-	endpoints.push_back(ep1);
-	endpoints.push_back(ep2);
-	return endpoints;
-}
-
 // Return the earliest time that the newly added packet can be popped from the buffer
 double Link::earliest_available_time() {
 		return max(t_free - get_packet_delay(newly_added),
@@ -240,8 +233,6 @@ Packet * Link::transmit_packet() {
  * dynamic component (flow rate).
  */
 double Link::calculate_cost() {
-
-	// Time to clear queue.
 	return delay + flowrate;
 	
 }

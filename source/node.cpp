@@ -58,6 +58,8 @@ vector<Link *> Node::get_links() {
 */
 Link * Node::get_link(Node * endpoint_) {
 	vector<Link *> links = this->get_links();
+	// Scan adjacent links for the one that connects the node and the 
+	// desired endpoint
 	for (int i = 0; i < links.size(); i++) 
 	{
 		Link * link = links.at(i);
@@ -101,7 +103,9 @@ map<Node *, double> Node::get_distance_vector() {
 	return distance_vector;
 }
 
-// USED FOR DEBUGGING
+/*
+* USED FOR DEBUGGING: print the distance vector of the node
+*/
 void Node::print_distance_vector() {
 	
 	cout << "Distance vector for source: " << ip_to_english(&network, this) << "\n";
@@ -152,7 +156,7 @@ void Router::init_routing_table() {
 	}
 }
 
-/*
+/**
 * Update a routing table dynamically when a routing packet is received.
 */
 void Router::update_routing_table(Rout_packet * r_packet_) {
@@ -205,7 +209,9 @@ map<Node *, Node *> Router::get_routing_table() {
 	return routing_table;
 }
 
-//USED FOR DEBUGGING: Prints the contents of the routing table
+/**
+* USED FOR DEBUGGING: Prints the contents of the routing table
+*/
 void Router::print_routing_table() {
 	map<Node *, Node *> rtable = this->get_routing_table();
 	cout << "Routing table for source: " << ip_to_english(&network, this) << "\n";
