@@ -93,7 +93,7 @@ Packet * Link::transmit_packet_r() {
 	Packet * transmission_packet = routing_buffer.front();
 	int direction = routing_directions.front();
 	// Create some local variables for clarity
-	Node * dest = transmission_packet->getDest();
+	Node * dest = transmission_packet->get_dest();
 	Node * endpoint1 = ep1->get_ip();
 	Node * endpoint2 = ep2->get_ip();
 	// Determine how long it will take to transmit this packet in seconds.

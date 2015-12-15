@@ -1,8 +1,8 @@
-#include "node.h"
+#include "node.hpp"
 #include <map>
 #include <vector>
-#include "parser.h"
-#include "network.h"
+#include "parser.hpp"
+#include "network.hpp"
 extern Network network;
 extern priority_queue<Event *, vector<Event *>, CompareEvents> routing_queue;
 

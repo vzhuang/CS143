@@ -33,7 +33,7 @@ Flow * Packet::get_flow() {
 	return flow;
 }
 
-double Packet::packetSize() {
+double Packet::packet_size() {
 	return size;
 }
 
