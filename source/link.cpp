@@ -23,24 +23,14 @@ Link::Link(double my_cap, Node * my_ep1, Node * my_ep2, double my_delay, double 
 	ep2 = my_ep2;
 	delay = my_delay;
 	buffersize = my_buf;
-	is_free_forward_r = 1;
-	is_free_forward = 1;
-	is_free_reverse_r = 1;
-	is_free_reverse = 1;
 	is_free = 1;
 	is_free_r = 1;
 	bytes_stored = 0;
 	packets_stored = 0;
 	packets_stored_r = 0;
-	t_free_forward = 0.0;
-	t_free_reverse = 0.0;
 	t_free = 0;
 	t_free_r = 0;
-	t_free_forward_r = 0.0;
-	t_free_reverse_r = 0.0;
 	packets_dropped = 0;
-	forward_bytes = 0;
-	reverse_bytes = 0;
 	newly_added = NULL;
 }
 // Get the capacity of the link

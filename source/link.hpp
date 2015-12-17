@@ -97,9 +97,7 @@ public:
     //Get number of packets dropped since last query
     int get_packets_dropped();
 	// Time of most recently assigned data free event
-	double t_free_forward, t_free_reverse, t_free, t_free_r;
-	// Time of most recently assigned routing free event
-	double t_free_forward_r, t_free_reverse_r;
+	double t_free, t_free_r;
 	//Move a data packet to the other side of the link
 	Packet * transmit_packet();
 	//Move a routing packet to the other side of the link
@@ -108,14 +106,9 @@ public:
 	void connect(Node * device1, Node * device2);
 	// Set to 0 for the duration of a packet transmission. 
 	// Freed to 1 during a "free" event that cooresponds to
-	// The duration of a packet transmission. Functions as a link lock. 
-	bool is_free_forward, is_free_reverse;	
 	// Routing routines disregard the data bool. Need their own lock.
-	bool is_free_forward_r, is_free_reverse_r, is_free, is_free_r;	
+	bool is_free, is_free_r;	
 	int packets_dropped;
-	// Bytes stored that are moving in the forward/reverse directions
-	int forward_bytes, reverse_bytes;
-	int forward_bytes_r, reverse_bytes_r;
 	
 };
 
